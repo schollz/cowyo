@@ -92,7 +92,7 @@
       }
 
       // websockets
-      url = 'ws://cowyo.duckdns.org/ws';
+      url = 'ws://{{ .ExternalIP }}/ws';
       c = new WebSocket(url);
 
       send = function(data){
