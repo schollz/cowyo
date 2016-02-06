@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>{{ .Title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="apple-touch-icon" sizes="57x57" href=/static/img/favicon/apple-icon-57x57.png>
+  <link rel="apple-touch-icon" sizes="60x60" href=/static/img/favicon/img/favicon/apple-icon-60x60.png>
+  <link rel="apple-touch-icon" sizes="72x72" href=/static/img/favicon/apple-icon-72x72.png>
+  <link rel="apple-touch-icon" sizes="76x76" href=/static/img/favicon/apple-icon-76x76.png>
+  <link rel="apple-touch-icon" sizes="114x114" href=/static/img/favicon/apple-icon-114x114.png>
+  <link rel="apple-touch-icon" sizes="120x120" href=/static/img/favicon/apple-icon-120x120.png>
+  <link rel="apple-touch-icon" sizes="144x144" href=/static/img/favicon/apple-icon-144x144.png>
+  <link rel="apple-touch-icon" sizes="152x152" href=/static/img/favicon/apple-icon-152x152.png>
+  <link rel="apple-touch-icon" sizes="180x180" href=/static/img/favicon/apple-icon-180x180.png>
+  <link rel="icon" type="image/png" sizes="192x192" href=/static/img/favicon/android-icon-192x192.png>
+  <link rel="icon" type="image/png" sizes="32x32" href=/static/img/favicon/favicon-32x32.png>
+  <link rel="icon" type="image/png" sizes="96x96" href=/static/img/favicon/favicon-96x96.png>
+  <link rel="icon" type="image/png" sizes="16x16" href=/static/img/favicon/favicon-16x16.png>
+  <link rel="manifest" href=/static/img/favicon/manifest.json>
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
+
+  <script src="https://code.jquery.com/jquery-1.8.1.min.js"></script>
+  <script>
+    jQuery.fn.autoGrow = function() {
+      return this.each(function() {
+        var createMirror = function(textarea) {
+          jQuery(textarea).after('<div class="autogrow-textarea-mirror"></div>');
+          return jQuery(textarea).next(".autogrow-textarea-mirror")[0]
+        };
+        var sendContentToMirror = function(textarea) {
+          mirror.innerHTML = String(textarea.value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/ /g, "&nbsp;").replace(/\n/g, "<br />") + ".<br/>.";
+          if (jQuery(textarea).height() != jQuery(mirror).height()) jQuery(textarea).height(jQuery(mirror).height())
+        };
+        var growTextarea = function() {
+          sendContentToMirror(this)
+        };
+        var mirror = createMirror(this);
+        mirror.style.display = "none";
+        mirror.style.wordWrap = "break-word";
+        mirror.style.padding = jQuery(this).css("padding");
+        mirror.style.width = jQuery(this).css("width");
+        mirror.style.fontFamily = jQuery(this).css("font-family");
+        mirror.style.fontSize = jQuery(this).css("font-size");
+        mirror.style.lineHeight = jQuery(this).css("line-height");
+        this.style.overflow = "hidden";
+        this.style.minHeight = this.rows + "em";
+        this.onkeyup = growTextarea;
+        sendContentToMirror(this)
+      })
+    };
+  </script>
+
+
+  <script charset="utf-8" type="text/javascript">
+    $(document).ready(function() {
+      var isTyping = false;
+      var typingTimer; //timer identifier
+      var updateInterval;
+      var doneTypingInterval = 1000; //time in ms, 5 second for example
+
+      //on keyup, start the countdown
+      $('#emit').keyup(function() {
+        clearTimeout(typingTimer);
+        clearInterval(updateInterval);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+      });
+
+      //on keydown, clear the countdown
+      $('#emit').keydown(function() {
+        clearTimeout(typingTimer);
+        clearInterval(updateInterval);
+        document.title = "[UNSAVED] {{ .Title }}";
+      });
+
+      //user is "finished typing," do something
+      function doneTyping() {
+        payload = JSON.stringify({ TextData: $('#emit_data').val(), Title: "{{ .Title }}", UpdateServer: true, UpdateClient: false })
+        send(payload)
+        console.log("Done typing")
+        updateInterval = setInterval(updateText, doneTypingInterval);
+        document.title = "[SAVED] {{ .Title }}";
+      }
+
+      function updateText() {
+        console.log("Getting server's latest copy")
+        payload = JSON.stringify({ TextData: $('#emit_data').val(), Title: "{{ .Title }}", UpdateServer: false, UpdateClient: true })
+        send(payload)
+      }
+
+      // websockets
+      url = 'ws://cowyo.duckdns.org/ws';
+      c = new WebSocket(url);
+
+      send = function(data){
+        console.log("Sending: " + data)
+        c.send(data)
+      }
+
+      c.onmessage = function(msg){
+        console.log(msg)
+        data = JSON.parse(msg.data);
+        if (data.UpdateClient == true) {
+          console.log("Updating...")
+          $('#emit_data').val(data.TextData)
+          document.title = "[LOADED] {{ .Title }}";
+        }
+        console.log(data)
+      }
+
+      c.onopen = function(){
+        updateText();
+        updateInterval = setInterval(updateText, doneTypingInterval);
+      }
+    });
+  </script>
+  <style type="text/css">
+    textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 3px;
+      border: none;
+      overflow: auto;
+      outline: none;
+      font-size: x-large;
+      -webkit-box-shadow: none;
+      -moz-box-shadow: none;
+      box-shadow: none;
+      font-family: Tahoma, sans-serif;
+    }
+  </style>
+
+
+</head>
+
+<body>
+  <form action='#' id="emit" method="post" name="emit">
+
+    <div>
+      <textarea autofocus rows=500 class='auto_submit_item' id="emit_data" name="emit_data" placeholder="Start typing, it will save automatically.
+To reload this note goto cowyo.com/{{ .Title }}
+Do not post anything private, as anyone with the URL may be able to access it.
+Learn more at github.com/schollz/cowyo"></textarea>
+    </div>
+
+  </form>
+  <script>
+    $(document).ready(function() {
+      $("#emit_data").autoGrow();
+    });
+  </script>
+</body>
+
+</html>
