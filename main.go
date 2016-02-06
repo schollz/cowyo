@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"runtime"
 	"time"
@@ -16,6 +17,7 @@ import (
 
 var db *bolt.DB
 var open bool
+var ExternalIP string
 
 func Open() error {
 	var err error
@@ -107,6 +109,10 @@ func (p *CowyoData) decode(data []byte) error {
 }
 
 func main() {
+	if len(os.Args) == 1 {
+		log.Fatal("You need to specify the external IP address")
+	}
+	ExternalIP = os.Args[1]
 	Open()
 	defer Close()
 	r := gin.Default()
@@ -123,7 +129,8 @@ func main() {
 			wshandler(c.Writer, c.Request)
 		} else {
 			c.HTML(http.StatusOK, "index.tmpl", gin.H{
-				"Title": title,
+				"Title":      title,
+				"ExternalIP": ExternalIP,
 			})
 
 		}
