@@ -140,11 +140,14 @@ func deleteListItem(c *gin.Context) {
 		_, listItems := reorderList(p.Text)
 
 		for i, lineString := range listItems {
+			// fmt.Println(i, lineString, lineNum)
 			if i+1 == lineNum {
+				// fmt.Println("MATCHED")
 				if strings.Contains(lineString, "~~") == false {
-					p.Text = strings.Replace(p.Text, lineString[2:]+"\n", "~~"+lineString[2:]+"~~"+"\n", 1)
+					// fmt.Println(p.Text, "("+lineString[2:]+"\n"+")", "~~"+lineString[2:]+"~~"+"\n")
+					p.Text = strings.Replace(p.Text+"\n", lineString[2:]+"\n", "~~"+lineString[2:]+"~~"+"\n", 1)
 				} else {
-					p.Text = strings.Replace(p.Text, lineString[2:]+"\n", lineString[4:len(lineString)-2]+"\n", 1)
+					p.Text = strings.Replace(p.Text+"\n", lineString[2:]+"\n", lineString[4:len(lineString)-2]+"\n", 1)
 				}
 				p.save()
 				break
