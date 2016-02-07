@@ -56,12 +56,12 @@ func serveStaticFile(c *gin.Context, option string) {
 }
 
 func renderMarkdown(c *gin.Context, title string) {
-	p := CowyoData{strings.ToLower(title), ""}
-	err := p.load()
+	var p CowyoData
+	err := p.load(strings.ToLower(title))
 	if err != nil {
 		panic(err)
 	}
-	unsafe := blackfriday.MarkdownCommon([]byte(p.Text))
+	unsafe := blackfriday.MarkdownCommon([]byte(p.CurrentText))
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	html2 := string(html)
 
@@ -126,13 +126,13 @@ func renderList(c *gin.Context, title string) {
 	if strings.ToLower(title) == "about" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
 		c.Redirect(302, "/about/view")
 	}
-	p := CowyoData{strings.ToLower(title), ""}
-	err := p.load()
+	var p CowyoData
+	err := p.load(strings.ToLower(title))
 	if err != nil {
 		panic(err)
 	}
 
-	listItems, _ := reorderList(p.Text)
+	listItems, _ := reorderList(p.CurrentText)
 
 	c.HTML(http.StatusOK, "list.tmpl", gin.H{
 		"Title":     title,
@@ -144,25 +144,25 @@ func deleteListItem(c *gin.Context) {
 	lineNum, err := strconv.Atoi(c.DefaultQuery("lineNum", "None"))
 	title := c.Query("title") // shortcut for c.Request.URL.Query().Get("lastname")
 	if err == nil {
-		p := CowyoData{strings.ToLower(title), ""}
-		err := p.load()
+		var p CowyoData
+		err := p.load(strings.ToLower(title))
 		if err != nil {
 			panic(err)
 		}
 
-		_, listItems := reorderList(p.Text)
-
+		_, listItems := reorderList(p.CurrentText)
+		newText := p.CurrentText
 		for i, lineString := range listItems {
 			// fmt.Println(i, lineString, lineNum)
 			if i+1 == lineNum {
 				// fmt.Println("MATCHED")
 				if strings.Contains(lineString, "~~") == false {
 					// fmt.Println(p.Text, "("+lineString[2:]+"\n"+")", "~~"+lineString[2:]+"~~"+"\n")
-					p.Text = strings.Replace(p.Text+"\n", lineString[2:]+"\n", "~~"+lineString[2:]+"~~"+"\n", 1)
+					newText = strings.Replace(newText+"\n", lineString[2:]+"\n", "~~"+lineString[2:]+"~~"+"\n", 1)
 				} else {
-					p.Text = strings.Replace(p.Text+"\n", lineString[2:]+"\n", lineString[4:len(lineString)-2]+"\n", 1)
+					newText = strings.Replace(newText+"\n", lineString[2:]+"\n", lineString[4:len(lineString)-2]+"\n", 1)
 				}
-				p.save()
+				p.save(newText)
 				break
 			}
 		}

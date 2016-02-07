@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 var db *bolt.DB
@@ -33,11 +34,13 @@ func Close() {
 
 // Data for storing in DB
 type CowyoData struct {
-	Title string
-	Text  string
+	Title       string
+	CurrentText string
+	Diffs       []string
+	Timestamps  []string
 }
 
-func (p *CowyoData) load() error {
+func (p *CowyoData) load(title string) error {
 	if !open {
 		return fmt.Errorf("db must be opened before saving!")
 	}
@@ -47,9 +50,14 @@ func (p *CowyoData) load() error {
 		if b == nil {
 			return nil
 		}
-		k := []byte(p.Title)
+		k := []byte(title)
 		val := b.Get(k)
 		if val == nil {
+			// make new one
+			p.Title = title
+			p.CurrentText = ""
+			p.Diffs = []string{}
+			p.Timestamps = []string{}
 			return nil
 		}
 		err = p.decode(val)
@@ -65,7 +73,7 @@ func (p *CowyoData) load() error {
 	return nil
 }
 
-func (p *CowyoData) save() error {
+func (p *CowyoData) save(newText string) error {
 	if !open {
 		return fmt.Errorf("db must be opened before saving")
 	}
@@ -74,6 +82,13 @@ func (p *CowyoData) save() error {
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
+		// find diffs
+		dmp := diffmatchpatch.New()
+		diffs := dmp.DiffMain(p.CurrentText, newText, true)
+		delta := dmp.DiffToDelta(diffs)
+		p.CurrentText = newText
+		p.Timestamps = append(p.Timestamps, time.Now().String())
+		p.Diffs = append(p.Diffs, delta)
 		enc, err := p.encode()
 		if err != nil {
 			return fmt.Errorf("could not encode CowyoData: %s", err)

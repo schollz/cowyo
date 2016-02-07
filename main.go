@@ -55,9 +55,13 @@ Options:`)
 	defer Close()
 
 	// Default page
-	p := CowyoData{"about", about_page}
-	p.save()
+	p := CowyoData{"about", about_page, []string{}, []string{}}
+	p.save(about_page)
 	fmt.Println(about_page)
+
+	var q CowyoData
+	q.load("SpikySeaSlug")
+	rebuildTexts(q)
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")

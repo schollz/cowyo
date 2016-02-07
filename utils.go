@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 var animals []string
@@ -30,7 +33,7 @@ Be cautious about writing sensitive information in the notes as anyone with the 
 
 Have fun.
 
-**Powered by Raspberry Pi 2** ![jk](http://kodi.tv/wp-content/uploads/DL_Icons_RaspberryPi-new.png)`
+**Powered by Raspberry Pi and Go** ![Raspberry Pi](/static/img/raspberrypi.png) ![Go Mascot](/static/img/gomascot.png)`
 
 }
 
@@ -70,3 +73,28 @@ func contentType(filename string) string {
 }
 
 var about_page string
+
+func diffRebuildtexts(diffs []diffmatchpatch.Diff) []string {
+	text := []string{"", ""}
+	for _, myDiff := range diffs {
+		if myDiff.Type != diffmatchpatch.DiffInsert {
+			text[0] += myDiff.Text
+		}
+		if myDiff.Type != diffmatchpatch.DiffDelete {
+			text[1] += myDiff.Text
+		}
+	}
+	return text
+}
+
+func rebuildTexts(p CowyoData) {
+	dmp := diffmatchpatch.New()
+	current := ""
+	for i, diff := range p.Diffs {
+		seq1, _ := dmp.DiffFromDelta(current, diff)
+		texts_linemode := diffRebuildtexts(seq1)
+		rebuilt := texts_linemode[len(texts_linemode)-1]
+		fmt.Println(i, p.Timestamps[i], rebuilt)
+		current = rebuilt
+	}
+}
