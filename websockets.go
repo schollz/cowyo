@@ -41,15 +41,11 @@ func wshandler(w http.ResponseWriter, r *http.Request) {
 
 		var p CowyoData
 		err = p.load(m.Title)
-		fmt.Println("LOADED")
-		fmt.Println(p)
 		if err != nil {
 			panic(err)
 		}
 		if m.UpdateServer {
 			err := p.save(m.TextData)
-			fmt.Println("SAVED")
-			fmt.Println(p)
 			if err != nil {
 				panic(err)
 			}
