@@ -22,52 +22,23 @@
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
   <meta name="theme-color" content="#ffffff">
-
+  <link rel="stylesheet" type="text/css" href="/static/css/view.css">
   <script src="/static/js/jquery-1.8.1.min.js"></script>
-  <script src="/static/js/jquery.autogrowtextarea.min.js"></script>
-  <script src="/static/js/cowyo.js"></script>
-  <script>
-  external_ip = '{{ .ExternalIP }}'
-  title_name = '{{ .Title }}'
-  </script>
 
-
-
-  <style type="text/css">
-    textarea {
-      width: 100%;
-      margin: 5px 0;
-      padding: 3px;
-      border: none;
-      overflow: auto;
-      outline: none;
-      font-size: large;
-      -webkit-box-shadow: none;
-      -moz-box-shadow: none;
-      box-shadow: none;
-      font-family: Tahoma, sans-serif;
-    }
-  </style>
 
 
 </head>
 
 <body>
-  <form action='#' id="emit" method="post" name="emit">
+  <div class="yue">
+    <ul>
+      {{ range .ListItems }}
+      <li>&nbsp; {{ . }}</li>
+      {{ end }}
+    </ul>
+  </div>
 
-    <div>
-      <textarea autofocus rows=500 class='auto_submit_item' id="emit_data" name="emit_data" placeholder="Start typing, it will save automatically.
-To reload this note goto cowyo.com/{{ .Title }}
-Do not post anything private, as anyone with the URL may be able to access it.
-Learn more at github.com/schollz/cowyo"></textarea>
-    </div>
 
-  </form>
-  <script>
-    $(document).ready(function() {
-      $("#emit_data").autoGrow();
-    });
-  </script>
 </body>
 
 </html>
