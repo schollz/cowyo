@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -150,7 +151,10 @@ func main() {
 
 			unsafe := blackfriday.MarkdownCommon([]byte(p.Text))
 			html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
-			c.Data(200, "text/html", html)
+			c.HTML(http.StatusOK, "view.tmpl", gin.H{
+				"Title": title,
+				"Body":  template.HTML(html),
+			})
 
 		} else {
 			c.Redirect(302, "/"+title)
