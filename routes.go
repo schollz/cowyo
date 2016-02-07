@@ -65,9 +65,13 @@ func renderMarkdown(c *gin.Context, title string) {
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	html2 := string(html)
 
-	r, _ := regexp.Compile("\\$(.*?)\\$")
+	r, _ := regexp.Compile("\\$\\$(.*?)\\$\\$")
 	for _, s := range r.FindAllString(html2, -1) {
-		html2 = strings.Replace(html2, s, "<div class='tex' data-expr='"+s[1:len(s)-1]+"'></div>", 1)
+		html2 = strings.Replace(html2, s, "<div class='texp' data-expr='"+s[2:len(s)-2]+"'></div>", 1)
+	}
+	r, _ = regexp.Compile("\\$(.*?)\\$")
+	for _, s := range r.FindAllString(html2, -1) {
+		html2 = strings.Replace(html2, s, "<div class='texi' data-expr='"+s[1:len(s)-1]+"'></div>", 1)
 	}
 
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
