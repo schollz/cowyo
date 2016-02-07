@@ -3,7 +3,7 @@ $(document).ready(function() {
   var typingTimer; //timer identifier
   var updateInterval;
   var doneTypingInterval = 100; //time in ms, 5 second for example
-
+  var pollToGetNewestCopyInterval = 10000;
   //on keyup, start the countdown
   $('#emit').keyup(function() {
     clearTimeout(typingTimer);
@@ -23,7 +23,7 @@ $(document).ready(function() {
     payload = JSON.stringify({ TextData: $('#emit_data').val(), Title: title_name, UpdateServer: true, UpdateClient: false })
     send(payload)
     console.log("Done typing")
-    updateInterval = setInterval(updateText, doneTypingInterval);
+    updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
     document.title = "[SAVED] " + title_name;
   }
 
@@ -55,6 +55,6 @@ $(document).ready(function() {
 
   c.onopen = function(){
     updateText();
-    updateInterval = setInterval(updateText, doneTypingInterval);
+    updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
   }
 });
