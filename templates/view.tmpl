@@ -45,9 +45,14 @@
 
 <script>
 $( document ).ready(function() {
-  var tex = document.getElementsByClassName("tex");
-  Array.prototype.forEach.call(tex, function(el) {
-      katex.render(el.getAttribute("data-expr"), el);
+  var texi = document.getElementsByClassName("texi");
+  Array.prototype.forEach.call(texi, function(el) {
+      katex.render(el.getAttribute("data-expr"), el, { displayMode: true });
+  });
+
+  var texp = document.getElementsByClassName("texp");
+  Array.prototype.forEach.call(texp, function(el) {
+      katex.render(el.getAttribute("data-expr"), el, { displayMode: false });
   });
 
 });
