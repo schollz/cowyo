@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -62,9 +63,16 @@ func renderMarkdown(c *gin.Context, title string) {
 	}
 	unsafe := blackfriday.MarkdownCommon([]byte(p.Text))
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+	html2 := string(html)
+
+	r, _ := regexp.Compile("\\$(.*?)\\$")
+	for _, s := range r.FindAllString(html2, -1) {
+		html2 = strings.Replace(html2, s, "<div class='tex' data-expr='"+s[1:len(s)-1]+"'></div>", 1)
+	}
+
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
 		"Title": title,
-		"Body":  template.HTML(html),
+		"Body":  template.HTML([]byte(html2)),
 	})
 }
 
