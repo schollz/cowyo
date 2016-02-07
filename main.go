@@ -134,12 +134,9 @@ func main() {
 	})
 	r.GET("/:title", func(c *gin.Context) {
 		title := c.Param("title")
-		fmt.Println("------")
-		fmt.Println("[" + c.ClientIP() + "]")
-		fmt.Println("------")
 		if title == "ws" {
 			wshandler(c.Writer, c.Request)
-		} else if title == "about" && strings.Contains(AllowedIPs, c.ClientIP()) != true {
+		} else if strings.ToLower(title) == "about" && strings.Contains(AllowedIPs, c.ClientIP()) != true {
 			c.Redirect(302, "/about/view")
 		} else {
 			c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -149,11 +146,11 @@ func main() {
 		}
 	})
 	r.GET("/:title/*option", func(c *gin.Context) {
-		title := c.Param("title")
 		option := c.Param("option")
+		title := c.Param("title")
 		fmt.Println(title, "["+option+"]")
 		if option == "/view" {
-			p := CowyoData{title, ""}
+			p := CowyoData{strings.ToLower(title), ""}
 			err := p.load()
 			if err != nil {
 				panic(err)
@@ -206,14 +203,14 @@ func wshandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if m.UpdateServer {
-			p := CowyoData{m.Title, m.TextData}
+			p := CowyoData{strings.ToLower(m.Title), m.TextData}
 			err := p.save()
 			if err != nil {
 				panic(err)
 			}
 		}
 		if m.UpdateClient {
-			p := CowyoData{m.Title, ""}
+			p := CowyoData{strings.ToLower(m.Title), ""}
 			err := p.load()
 			if err != nil {
 				panic(err)
