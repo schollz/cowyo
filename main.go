@@ -135,6 +135,15 @@ func main() {
 
 		}
 	})
+	r.GET("/:title/*option", func(c *gin.Context) {
+		title := c.Param("title")
+		option := c.Param("option")
+		fmt.Println(title, "["+option+"]")
+		if option == "/view" {
+		} else {
+			c.Redirect(302, "/"+title)
+		}
+	})
 
 	r.Run(":12312")
 }
