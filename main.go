@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -21,6 +22,11 @@ import (
 var db *bolt.DB
 var open bool
 var ExternalIP string
+var AllowedIPs string
+
+func init() {
+	AllowedIPs = "192.168.1.13,192.168.1.12"
+}
 
 func Open() error {
 	var err error
@@ -128,14 +134,18 @@ func main() {
 	})
 	r.GET("/:title", func(c *gin.Context) {
 		title := c.Param("title")
+		fmt.Println("------")
+		fmt.Println("[" + c.ClientIP() + "]")
+		fmt.Println("------")
 		if title == "ws" {
 			wshandler(c.Writer, c.Request)
+		} else if title == "about" && strings.Contains(AllowedIPs, c.ClientIP()) != true {
+			c.Redirect(302, "/about/view")
 		} else {
 			c.HTML(http.StatusOK, "index.tmpl", gin.H{
 				"Title":      title,
 				"ExternalIP": ExternalIP,
 			})
-
 		}
 	})
 	r.GET("/:title/*option", func(c *gin.Context) {
