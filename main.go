@@ -42,6 +42,7 @@ run this to start the server and then visit localhost at the port you specify
 Example: 'cowyo localhost'
 Example: 'cowyo -p :8080 localhost'
 Example: 'cowyo -db /var/lib/cowyo/db.bolt localhost'
+Example: 'cowyo -p :8080 -crt ssl/server.crt -key ssl/server.key localhost'
 Options:`)
 		flag.CommandLine.PrintDefaults()
 	}
@@ -64,5 +65,10 @@ Options:`)
 	r.GET("/:title", editNote)
 	r.GET("/:title/*option", everythingElse)
 	r.DELETE("/listitem", deleteListItem)
-	r.Run(RuntimeArgs.Port)
+	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
+		r.RunTLS(RuntimeArgs.Port, RuntimeArgs.ServerCRT, RuntimeArgs.ServerKey)
+	} else {
+		log.Println("No crt/key found, running non-https")
+		r.Run(RuntimeArgs.Port)
+	}
 }
