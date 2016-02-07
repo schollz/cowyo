@@ -70,8 +70,16 @@ margin-top: 0;
 margin-bottom: 1.46em;
 }
 
+.yue a code,
 .yue a {
-color: #111;
+  color: #1E90FF;
+word-wrap: break-word;
+-moz-text-decoration-color: rgba(0, 0, 0, 0.4);
+text-decoration-color: rgba(0, 0, 0, 0.4);
+}
+
+.yue a li {
+color: #555;
 word-wrap: break-word;
 -moz-text-decoration-color: rgba(0, 0, 0, 0.4);
 text-decoration-color: rgba(0, 0, 0, 0.4);
@@ -293,6 +301,7 @@ background: none;
   margin-left: 0;
 }
 }
+
 body {
 margin: 0;
 padding: 0.4em 1em 6em;
