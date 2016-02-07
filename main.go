@@ -13,6 +13,8 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/russross/blackfriday"
 )
 
 var db *bolt.DB
@@ -140,6 +142,16 @@ func main() {
 		option := c.Param("option")
 		fmt.Println(title, "["+option+"]")
 		if option == "/view" {
+			p := CowyoData{title, ""}
+			err := p.load()
+			if err != nil {
+				panic(err)
+			}
+
+			unsafe := blackfriday.MarkdownCommon([]byte(p.Text))
+			html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+			c.Data(200, "text/html", html)
+
 		} else {
 			c.Redirect(302, "/"+title)
 		}
