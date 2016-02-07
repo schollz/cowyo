@@ -7,7 +7,8 @@
   {{ template "header" }}
 
   <link rel="stylesheet" type="text/css" href="/static/css/view.css">
-
+  <link rel="stylesheet" type="text/css" href="/static/css/katex.min.css">
+<script src="/static/js/katex.min.js"></script>
 
 
 </head>
@@ -42,6 +43,17 @@
   </div>
 
 
+<script>
+$( document ).ready(function() {
+  var tex = document.getElementsByClassName("tex");
+  Array.prototype.forEach.call(tex, function(el) {
+      katex.render(el.getAttribute("data-expr"), el);
+  });
+
+});
+
+
+</script>
 </body>
 
 </html>
