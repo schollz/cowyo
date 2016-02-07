@@ -23,7 +23,7 @@ You can also write your notes in [Markdown](https://daringfireball.net/projects/
 
 If you are writing a list and you want to tick off things really easily, just add ` + "`" + `/list` + "`" + `. For example, after editing [` + "`" + `/grocery` + "`" + `](/grocery), goto [` + "`" + `/grocery/list` + "`" + `](/grocery/list). In this page, whatever you click on will be striked through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
-Math is supported using [Katex](https://github.com/Khan/KaTeX). Simple
+Math is supported using [Katex](https://github.com/Khan/KaTeX). For example, ` + "`" + `&#36;\frac{1}{2}&#36;` + "`" + ` becomes $\frac{1}{2}$ and ` + "`" + `&#36;&#36;E=mc^2&#36;&#36;` + "`" + ` becomes $$E=mc^2$$
 
 Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the github](https://github.com/schollz/cowyo).
 

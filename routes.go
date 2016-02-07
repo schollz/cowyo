@@ -74,6 +74,7 @@ func renderMarkdown(c *gin.Context, title string) {
 		html2 = strings.Replace(html2, s, "<span class='texi' data-expr='"+s[1:len(s)-1]+"'></span>", 1)
 	}
 
+	html2 = strings.Replace(html2, "&amp;#36;", "&#36;", -1)
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
 		"Title": title,
 		"Body":  template.HTML([]byte(html2)),
