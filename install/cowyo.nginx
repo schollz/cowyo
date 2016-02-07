@@ -5,13 +5,8 @@ server {
 	access_log /etc/nginx/logs/access-cowyo.log;
 	error_log /etc/nginx/logs/error-cowyo.log info;
 	root /home/phi/Documents/cowyo;
-	server_name cowyo.duckdns.org cowyo.duckdns.org;
+	server_name cowyo.duckdns.org cowyo.com;
         
-	location ^~ /static/  {
-
-        try_files $uri index.html;
-
-        }
  
    location / {
       proxy_set_header X-Real-IP $remote_addr;
