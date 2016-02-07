@@ -27,7 +27,7 @@ func editNote(c *gin.Context) {
 	} else {
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"Title":      title,
-			"ExternalIP": ExternalIP,
+			"ExternalIP": RuntimeArgs.ExternalIP,
 		})
 	}
 }
