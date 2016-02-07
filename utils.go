@@ -35,3 +35,17 @@ func randomAlliterateCombo() (combo string) {
 	}
 	return
 }
+
+func contentType(filename string) string {
+	switch {
+	case strings.Contains(filename, ".css"):
+		return "text/css"
+	case strings.Contains(filename, ".jpg"):
+		return "image/jpeg"
+	case strings.Contains(filename, ".png"):
+		return "image/png"
+	case strings.Contains(filename, ".js"):
+		return "application/javascript"
+	}
+	return "text/html"
+}
