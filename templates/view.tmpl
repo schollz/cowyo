@@ -47,12 +47,12 @@
 $( document ).ready(function() {
   var texi = document.getElementsByClassName("texi");
   Array.prototype.forEach.call(texi, function(el) {
-      katex.render(el.getAttribute("data-expr"), el, { displayMode: true });
+      katex.render(el.getAttribute("data-expr"), el, { displayMode: false });
   });
 
   var texp = document.getElementsByClassName("texp");
   Array.prototype.forEach.call(texp, function(el) {
-      katex.render(el.getAttribute("data-expr"), el, { displayMode: false });
+      katex.render(el.getAttribute("data-expr"), el, { displayMode: true });
   });
 
 });
