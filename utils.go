@@ -17,9 +17,9 @@ func init() {
 
 _...is the Collection of Online Words You Open._
 
-This tool is supposed to make sharing online notes and lists fast and easy. To jot a note, simple just load the page at [` + "`" + `/` + "`" + `](/) and write. The url will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. (You can use any url you want too: [` + "`" + `/AnythingYouWant` + "`" + `](/AnythingYouWant)). No need to press save, it will automatically save when you stop writing.
+This tool is supposed to make sharing online notes and lists fast and easy. To jot a note, simply load the page at [` + "`" + `/` + "`" + `](/) and write. The url will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. (You can use any url you want too: [` + "`" + `/AnythingYouWant` + "`" + `](/AnythingYouWant)). No need to press save, it will automatically save when you stop writing.
 
-You can also write your notes in [Markdown](https://daringfireball.net/projects/markdown/) and then render your page by adding ` + "`" + `/view` + "`" + `. For example, the editable page ` + "`" + `/about` + "`" + ` is rendered at [` + "`" + `/about/view` + "`" + `](/about/view).
+You can also write your notes in [Markdown](https://daringfireball.net/projects/markdown/) and then render your page by adding ` + "`" + `/view` + "`" + `. For example, the page ` + "`" + `/about` + "`" + ` is rendered at [` + "`" + `/about/view` + "`" + `](/about/view).
 
 If you are writing a list and you want to tick off things really easily, just add ` + "`" + `/list` + "`" + `. For example, after editing [` + "`" + `/grocery` + "`" + `](/grocery), goto [` + "`" + `/grocery/list` + "`" + `](/grocery/list). In this page, whatever you click on will be striked through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
