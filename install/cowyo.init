@@ -1,15 +1,14 @@
-
 # This should be placed in /etc/init.d directory
 # start with
-# sudo /etc/init.d/shrib start
+# sudo /etc/init.d/cowyo start
 # stop with
-# sudo /etc/init.d/shrib start
+# sudo /etc/init.d/cowyo start
 
-dir="/home/phi/Documents/cowyo"
-user="phi"
-cmd="./cowyo cowyo.duckdns.org"
+dir="CUR_DIR"
+user="USER"
+cmd="./cowyo EXTERNAL_ADDRESS"
 
-name="cowyo2"
+name="cowyo"
 pid_file="/var/run/$name.pid"
 stdout_log="/var/log/$name.log"
 stderr_log="/var/log/$name.err"
