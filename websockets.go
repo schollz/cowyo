@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -40,7 +41,7 @@ func wshandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var p CowyoData
-		err = p.load(m.Title)
+		err = p.load(strings.ToLower(m.Title))
 		if err != nil {
 			panic(err)
 		}
