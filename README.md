@@ -8,7 +8,7 @@ You can also write your notes in [Markdown](https://daringfireball.net/projects/
 
 If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://cowyo.com/grocery), goto [`/grocery/list`](http://cowyo.com/grocery/list). In this page, whatever you click on will be striked through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
-Math is supported using [Katex](https://github.com/Khan/KaTeX). 
+Math is supported using [Katex](https://github.com/Khan/KaTeX).
 
 Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the github](https://github.com/schollz/cowyo).
 
@@ -16,11 +16,39 @@ Be cautious about writing sensitive information in the notes as anyone with the 
 
 # Install
 
-`go install github.com/schollz/cowyo`
+To get started on your local network just do:
+
+```
+git clone https://github.com/schollz/cowyo.git
+cd cowyo
+make
+./cowyo -p :8001 LOCALIPADDRESS
+```
+
+and then goto the address `http://LOCALIPADDRESS:8001/`
 
 ## Production server
 
-I recommend using `NGINX` as middleware, as it will do caching of the static files for you. There is an example `NGINX` block in `install/`.
+I recommend using `NGINX` as middleware, as it will do caching of the static files for you. There is an example `NGINX` block in `install/`. To automatically install, on Raspberry Pi / Ubuntu / Debian system use:
+
+```
+git clone https://github.com/schollz/cowyo.git
+cd cowyo
+nano Makefile <--- EDIT Makefile to include YOUR EXTERNAL ADDRESS
+make && sudo make install
+```
+
+Now the program starts and stops with
+
+```
+sudo /etc/init.d/cowyo start|stop|restart
+```
+
+Edit your crontab (`sudo crontab -e`) to start on boot:
+
+```
+@reboot /etc/init.d/cowyo start
+```
 
 # Usage
 
