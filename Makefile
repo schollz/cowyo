@@ -4,7 +4,10 @@ PORT = 8001
 CUR_DIR = $(shell bash -c 'pwd')
 USERCUR = $(shell bash -c 'whoami')
 
-all:
+make:
+	go build
+	
+install:
 	rm -rf jinstall
 	mkdir jinstall
 	cp install/cowyo.nginx jinstall/cowyo.nginx
@@ -15,6 +18,7 @@ all:
 	sed -i 's/EXT_ADDRESS/$(ADDRESS)/g'  jinstall/cowyo.init
 	sed -i 's^CUR_DIR^$(CUR_DIR)^g'  jinstall/cowyo.init
 	sed -i 's^USERCUR^$(USERCUR)^g'  jinstall/cowyo.init
+	sed -i 's^PORT^$(PORT)^g'  jinstall/cowyo.init
 	mv jinstall/cowyo.init /etc/init.d/
 	chmod +x /etc/init.d/cowyo.init
 	mv jinstall/cowyo.nginx /etc/nginx/sites-available/cowyo.nginx

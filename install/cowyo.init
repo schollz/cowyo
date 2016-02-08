@@ -6,7 +6,7 @@
 
 dir="CUR_DIR"
 user="USERCUR"
-cmd="./cowyo EXT_ADDRESS"
+cmd="./cowyo -p :PORT EXT_ADDRESS"
 
 name="cowyo"
 pid_file="/var/run/$name.pid"
