@@ -11,6 +11,7 @@ import (
 
 var animals []string
 var adjectives []string
+var robots_txt string
 
 func init() {
 	rand.Seed(time.Now().Unix())
@@ -34,6 +35,9 @@ Be cautious about writing sensitive information in the notes as anyone with the 
 Have fun.
 
 **Powered by Raspberry Pi and Go** ![Raspberry Pi](/static/img/raspberrypi.png) ![Go Mascot](/static/img/gomascot.png)`
+
+	robots_txt = `User-agent: *
+Disallow: /`
 
 }
 
