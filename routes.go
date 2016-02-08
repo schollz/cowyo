@@ -25,10 +25,15 @@ func editNote(c *gin.Context) {
 	} else if strings.ToLower(title) == "about" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
 		c.Redirect(302, "/about/view")
 	} else {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"Title":      title,
-			"ExternalIP": RuntimeArgs.ExternalIP,
-		})
+		locked, _ := hasPassword(title)
+		if locked {
+			c.Redirect(302, "/"+title+"/view")
+		} else {
+			c.HTML(http.StatusOK, "index.tmpl", gin.H{
+				"Title":      title,
+				"ExternalIP": RuntimeArgs.ExternalIP,
+			})
+		}
 	}
 }
 
