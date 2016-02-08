@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -59,7 +58,6 @@ func everythingElse(c *gin.Context) {
 
 func serveStaticFile(c *gin.Context, option string) {
 	staticFile, err := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static") + option)
-	fmt.Println(path.Join(RuntimeArgs.SourcePath, "static"))
 	if err != nil {
 		c.AbortWithStatus(404)
 	} else {
