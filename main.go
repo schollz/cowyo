@@ -26,6 +26,7 @@ var RuntimeArgs struct {
 	DatabaseLocation string
 	ServerCRT        string
 	ServerKey        string
+	SourcePath       string
 }
 
 func main() {
@@ -51,6 +52,7 @@ Options:`)
 	if RuntimeArgs.ExternalIP == "" {
 		log.Fatal("You need to specify the external IP address")
 	}
+	RuntimeArgs.SourcePath = path.Dir(executableFile)
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
 
@@ -63,7 +65,7 @@ Options:`)
 	//rebuildTexts(q)
 
 	r := gin.Default()
-	r.LoadHTMLGlob(path.Join(path.Dir(executableFile), "templates/*"))
+	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
 	r.GET("/", newNote)
 	r.GET("/:title", editNote)
 	r.GET("/:title/*option", everythingElse)
