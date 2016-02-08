@@ -27,6 +27,7 @@ var RuntimeArgs struct {
 	ServerCRT        string
 	ServerKey        string
 	SourcePath       string
+	AdminKey         string
 }
 
 func main() {
@@ -34,6 +35,7 @@ func main() {
 	databaseFile := path.Join(path.Dir(executableFile), "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":12312", "port to bind")
 	flag.StringVar(&RuntimeArgs.DatabaseLocation, "db", databaseFile, "location of database file")
+	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to use admin priveleges")
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
 	flag.CommandLine.Usage = func() {
