@@ -30,8 +30,9 @@ func editNote(c *gin.Context) {
 			c.Redirect(302, "/"+title+"/view")
 		} else {
 			c.HTML(http.StatusOK, "index.tmpl", gin.H{
-				"Title":      title,
-				"ExternalIP": RuntimeArgs.ExternalIP,
+				"Title":       title,
+				"ExternalIP":  RuntimeArgs.ExternalIP,
+				"CurrentText": getCurrentText(title),
 			})
 		}
 	}

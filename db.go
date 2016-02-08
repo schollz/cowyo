@@ -77,6 +77,37 @@ func hasPassword(title string) (bool, error) {
 	return hasPassword, nil
 }
 
+func getCurrentText(title string) string {
+	title = strings.ToLower(title)
+	currentText := ""
+	if !open {
+		return currentText
+	}
+	err := db.View(func(tx *bolt.Tx) error {
+		var err error
+		b := tx.Bucket([]byte("datas"))
+		if b == nil {
+			return fmt.Errorf("db must be opened before loading!")
+		}
+		k := []byte(title)
+		val := b.Get(k)
+		if val == nil {
+			return nil
+		}
+		var p CowyoData
+		err = p.decode(val)
+		if err != nil {
+			return err
+		}
+		currentText = p.CurrentText
+		return nil
+	})
+	if err != nil {
+		fmt.Printf("Could not get CowyoData: %s", err)
+	}
+	return currentText
+}
+
 func (p *CowyoData) load(title string) error {
 	title = strings.ToLower(title)
 	if !open {
