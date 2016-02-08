@@ -22,5 +22,5 @@ all:
 	ln -s /etc/nginx-sites-available/cowyo.nginx /etc/nginx/sites-enabled/cowyo.nginx
 	/etc/init.d/nginx reload
 	/etc/init.d/nginx restart
-	/etc/init.d/cowyo.init start
+	/etc/init.d/cowyo.init restart
 	rm -rf jinstall
