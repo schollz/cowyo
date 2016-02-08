@@ -17,3 +17,27 @@ Be cautious about writing sensitive information in the notes as anyone with the 
 # Install
 
 `go get github.com/schollz/cowyo`
+
+# Usage
+
+```
+$ ./cowyo --help
+cowyo: a websocket notepad
+run this to start the server and then visit localhost at the port you specify
+(see parameters).
+Example: 'cowyo localhost'
+Example: 'cowyo -p :8080 localhost'
+Example: 'cowyo -db /var/lib/cowyo/db.bolt localhost'
+Example: 'cowyo -p :8080 -crt ssl/server.crt -key ssl/server.key localhost'
+Options:
+  -crt string
+        location of ssl crt
+  -db string
+        location of database file (default "/home/mu/cowyo/data.db")
+  -httptest.serve string
+        if non-empty, httptest.NewServer serves on this address and blocks
+  -key string
+        location of ssl key
+  -p string
+        port to bind (default ":12312")```
+```
