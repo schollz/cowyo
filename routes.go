@@ -64,7 +64,6 @@ func renderMarkdown(c *gin.Context, title string) {
 	unsafe := blackfriday.MarkdownCommon([]byte(p.CurrentText))
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	html2 := string(html)
-
 	r, _ := regexp.Compile("\\$\\$(.*?)\\$\\$")
 	for _, s := range r.FindAllString(html2, -1) {
 		html2 = strings.Replace(html2, s, "<span class='texp' data-expr='"+s[2:len(s)-2]+"'></span>", 1)
