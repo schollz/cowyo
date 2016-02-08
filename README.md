@@ -12,7 +12,9 @@ Math is supported using [Katex](https://github.com/Khan/KaTeX).
 
 Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the github](https://github.com/schollz/cowyo).
 
-**Powered by Raspberry Pi and Go** ![Raspberry Pi](http://cowyo.com/static/img/raspberrypi.png) ![Go Mascot](http://cowyo.com/static/img/gomascot.png)
+**Powered by Raspberry Pi, Go, and NGINX**
+
+![Raspberry Pi](/static/img/raspberrypi.png) ![Go Mascot](/static/img/gomascot.png) ![Nginx](/static/img/nginx.png)
 
 # Install
 
@@ -62,6 +64,8 @@ Example: 'cowyo -p :8080 localhost'
 Example: 'cowyo -db /var/lib/cowyo/db.bolt localhost'
 Example: 'cowyo -p :8080 -crt ssl/server.crt -key ssl/server.key localhost'
 Options:
+  -a string
+        key to access admin priveleges (default no admin priveleges)
   -crt string
         location of ssl crt
   -db string
