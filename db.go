@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -40,9 +41,46 @@ type CowyoData struct {
 	Timestamps  []string
 }
 
-func (p *CowyoData) load(title string) error {
+func hasPassword(title string) (bool, error) {
+	title = strings.ToLower(title)
 	if !open {
-		return fmt.Errorf("db must be opened before saving!")
+		return false, fmt.Errorf("db must be opened before loading!")
+	}
+	hasPassword := false
+	err := db.View(func(tx *bolt.Tx) error {
+		var err error
+		b := tx.Bucket([]byte("datas"))
+		if b == nil {
+			return fmt.Errorf("db must be opened before loading!")
+		}
+		k := []byte(title)
+		val := b.Get(k)
+		if val == nil {
+			return nil
+		}
+		var p CowyoData
+		err = p.decode(val)
+		if err != nil {
+			return err
+		}
+		for _, line := range strings.Split(p.CurrentText, "\n") {
+			if strings.Contains(line, "<") == true && strings.Contains(line, ">") == true && strings.Contains(line, "user") == true && strings.Contains(line, "password") == true && strings.Contains(line, "public") == true {
+				hasPassword = true
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		fmt.Printf("Could not get CowyoData: %s", err)
+		return false, err
+	}
+	return hasPassword, nil
+}
+
+func (p *CowyoData) load(title string) error {
+	title = strings.ToLower(title)
+	if !open {
+		return fmt.Errorf("db must be opened before loading!")
 	}
 	err := db.View(func(tx *bolt.Tx) error {
 		var err error
