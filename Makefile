@@ -23,7 +23,7 @@ install:
 	chmod +x /etc/init.d/cowyo.init
 	mv jinstall/cowyo.nginx /etc/nginx/sites-available/cowyo.nginx
 	rm /etc/nginx/sites-enabled/cowyo.nginx
-	ln -s /etc/nginx-sites-available/cowyo.nginx /etc/nginx/sites-enabled/cowyo.nginx
+	ln -fs /etc/nginx/sites-available/cowyo.nginx /etc/nginx/sites-enabled/cowyo.nginx
 	/etc/init.d/nginx reload
 	/etc/init.d/nginx restart
 	/etc/init.d/cowyo.init restart
