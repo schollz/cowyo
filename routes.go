@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
@@ -48,7 +49,14 @@ func everythingElse(c *gin.Context) {
 	option := c.Param("option")
 	title := c.Param("title")
 	if option == "/view" {
-		renderMarkdown(c, title)
+		var p CowyoData
+		err := p.load(strings.ToLower(title))
+		if err != nil {
+			panic(err)
+		}
+		renderMarkdown(c, p.CurrentText, title)
+	} else if option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
+		renderMarkdown(c, listEverything(), "Everything")
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -67,13 +75,8 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, title string) {
-	var p CowyoData
-	err := p.load(strings.ToLower(title))
-	if err != nil {
-		panic(err)
-	}
-	unsafe := blackfriday.MarkdownCommon([]byte(p.CurrentText))
+func renderMarkdown(c *gin.Context, currentText string, title string) {
+	unsafe := blackfriday.MarkdownCommon([]byte(currentText))
 	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
 	html2 := string(html)
 	r, _ := regexp.Compile("\\$\\$(.*?)\\$\\$")
@@ -186,5 +189,20 @@ func deleteListItem(c *gin.Context) {
 			"message": "?",
 		})
 	}
+}
 
+func listEverything() string {
+	everything := ""
+	db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte("datas"))
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			if len(v) > 1 {
+				everything += "- [" + string(k) + "](/" + string(k) + "/view) (" + strconv.Itoa(len(v)) + ")\n"
+			}
+		}
+		return nil
+	})
+	return everything
 }
