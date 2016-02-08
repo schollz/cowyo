@@ -16,8 +16,11 @@ Be cautious about writing sensitive information in the notes as anyone with the 
 
 # Install
 
-
 `go install github.com/schollz/cowyo`
+
+## Production server
+
+I recommend using `NGINX` as middleware, as it will do caching of the static files for you. There is an example `NGINX` block in `install/`.
 
 # Usage
 
