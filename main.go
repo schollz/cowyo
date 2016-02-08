@@ -63,7 +63,7 @@ Options:`)
 	//rebuildTexts(q)
 
 	r := gin.Default()
-	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob(path.Join(path.Dir(executableFile), "templates/*"))
 	r.GET("/", newNote)
 	r.GET("/:title", editNote)
 	r.GET("/:title/*option", everythingElse)
