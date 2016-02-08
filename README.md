@@ -16,12 +16,13 @@ Be cautious about writing sensitive information in the notes as anyone with the 
 
 # Install
 
-`go get github.com/schollz/cowyo`
+
+`go install github.com/schollz/cowyo`
 
 # Usage
 
 ```
-$ ./cowyo --help
+$ cowyo --help
 cowyo: a websocket notepad
 run this to start the server and then visit localhost at the port you specify
 (see parameters).
