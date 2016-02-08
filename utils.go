@@ -29,12 +29,13 @@ If you are writing a list and you want to tick off things really easily, just ad
 
 Math is supported using [Katex](https://github.com/Khan/KaTeX). For example, ` + "`" + `&#36;\frac{1}{2}&#36;` + "`" + ` becomes $\frac{1}{2}$ and ` + "`" + `&#36;&#36;E=mc^2&#36;&#36;` + "`" + ` becomes $$E=mc^2$$
 
-Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the github](https://github.com/schollz/cowyo).
-
+Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the Github](https://github.com/schollz/cowyo). If you'd like help or find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues).
 
 Have fun.
 
-**Powered by Raspberry Pi and Go** ![Raspberry Pi](/static/img/raspberrypi.png) ![Go Mascot](/static/img/gomascot.png)`
+**Powered by Raspberry Pi, Go, and NGINX**
+
+![Raspberry Pi](/static/img/raspberrypi.png) ![Go Mascot](/static/img/gomascot.png) ![Nginx](/static/img/nginx.png)`
 
 	robots_txt = `User-agent: *
 Disallow: /`
