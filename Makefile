@@ -6,7 +6,7 @@ USERCUR = $(shell bash -c 'whoami')
 
 make:
 	go build
-	
+
 install:
 	rm -rf jinstall
 	mkdir jinstall
@@ -28,3 +28,5 @@ install:
 	/etc/init.d/nginx restart
 	/etc/init.d/cowyo.init restart
 	rm -rf jinstall
+
+.PHONY: install
