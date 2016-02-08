@@ -2,7 +2,7 @@ $(document).ready(function() {
   var isTyping = false;
   var typingTimer; //timer identifier
   var updateInterval;
-  var doneTypingInterval = 100; //time in ms, 5 second for example
+  var doneTypingInterval = 500; //time in ms, 5 second for example
   var pollToGetNewestCopyInterval = 10000;
   //on keyup, start the countdown
   $('#emit').keyup(function() {
