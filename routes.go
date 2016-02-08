@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -56,7 +57,7 @@ func everythingElse(c *gin.Context) {
 }
 
 func serveStaticFile(c *gin.Context, option string) {
-	staticFile, err := ioutil.ReadFile("./static" + option)
+	staticFile, err := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static") + option)
 	if err != nil {
 		c.AbortWithStatus(404)
 	} else {
