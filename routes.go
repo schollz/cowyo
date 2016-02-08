@@ -29,10 +29,13 @@ func editNote(c *gin.Context) {
 		if locked {
 			c.Redirect(302, "/"+title+"/view")
 		} else {
+			currentText := getCurrentText(title)
+			numRows := len(strings.Split(currentText, "\n")) + 10
 			c.HTML(http.StatusOK, "index.tmpl", gin.H{
 				"Title":       title,
 				"ExternalIP":  RuntimeArgs.ExternalIP,
-				"CurrentText": getCurrentText(title),
+				"CurrentText": currentText,
+				"NumRows":     numRows,
 			})
 		}
 	}

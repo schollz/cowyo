@@ -73,7 +73,7 @@
   <form action='#' id="emit" method="post" name="emit">
 
     <div>
-      <textarea autofocus rows=500 class='auto_submit_item' id="emit_data" name="emit_data" placeholder="Start typing, it will save automatically.
+      <textarea autofocus rows={{ .NumRows }} class='auto_submit_item' id="emit_data" name="emit_data" placeholder="Start typing, it will save automatically.
 Go to cowyo.com/{{ .Title }} to reload this page.
 Do not post anything private.
 Anyone with the URL can access this note.">{{ .CurrentText }}</textarea>
