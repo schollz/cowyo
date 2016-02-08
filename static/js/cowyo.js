@@ -54,7 +54,7 @@ $(document).ready(function() {
   }
 
   c.onopen = function(){
-    updateText();
+    // updateText();
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
   }
 });
