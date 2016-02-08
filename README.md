@@ -4,7 +4,7 @@ _...is the Collection of Online Words You Open._
 
 This tool is supposed to make sharing online notes and lists fast and easy. To jot a note, simply load the page at [`/`](http://cowyo.com/) and write. The url will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. (You can use any url you want too: [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant)). No need to press save, it will automatically save when you stop writing.
 
-You can also write your notes in [Markdown](https://daringfireball.net/projects/markdown/) and then render your page by adding `/view`. For example, the page `/about` is rendered at [`/about/view`](/about/view).
+You can also write your notes in [Markdown](https://daringfireball.net/projects/markdown/) and then render your page by adding `/view`. For example, the page `/about` is rendered at [`/about/view`](/about/view). _Coming soon: To lock your page, simply add a line with `<user=yourname password=123 public=true>`. This will signal the server to always redirect to `/view`, but will allow one to edit with the correct password. If `public` is set to `false` then the server will also require a password for `/view`._
 
 If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://cowyo.com/grocery), goto [`/grocery/list`](http://cowyo.com/grocery/list). In this page, whatever you click on will be striked through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
