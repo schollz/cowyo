@@ -5,8 +5,8 @@
 # sudo /etc/init.d/cowyo start
 
 dir="CUR_DIR"
-user="USER"
-cmd="./cowyo EXTERNAL_ADDRESS"
+user="USERCUR"
+cmd="./cowyo EXT_ADDRESS"
 
 name="cowyo"
 pid_file="/var/run/$name.pid"

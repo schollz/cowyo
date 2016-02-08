@@ -5,7 +5,7 @@ server {
 	access_log /etc/nginx/logs/access-cowyo.log;
 	error_log /etc/nginx/logs/error-cowyo.log info;
 	root CUR_DIR;
-	server_name EXTERNAL_ADDRESS;
+	server_name ADDRESS;
 
 	# Media: images, icons, video, audio, HTC
 	location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc)$ {
