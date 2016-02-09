@@ -156,7 +156,7 @@ func (p *CowyoData) save(newText string) error {
 		diffs := dmp.DiffMain(p.CurrentText, newText, true)
 		delta := dmp.DiffToDelta(diffs)
 		p.CurrentText = newText
-		p.Timestamps = append(p.Timestamps, time.Now().String())
+		p.Timestamps = append(p.Timestamps, time.Now().Format(time.ANSIC))
 		p.Diffs = append(p.Diffs, delta)
 		enc, err := p.encode()
 		if err != nil {
