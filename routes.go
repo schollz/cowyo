@@ -67,6 +67,9 @@ func everythingElse(c *gin.Context) {
 	if option == "/view" {
 		version := c.DefaultQuery("version", "-1")
 		versionNum, _ := strconv.Atoi(version)
+		if strings.ToLower(title) == "about" {
+			versionNum = -1
+		}
 		currentText, versions, _ := getCurrentText(title, versionNum)
 		renderMarkdown(c, currentText, title, versions)
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
