@@ -77,7 +77,12 @@ func serveStaticFile(c *gin.Context, option string) {
 
 func renderMarkdown(c *gin.Context, currentText string, title string) {
 	unsafe := blackfriday.MarkdownCommon([]byte(currentText))
-	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+	pClean := bluemonday.UGCPolicy()
+	pClean.AllowElements("img")
+	pClean.AllowAttrs("alt").OnElements("img")
+	pClean.AllowAttrs("src").OnElements("img")
+	pClean.AllowDataURIImages()
+	html := pClean.SanitizeBytes(unsafe)
 	html2 := string(html)
 	r, _ := regexp.Compile("\\$\\$(.*?)\\$\\$")
 	for _, s := range r.FindAllString(html2, -1) {
