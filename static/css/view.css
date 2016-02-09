@@ -177,7 +177,11 @@ margin: 0 0 24px 6px;
 padding-left: 16px;
 }
 
-.yue ul {
+.yue ul h2 li {
+list-style-type: none;
+}
+
+.yue ul li {
 list-style-type: square;
 }
 
