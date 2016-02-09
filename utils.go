@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 
@@ -93,13 +94,48 @@ func diffRebuildtexts(diffs []diffmatchpatch.Diff) []string {
 }
 
 func rebuildTexts(p CowyoData) {
+	m := map[int]int{}
 	dmp := diffmatchpatch.New()
-	current := ""
+	lastText := ""
+	lastTime := time.Now().AddDate(0, -1, 0)
 	for i, diff := range p.Diffs {
-		seq1, _ := dmp.DiffFromDelta(current, diff)
+		seq1, _ := dmp.DiffFromDelta(lastText, diff)
 		texts_linemode := diffRebuildtexts(seq1)
 		rebuilt := texts_linemode[len(texts_linemode)-1]
-		fmt.Println(i, p.Timestamps[i], rebuilt)
-		current = rebuilt
+		parsedTime, _ := time.Parse(time.ANSIC, p.Timestamps[i])
+		duration := parsedTime.Sub(lastTime)
+		// fmt.Println(duration.Hours())
+		// fmt.Println("---------------")
+		// fmt.Println(i, p.Timestamps[i])
+		// fmt.Println(i, parsedTime)
+		// fmt.Println(i, lastTime)
+		// fmt.Println(i, duration)
+		// fmt.Println(i, rebuilt)
+		// fmt.Println("---------------")
+		m[i] = int(duration.Seconds())
+		if i > 0 {
+			m[i-1] = m[i]
+		}
+		// On to the next one
+		lastText = rebuilt
+		lastTime = parsedTime
 	}
+	fmt.Println(m)
+	n := map[int][]int{}
+	var a []int
+	for k, v := range m {
+		n[v] = append(n[v], k)
+	}
+	for k := range n {
+		a = append(a, k)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(a)))
+	for _, k := range a {
+		for _, s := range n[k] {
+			if s != 0 && s != len(n) {
+				fmt.Printf("%d, %d\n", s, k)
+			}
+		}
+	}
+
 }

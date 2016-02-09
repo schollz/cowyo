@@ -21,7 +21,7 @@
     textarea {
       width: 100%;
       margin: 5px 0;
-      padding: 20px;
+      padding: 10px;
       border: none;
       overflow: auto;
       outline: none;
@@ -72,10 +72,7 @@
   <form action='#' id="emit" method="post" name="emit">
 
     <div>
-      <textarea autofocus rows={{ .NumRows }} class='auto_submit_item' id="emit_data" name="emit_data" placeholder="Start typing, it will save automatically.
-Go to cowyo.com/{{ .Title }} to reload this page.
-Do not post anything private.
-Anyone with the URL can access this note.">{{ .CurrentText }}</textarea>
+      <textarea autofocus rows={{ .NumRows }} class='auto_submit_item' id="emit_data" name="emit_data" placeholder="Start typing, it will save automatically. Go to cowyo.com/{{ .Title }} to reload your note. Do not post anything private since anyone with the URL can access this note.">{{ .CurrentText }}</textarea>
     </div>
 
   </form>

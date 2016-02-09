@@ -62,9 +62,9 @@ Options:`)
 	p := CowyoData{"about", about_page, []string{}, []string{}}
 	p.save(about_page)
 
-	//var q CowyoData
-	//q.load("SpikySeaSlug")
-	//rebuildTexts(q)
+	var q CowyoData
+	q.load("SpikySeaSlug2")
+	rebuildTexts(q)
 
 	r := gin.Default()
 	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
