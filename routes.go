@@ -65,14 +65,12 @@ func everythingElse(c *gin.Context) {
 	option := c.Param("option")
 	title := c.Param("title")
 	if option == "/view" {
-		var p CowyoData
-		err := p.load(strings.ToLower(title))
-		if err != nil {
-			panic(err)
-		}
-		renderMarkdown(c, p.CurrentText, title)
+		version := c.DefaultQuery("version", "-1")
+		versionNum, _ := strconv.Atoi(version)
+		currentText, versions, _ := getCurrentText(title, versionNum)
+		renderMarkdown(c, currentText, title, versions)
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "Everything")
+		renderMarkdown(c, listEverything(), "ls", nil)
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -91,7 +89,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo) {
 	fmt.Println(currentText)
 	unsafe := blackfriday.MarkdownCommon([]byte(currentText))
 	fmt.Println(string(unsafe))
@@ -113,8 +111,9 @@ func renderMarkdown(c *gin.Context, currentText string, title string) {
 
 	html2 = strings.Replace(html2, "&amp;#36;", "&#36;", -1)
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
-		"Title": title,
-		"Body":  template.HTML([]byte(html2)),
+		"Title":    title,
+		"Body":     template.HTML([]byte(html2)),
+		"Versions": versions,
 	})
 }
 
