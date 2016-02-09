@@ -177,12 +177,8 @@ margin: 0 0 24px 6px;
 padding-left: 16px;
 }
 
-.yue ul h2 li {
+.yue a li {
 list-style-type: none;
-}
-
-.yue ul li {
-list-style-type: square;
 }
 
 .yue ol {
@@ -198,10 +194,6 @@ margin-bottom: 0.2em;
 margin-top: 0;
 margin-bottom: 0;
 margin-left: 14px;
-}
-
-.yue li ul {
-list-style-type: disc;
 }
 
 .yue li ul ul {
