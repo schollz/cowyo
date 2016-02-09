@@ -64,7 +64,7 @@ Options:`)
 
 	var q CowyoData
 	q.load("SpikySeaSlug2")
-	rebuildTexts(q)
+	fmt.Println(getImportantVersions(q))
 
 	r := gin.Default()
 	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
