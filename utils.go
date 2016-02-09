@@ -137,7 +137,7 @@ func getImportantVersions(p CowyoData) []versionsInfo {
 			if s != 0 && s != len(n) {
 				fmt.Printf("%d, %d\n", s, k)
 				importantVersions = append(importantVersions, s)
-				if len(importantVersions) > 3 {
+				if len(importantVersions) > 10 {
 					sort.Ints(importantVersions)
 					for _, nn := range importantVersions {
 						r = append(r, versionsInfo{p.Timestamps[nn], nn})
