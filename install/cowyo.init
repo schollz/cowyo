@@ -1,3 +1,15 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          cowyo
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start daemon at boot time
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
 # This should be placed in /etc/init.d directory
 # start with
 # sudo /etc/init.d/cowyo start
