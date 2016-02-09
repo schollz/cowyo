@@ -33,7 +33,7 @@ func Close() {
 	db.Close()
 }
 
-// Data for storing in DB
+// CowyoData is data for storing in DB
 type CowyoData struct {
 	Title       string
 	CurrentText string
@@ -44,14 +44,14 @@ type CowyoData struct {
 func hasPassword(title string) (bool, error) {
 	title = strings.ToLower(title)
 	if !open {
-		return false, fmt.Errorf("db must be opened before loading!")
+		return false, fmt.Errorf("db must be opened before loading")
 	}
 	hasPassword := false
 	err := db.View(func(tx *bolt.Tx) error {
 		var err error
 		b := tx.Bucket([]byte("datas"))
 		if b == nil {
-			return fmt.Errorf("db must be opened before loading!")
+			return fmt.Errorf("db must be opened before loading")
 		}
 		k := []byte(title)
 		val := b.Get(k)
@@ -77,17 +77,19 @@ func hasPassword(title string) (bool, error) {
 	return hasPassword, nil
 }
 
-func getCurrentText(title string) string {
+func getCurrentText(title string, version int) (string, []versionsInfo, bool) {
 	title = strings.ToLower(title)
+	var vi []versionsInfo
+	isCurrent := true
 	currentText := ""
 	if !open {
-		return currentText
+		return currentText, vi, isCurrent
 	}
 	err := db.View(func(tx *bolt.Tx) error {
 		var err error
 		b := tx.Bucket([]byte("datas"))
 		if b == nil {
-			return fmt.Errorf("db must be opened before loading!")
+			return fmt.Errorf("db must be opened before loading")
 		}
 		k := []byte(title)
 		val := b.Get(k)
@@ -100,12 +102,18 @@ func getCurrentText(title string) string {
 			return err
 		}
 		currentText = p.CurrentText
+		if version > -1 && version < len(p.Diffs) {
+			// get that version of text instead
+			currentText = rebuildTextsToDiffN(p, version)
+			isCurrent = false
+		}
+		vi = getImportantVersions(p)
 		return nil
 	})
 	if err != nil {
 		fmt.Printf("Could not get CowyoData: %s", err)
 	}
-	return currentText
+	return currentText, vi, isCurrent
 }
 
 func (p *CowyoData) load(title string) error {

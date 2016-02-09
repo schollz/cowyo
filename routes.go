@@ -34,14 +34,29 @@ func editNote(c *gin.Context) {
 		if locked {
 			c.Redirect(302, "/"+title+"/view")
 		} else {
-			currentText := getCurrentText(title)
+			version := c.DefaultQuery("version", "-1")
+			versionNum, _ := strconv.Atoi(version)
+			currentText, versions, currentVersion := getCurrentText(title, versionNum)
 			numRows := len(strings.Split(currentText, "\n")) + 10
-			c.HTML(http.StatusOK, "index.tmpl", gin.H{
-				"Title":       title,
-				"ExternalIP":  RuntimeArgs.ExternalIP,
-				"CurrentText": currentText,
-				"NumRows":     numRows,
-			})
+			if currentVersion {
+				c.HTML(http.StatusOK, "index.tmpl", gin.H{
+					"Title":       title,
+					"ExternalIP":  RuntimeArgs.ExternalIP,
+					"CurrentText": currentText,
+					"NumRows":     numRows,
+					"Versions":    versions,
+				})
+			} else {
+				c.HTML(http.StatusOK, "index.tmpl", gin.H{
+					"Title":       title,
+					"ExternalIP":  RuntimeArgs.ExternalIP,
+					"CurrentText": currentText,
+					"NumRows":     numRows,
+					"Versions":    versions,
+					"NoEdit":      true,
+				})
+			}
+
 		}
 	}
 }
