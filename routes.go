@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -55,7 +56,7 @@ func everythingElse(c *gin.Context) {
 			panic(err)
 		}
 		renderMarkdown(c, p.CurrentText, title)
-	} else if option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
+	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
 		renderMarkdown(c, listEverything(), "Everything")
 	} else if option == "/list" {
 		renderList(c, title)
@@ -76,7 +77,9 @@ func serveStaticFile(c *gin.Context, option string) {
 }
 
 func renderMarkdown(c *gin.Context, currentText string, title string) {
+	fmt.Println(currentText)
 	unsafe := blackfriday.MarkdownCommon([]byte(currentText))
+	fmt.Println(string(unsafe))
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
 	pClean.AllowAttrs("alt").OnElements("img")
@@ -197,14 +200,21 @@ func deleteListItem(c *gin.Context) {
 }
 
 func listEverything() string {
-	everything := ""
+	everything := `| Title | Current size    | Changes  | Total Size |
+| --------- |-------------| -----| ------------- |
+`
 	db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
 		b := tx.Bucket([]byte("datas"))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			if len(v) > 1 {
-				everything += "- [" + string(k) + "](/" + string(k) + "/view) (" + strconv.Itoa(len(v)) + ")\n"
+			var p CowyoData
+			p.load(string(k))
+			if len(p.CurrentText) > 1 {
+				contentSize := strconv.Itoa(len(p.CurrentText))
+				numChanges := strconv.Itoa(len(p.Diffs))
+				totalSize := strconv.Itoa(len(v))
+				everything += "| [" + p.Title + "](/" + p.Title + "/view) | " + contentSize + " | " + numChanges + " | " + totalSize + "|\n"
 			}
 		}
 		return nil
