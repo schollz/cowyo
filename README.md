@@ -8,7 +8,7 @@ You can also write your notes in [Markdown](https://daringfireball.net/projects/
 
 If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://cowyo.com/grocery), goto [`/grocery/list`](http://cowyo.com/grocery/list). In this page, whatever you click on will be striked through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
-Math is supported using [Katex](https://github.com/Khan/KaTeX).
+Math is supported using [Katex](https://github.com/Khan/KaTeX). Base64 images are supported [in img tags](https://stackoverflow.com/questions/1207190/embedding-base64-images) as well.
 
 Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the github](https://github.com/schollz/cowyo).
 
