@@ -14,7 +14,7 @@ To jot a note, simply load the page at [`/`](http://AwwKoala.com/) and just star
 
 #### Views and Lists
 
-All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](http://AwwKoala.com/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](http://AwwKoala.com/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. Math is supported using [Katex](https://github.com/Khan/KaTeX). Base64 images are supported [in img tags](https://stackoverflow.com/questions/1207190/embedding-base64-images) as well.
+All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](http://AwwKoala.com/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](http://AwwKoala.com/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. Math is supported with [Katex](https://github.com/Khan/KaTeX) using `$\frac{1}{2}$` for inline equations and `$$\frac{1}{2}$$` for regular equations.
 
 If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://AwwKoala.com/grocery), goto [`/grocery/list`](http://AwwKoala.com/grocery/list). In this page, whatever you click on will be striked through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
