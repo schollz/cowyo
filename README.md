@@ -77,3 +77,5 @@ Options:
   -p string
         port to bind (default ":12312")```
 ```
+
+If you set the admin flag, `-a` you can access a list of all the current files by going to `/ls/WhateverYouSetTheFlagTo`.
