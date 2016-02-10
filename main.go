@@ -29,8 +29,10 @@ var RuntimeArgs struct {
 	SourcePath       string
 	AdminKey         string
 }
+var VersionNum string
 
 func main() {
+	VersionNum = "1.01"
 	_, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	databaseFile := path.Join(path.Dir(executableFile), "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":12312", "port to bind")
@@ -59,7 +61,7 @@ Options:`)
 	defer Close()
 
 	// Default page
-	p := WikiData{"about", aboutPageText, []string{}, []string{}}
+	p := WikiData{"about", aboutPageText + "\n" + VersionNum, []string{}, []string{}}
 	p.save(aboutPageText)
 
 	// var q WikiData
