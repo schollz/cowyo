@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"math/rand"
 	"sort"
 	"strings"
@@ -146,7 +144,7 @@ func getImportantVersions(p WikiData) []versionsInfo {
 	for _, k := range a {
 		for _, s := range n[k] {
 			if s != 0 && s != len(n) {
-				fmt.Printf("%d, %d\n", s, k)
+				// fmt.Printf("%d, %d\n", s, k)
 				importantVersions = append(importantVersions, s)
 				if len(importantVersions) > 10 {
 					sort.Ints(importantVersions)
@@ -163,11 +161,6 @@ func getImportantVersions(p WikiData) []versionsInfo {
 		r = append(r, versionsInfo{p.Timestamps[nn], nn})
 	}
 	return r
-}
-
-func timeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
 }
 
 func rebuildTextsToDiffN(p WikiData, n int) string {
