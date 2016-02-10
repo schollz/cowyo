@@ -90,6 +90,14 @@
     $(document).ready(function() {
       $("#emit_data").autoGrow();
     });
+
+    $(document).keydown(function(e){
+        if( e.which === 90 && e.ctrlKey && e.shiftKey ){
+           console.log('control + shift + z');
+           window.location = "/{{ .Title }}/view";
+        }
+    });
+
   </script>
 
 
