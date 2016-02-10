@@ -39,13 +39,13 @@ func main() {
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
 	flag.CommandLine.Usage = func() {
-		fmt.Println(`awwkoala: a websocket notepad
+		fmt.Println(`AwwKoala: A Websocket Wiki and Kind Of A List Application
 run this to start the server and then visit localhost at the port you specify
 (see parameters).
 Example: 'awwkoala localhost'
-Example: 'awwkoala -p :8080 localhost'
-Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost'
-Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost'
+Example: 'awwkoala -p :8080 localhost:8080'
+Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost:12312'
+Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
 Options:`)
 		flag.CommandLine.PrintDefaults()
 	}
@@ -62,9 +62,9 @@ Options:`)
 	p := WikiData{"about", about_page, []string{}, []string{}}
 	p.save(about_page)
 
-	var q WikiData
-	q.load("SpikySeaSlug2")
-	fmt.Println(getImportantVersions(q))
+	// var q WikiData
+	// q.load("SpikySeaSlug2")
+	// fmt.Println(getImportantVersions(q))
 
 	r := gin.Default()
 	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
