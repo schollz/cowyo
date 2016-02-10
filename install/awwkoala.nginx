@@ -1,9 +1,9 @@
 server {
-	# SERVER BLOCK FOR cowyo
+	# SERVER BLOCK FOR awwkoala
 	listen   80; ## listen for ipv4; this line is default and implied
 
-	access_log /etc/nginx/logs/access-cowyo.log;
-	error_log /etc/nginx/logs/error-cowyo.log info;
+	access_log /etc/nginx/logs/access-awwkoala.log;
+	error_log /etc/nginx/logs/error-awwkoala.log info;
 	root CUR_DIR;
 	server_name ADDRESS;
 
