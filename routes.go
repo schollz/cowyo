@@ -94,6 +94,10 @@ func serveStaticFile(c *gin.Context, option string) {
 }
 
 func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo) {
+	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
+	for _, s := range r.FindAllString(currentText, -1) {
+		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
+	}
 	unsafe := blackfriday.MarkdownCommon([]byte(currentText))
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
@@ -102,7 +106,7 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	pClean.AllowDataURIImages()
 	html := pClean.SanitizeBytes(unsafe)
 	html2 := string(html)
-	r, _ := regexp.Compile("\\$\\$(.*?)\\$\\$")
+	r, _ = regexp.Compile("\\$\\$(.*?)\\$\\$")
 	for _, s := range r.FindAllString(html2, -1) {
 		html2 = strings.Replace(html2, s, "<span class='texp' data-expr='"+s[2:len(s)-2]+"'></span>", 1)
 	}
@@ -112,6 +116,8 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	}
 
 	html2 = strings.Replace(html2, "&amp;#36;", "&#36;", -1)
+	html2 = strings.Replace(html2, "&amp;#91;", "&#91;", -1)
+	html2 = strings.Replace(html2, "&amp;#93;", "&#93;", -1)
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
 		"Title":    title,
 		"WikiName": RuntimeArgs.WikiName,
