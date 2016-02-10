@@ -21,6 +21,7 @@ var AllowedIPs = map[string]bool{
 // RuntimeArgs contains all runtime
 // arguments available
 var RuntimeArgs struct {
+	WikiName         string
 	ExternalIP       string
 	Port             string
 	DatabaseLocation string
@@ -40,6 +41,7 @@ func main() {
 	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to access admin priveleges")
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
+	flag.StringVar(&RuntimeArgs.WikiName, "w", "AwwKoala", "custom name for wiki")
 	flag.CommandLine.Usage = func() {
 		fmt.Println(`AwwKoala: A Websocket Wiki and Kind Of A List Application
 run this to start the server and then visit localhost at the port you specify
