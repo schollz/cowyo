@@ -114,7 +114,7 @@ func timeTrack(start time.Time, name string) {
 }
 
 func getImportantVersions(p WikiData) []versionsInfo {
-	defer timeTrack(time.Now(), "getImportantVersions")
+	// defer timeTrack(time.Now(), "getImportantVersions")
 	m := map[int]int{}
 	lastTime := time.Now().AddDate(0, -1, 0)
 	for i, _ := range p.Diffs {
