@@ -10,7 +10,7 @@ If you are writing a list and you want to tick off things really easily, just ad
 
 Math is supported using [Katex](https://github.com/Khan/KaTeX). Base64 images are supported [in img tags](https://stackoverflow.com/questions/1207190/embedding-base64-images) as well.
 
-Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the github](https://github.com/schollz/cowyo).
+Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the github](https://github.com/schollz/cowyo). If you'd like help or find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues) or <a href="https://twitter.com/intent/tweet?screen_name=zack_118" class="twitter-mention-button" data-related="zack_118">Tweet me @zack_118</a>
 
 **Powered by Raspberry Pi, Go, and NGINX**
 

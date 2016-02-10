@@ -35,7 +35,7 @@ If you are writing a list and you want to tick off things really easily, just ad
 
 Base64 images are supported [in img tags](https://stackoverflow.com/questions/1207190/embedding-base64-images). Math is supported using [Katex](https://github.com/Khan/KaTeX). For example, ` + "`" + `&#36;\frac{1}{2}&#36;` + "`" + ` becomes $\frac{1}{2}$ and ` + "`" + `&#36;&#36;E=mc^2&#36;&#36;` + "`" + ` becomes $$E=mc^2$$
 
-Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the Github](https://github.com/schollz/cowyo). If you'd like help or find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues) or <a href="https://twitter.com/nand7430">Tweet me @nand7430</a>.
+Be cautious about writing sensitive information in the notes as anyone with the URL has access to it. For more information, or if you'd like to edit the code, [use the Github](https://github.com/schollz/cowyo). If you'd like help or find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues) or <a href="https://twitter.com/intent/tweet?screen_name=zack_118" class="twitter-mention-button" data-related="zack_118">Tweet me @zack_118</a>.
 
 Have fun.
 
