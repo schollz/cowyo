@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -93,9 +92,7 @@ func serveStaticFile(c *gin.Context, option string) {
 }
 
 func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo) {
-	fmt.Println(currentText)
 	unsafe := blackfriday.MarkdownCommon([]byte(currentText))
-	fmt.Println(string(unsafe))
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
 	pClean.AllowAttrs("alt").OnElements("img")
