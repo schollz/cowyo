@@ -61,9 +61,9 @@ awwkoala: A Websocket Wiki and Kind Of A List Application
 run this to start the server and then visit localhost at the port you specify
 (see parameters).
 Example: 'awwkoala localhost'
-Example: 'awwkoala -p :8080 localhost'
-Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost'
-Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost'
+Example: 'awwkoala -p :8080 localhost:8080'
+Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost:8003'
+Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
 Options:
   -a string
         key to access admin priveleges (default no admin priveleges)
@@ -76,7 +76,7 @@ Options:
   -key string
         location of ssl key
   -p string
-        port to bind (default ":12312")
+        port to bind (default ":8003")
 ```
 
 If you set the admin flag, `-a` you can access a list of all the current files by going to `/ls/WhateverYouSetTheFlagTo`.
