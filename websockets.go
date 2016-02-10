@@ -50,6 +50,7 @@ func wshandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				panic(err)
 			}
+			m.TextData = "saved"
 		}
 		if m.UpdateClient {
 			m.UpdateClient = len(m.TextData) != len(p.CurrentText)

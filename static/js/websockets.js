@@ -8,6 +8,7 @@ $(document).ready(function() {
   $('#emit').keyup(function() {
     clearTimeout(typingTimer);
     clearInterval(updateInterval);
+    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-remove");
     typingTimer = setTimeout(doneTyping, doneTypingInterval);
   });
 
@@ -15,6 +16,7 @@ $(document).ready(function() {
   $('#emit').keydown(function() {
     clearTimeout(typingTimer);
     clearInterval(updateInterval);
+    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-remove");
     document.title = "[UNSAVED] " + title_name;
   });
 
@@ -22,6 +24,7 @@ $(document).ready(function() {
   function doneTyping() {
     payload = JSON.stringify({ TextData: $('#emit_data').val(), Title: title_name, UpdateServer: true, UpdateClient: false })
     send(payload)
+    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-save");
     console.log("Done typing")
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
     document.title = "[SAVED] " + title_name;
@@ -49,6 +52,11 @@ $(document).ready(function() {
       console.log("Updating...")
       $('#emit_data').val(data.TextData)
       document.title = "[LOADED] " + title_name;
+    }
+    console.log((data.TextData == "saved"))
+    console.log(data.TextData)
+    if (data.TextData == "saved") {
+      $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-saved");
     }
     console.log(data)
   }
