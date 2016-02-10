@@ -40,7 +40,7 @@ func wshandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		var p CowyoData
+		var p WikiData
 		err = p.load(strings.ToLower(m.Title))
 		if err != nil {
 			panic(err)
