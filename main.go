@@ -35,7 +35,7 @@ func main() {
 	VersionNum = "1.01"
 	_, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	databaseFile := path.Join(path.Dir(executableFile), "data.db")
-	flag.StringVar(&RuntimeArgs.Port, "p", ":12312", "port to bind")
+	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")
 	flag.StringVar(&RuntimeArgs.DatabaseLocation, "db", databaseFile, "location of database file")
 	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to access admin priveleges")
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
@@ -46,7 +46,7 @@ run this to start the server and then visit localhost at the port you specify
 (see parameters).
 Example: 'awwkoala localhost'
 Example: 'awwkoala -p :8080 localhost:8080'
-Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost:12312'
+Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost:8003'
 Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
 Options:`)
 		flag.CommandLine.PrintDefaults()
