@@ -1,6 +1,6 @@
-# Cowyo...
+# AwwKoala...
 
-_...is the Collection of Online Words You Open._
+_...is. A Websocket Wiki And Kind Of A List Application._
 
 This tool is supposed to make sharing online notes and lists fast and easy. To jot a note, simply load the page at [`/`](http://cowyo.com/) and write. The url will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. (You can use any url you want too: [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant)). No need to press save, it will automatically save when you stop writing.
 
