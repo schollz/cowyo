@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"path"
 	"runtime"
@@ -63,7 +64,8 @@ Options:`)
 	defer Close()
 
 	// Default page
-	p := WikiData{"about", aboutPageText + "\n" + VersionNum, []string{}, []string{}}
+	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
+	p := WikiData{"about", string(aboutFile), []string{}, []string{}}
 	p.save(aboutPageText)
 
 	// var q WikiData
