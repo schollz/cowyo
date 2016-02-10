@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:          cowyo
+# Provides:          awwkoala
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
@@ -12,15 +12,15 @@
 
 # This should be placed in /etc/init.d directory
 # start with
-# sudo /etc/init.d/cowyo start
+# sudo /etc/init.d/awwkoala start
 # stop with
-# sudo /etc/init.d/cowyo start
+# sudo /etc/init.d/awwkoala start
 
 dir="CUR_DIR"
 user="USERCUR"
-cmd="./cowyo -p :PORT EXT_ADDRESS"
+cmd="./awwkoala -p :PORT EXT_ADDRESS"
 
-name="cowyo"
+name="awwkoala"
 pid_file="/var/run/$name.pid"
 stdout_log="/var/log/$name.log"
 stderr_log="/var/log/$name.err"
