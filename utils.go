@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 	"sort"
 	"strings"
@@ -107,15 +108,16 @@ func diffRebuildtexts(diffs []diffmatchpatch.Diff) []string {
 	return text
 }
 
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
+}
+
 func getImportantVersions(p WikiData) []versionsInfo {
+	defer timeTrack(time.Now(), "getImportantVersions")
 	m := map[int]int{}
-	dmp := diffmatchpatch.New()
-	lastText := ""
 	lastTime := time.Now().AddDate(0, -1, 0)
-	for i, diff := range p.Diffs {
-		seq1, _ := dmp.DiffFromDelta(lastText, diff)
-		texts_linemode := diffRebuildtexts(seq1)
-		rebuilt := texts_linemode[len(texts_linemode)-1]
+	for i, _ := range p.Diffs {
 		parsedTime, _ := time.Parse(time.ANSIC, p.Timestamps[i])
 		duration := parsedTime.Sub(lastTime)
 		m[i] = int(duration.Seconds())
@@ -123,7 +125,6 @@ func getImportantVersions(p WikiData) []versionsInfo {
 			m[i-1] = m[i]
 		}
 		// On to the next one
-		lastText = rebuilt
 		lastTime = parsedTime
 	}
 
