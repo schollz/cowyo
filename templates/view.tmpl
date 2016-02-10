@@ -67,6 +67,13 @@ $( document ).ready(function() {
 
 });
 
+$(document).keydown(function(e){
+    if( e.which === 69 && e.ctrlKey && e.shiftKey ){
+       console.log('control + shift + e');
+       window.location = "/{{ .Title }}";
+    }
+});
+
 
 </script>
 </body>
