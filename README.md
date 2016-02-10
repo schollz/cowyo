@@ -1,6 +1,10 @@
-# AwwKoala...
+![Logo](https://i.imgur.com/ixnBYOl.png)
 
-_...is. A Websocket Wiki and Kind Of A List Application._
+# AwwKoala.
+
+## A Websocket Wiki and Kind Of A List Application
+[![Version 1.0](https://img.shields.io/badge/version-1.0-brightgreen.svg)]()
+[![Join the chat at https://gitter.im/schollz/awwkoala](https://badges.gitter.im/schollz/music.svg)](https://gitter.im/schollz/awwkoala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This tool is supposed to make sharing online notes and lists fast and easy. To jot a note, simply load the page at [`/`](http://cowyo.com/) and write. The url will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. (You can use any url you want too: [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant)). No need to press save, it will automatically save when you stop writing.
 
