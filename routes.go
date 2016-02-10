@@ -40,6 +40,7 @@ func editNote(c *gin.Context) {
 			if currentVersion {
 				c.HTML(http.StatusOK, "index.tmpl", gin.H{
 					"Title":       title,
+					"WikiName":    RuntimeArgs.WikiName,
 					"ExternalIP":  RuntimeArgs.ExternalIP,
 					"CurrentText": currentText,
 					"NumRows":     numRows,
@@ -48,6 +49,7 @@ func editNote(c *gin.Context) {
 			} else {
 				c.HTML(http.StatusOK, "index.tmpl", gin.H{
 					"Title":       title,
+					"WikiName":    RuntimeArgs.WikiName,
 					"ExternalIP":  RuntimeArgs.ExternalIP,
 					"CurrentText": currentText,
 					"NumRows":     numRows,
@@ -112,6 +114,7 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	html2 = strings.Replace(html2, "&amp;#36;", "&#36;", -1)
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
 		"Title":    title,
+		"WikiName": RuntimeArgs.WikiName,
 		"Body":     template.HTML([]byte(html2)),
 		"Versions": versions,
 	})
@@ -172,6 +175,7 @@ func renderList(c *gin.Context, title string) {
 
 	c.HTML(http.StatusOK, "list.tmpl", gin.H{
 		"Title":     title,
+		"WikiName":  RuntimeArgs.WikiName,
 		"ListItems": listItems,
 	})
 }
