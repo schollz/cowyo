@@ -59,8 +59,8 @@ Options:`)
 	defer Close()
 
 	// Default page
-	p := WikiData{"about", about_page, []string{}, []string{}}
-	p.save(about_page)
+	p := WikiData{"about", aboutPageText, []string{}, []string{}}
+	p.save(aboutPageText)
 
 	// var q WikiData
 	// q.load("SpikySeaSlug2")

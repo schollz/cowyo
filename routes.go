@@ -26,7 +26,7 @@ func editNote(c *gin.Context) {
 	if title == "ws" {
 		wshandler(c.Writer, c.Request)
 	} else if title == "robots.txt" {
-		c.Data(200, "text/plain", []byte(robots_txt))
+		c.Data(200, "text/plain", []byte(robotsTxt))
 	} else if strings.ToLower(title) == "about" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
 		c.Redirect(302, "/about/view")
 	} else {
