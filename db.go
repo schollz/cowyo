@@ -33,8 +33,8 @@ func Close() {
 	db.Close()
 }
 
-// CowyoData is data for storing in DB
-type CowyoData struct {
+// WikiData is data for storing in DB
+type WikiData struct {
 	Title       string
 	CurrentText string
 	Diffs       []string
@@ -58,7 +58,7 @@ func hasPassword(title string) (bool, error) {
 		if val == nil {
 			return nil
 		}
-		var p CowyoData
+		var p WikiData
 		err = p.decode(val)
 		if err != nil {
 			return err
@@ -71,7 +71,7 @@ func hasPassword(title string) (bool, error) {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("Could not get CowyoData: %s", err)
+		fmt.Printf("Could not get WikiData: %s", err)
 		return false, err
 	}
 	return hasPassword, nil
@@ -96,7 +96,7 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool) {
 		if val == nil {
 			return nil
 		}
-		var p CowyoData
+		var p WikiData
 		err = p.decode(val)
 		if err != nil {
 			return err
@@ -111,12 +111,12 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool) {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("Could not get CowyoData: %s", err)
+		fmt.Printf("Could not get WikiData: %s", err)
 	}
 	return currentText, vi, isCurrent
 }
 
-func (p *CowyoData) load(title string) error {
+func (p *WikiData) load(title string) error {
 	title = strings.ToLower(title)
 	if !open {
 		return fmt.Errorf("db must be opened before loading!")
@@ -144,13 +144,13 @@ func (p *CowyoData) load(title string) error {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("Could not get CowyoData: %s", err)
+		fmt.Printf("Could not get WikiData: %s", err)
 		return err
 	}
 	return nil
 }
 
-func (p *CowyoData) save(newText string) error {
+func (p *WikiData) save(newText string) error {
 	if !open {
 		return fmt.Errorf("db must be opened before saving")
 	}
@@ -168,7 +168,7 @@ func (p *CowyoData) save(newText string) error {
 		p.Diffs = append(p.Diffs, delta)
 		enc, err := p.encode()
 		if err != nil {
-			return fmt.Errorf("could not encode CowyoData: %s", err)
+			return fmt.Errorf("could not encode WikiData: %s", err)
 		}
 		err = bucket.Put([]byte(p.Title), enc)
 		return err
@@ -176,7 +176,7 @@ func (p *CowyoData) save(newText string) error {
 	return err
 }
 
-func (p *CowyoData) encode() ([]byte, error) {
+func (p *WikiData) encode() ([]byte, error) {
 	enc, err := json.Marshal(p)
 	if err != nil {
 		return nil, err
@@ -184,7 +184,7 @@ func (p *CowyoData) encode() ([]byte, error) {
 	return enc, nil
 }
 
-func (p *CowyoData) decode(data []byte) error {
+func (p *WikiData) decode(data []byte) error {
 	err := json.Unmarshal(data, &p)
 	if err != nil {
 		return err

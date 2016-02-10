@@ -165,7 +165,7 @@ func renderList(c *gin.Context, title string) {
 	if strings.ToLower(title) == "about" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
 		c.Redirect(302, "/about/view")
 	}
-	var p CowyoData
+	var p WikiData
 	err := p.load(strings.ToLower(title))
 	if err != nil {
 		panic(err)
@@ -183,7 +183,7 @@ func deleteListItem(c *gin.Context) {
 	lineNum, err := strconv.Atoi(c.DefaultQuery("lineNum", "None"))
 	title := c.Query("title") // shortcut for c.Request.URL.Query().Get("lastname")
 	if err == nil {
-		var p CowyoData
+		var p WikiData
 		err := p.load(strings.ToLower(title))
 		if err != nil {
 			panic(err)
@@ -225,7 +225,7 @@ func listEverything() string {
 		b := tx.Bucket([]byte("datas"))
 		c := b.Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			var p CowyoData
+			var p WikiData
 			p.load(string(k))
 			if len(p.CurrentText) > 1 {
 				contentSize := strconv.Itoa(len(p.CurrentText))
