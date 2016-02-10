@@ -8,6 +8,9 @@
 
 This is a self-contained wiki webserver that makes sharing easy and *fast*. You can make any page you want, and any page is editable by anyone. Pages load instantly for editing, and have special rendering for whether you want to view as a web page or view as list.
 
+Features:
+- Single file database (BoltDB)
+
 #### Basics
 
 To jot a note, simply load the page at [`/`](http://AwwKoala.com/) and just start typing. No need to press edit, the browser will already be focused on the text. No need to press save - it will automatically save when you stop writing. The URL at [`/`](http://AwwKoala.com/) will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. But, you can also use any URL you want, e.g. [`/AnythingYouWant`](http://AwwKoala.com/AnythingYouWant).
