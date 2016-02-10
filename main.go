@@ -65,8 +65,8 @@ Options:`)
 
 	// Default page
 	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
-	p := WikiData{"about", string(aboutFile), []string{}, []string{}}
-	p.save(aboutPageText)
+	p := WikiData{"about", "", []string{}, []string{}}
+	p.save(string(aboutFile))
 
 	// var q WikiData
 	// q.load("about")
