@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"sort"
 	"strings"
@@ -162,6 +163,11 @@ func getImportantVersions(p WikiData) []versionsInfo {
 		r = append(r, versionsInfo{p.Timestamps[nn], nn})
 	}
 	return r
+}
+
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
 }
 
 func rebuildTextsToDiffN(p WikiData, n int) string {
