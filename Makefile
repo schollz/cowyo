@@ -1,5 +1,5 @@
 ADDRESS = awwkoala.com
-PORT = 8002
+PORT = 8003
 
 CUR_DIR = $(shell bash -c 'pwd')
 USERCUR = $(shell bash -c 'whoami')
