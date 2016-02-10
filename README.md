@@ -10,6 +10,9 @@ This is a self-contained wiki webserver that makes sharing easy and *fast*. You 
 
 Features:
 - Single file database (BoltDB)
+- No clicking to  edit and save. Just type.
+- Lightweight (~2MB memory)
+- Fast (written in Go)
 
 #### Basics
 
