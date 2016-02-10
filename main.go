@@ -11,7 +11,7 @@ import (
 )
 
 // AllowedIPs is a white/black list of
-// IP addresses allowed to access cowyo
+// IP addresses allowed to access awwkoala
 var AllowedIPs = map[string]bool{
 	"192.168.1.13": true,
 	"192.168.1.12": true,
@@ -39,13 +39,13 @@ func main() {
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
 	flag.CommandLine.Usage = func() {
-		fmt.Println(`cowyo: a websocket notepad
+		fmt.Println(`awwkoala: a websocket notepad
 run this to start the server and then visit localhost at the port you specify
 (see parameters).
-Example: 'cowyo localhost'
-Example: 'cowyo -p :8080 localhost'
-Example: 'cowyo -db /var/lib/cowyo/db.bolt localhost'
-Example: 'cowyo -p :8080 -crt ssl/server.crt -key ssl/server.key localhost'
+Example: 'awwkoala localhost'
+Example: 'awwkoala -p :8080 localhost'
+Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost'
+Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost'
 Options:`)
 		flag.CommandLine.PrintDefaults()
 	}
@@ -59,10 +59,10 @@ Options:`)
 	defer Close()
 
 	// Default page
-	p := CowyoData{"about", about_page, []string{}, []string{}}
+	p := WikiData{"about", about_page, []string{}, []string{}}
 	p.save(about_page)
 
-	var q CowyoData
+	var q WikiData
 	q.load("SpikySeaSlug2")
 	fmt.Println(getImportantVersions(q))
 
