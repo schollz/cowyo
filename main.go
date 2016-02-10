@@ -63,7 +63,7 @@ Options:`)
 	p.save(aboutPageText)
 
 	// var q WikiData
-	// q.load("SpikySeaSlug2")
+	// q.load("about")
 	// fmt.Println(getImportantVersions(q))
 
 	r := gin.Default()
