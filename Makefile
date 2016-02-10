@@ -19,10 +19,9 @@ install:
 	sed -i 's^CUR_DIR^$(CUR_DIR)^g'  jinstall/awwkoala.init
 	sed -i 's^USERCUR^$(USERCUR)^g'  jinstall/awwkoala.init
 	sed -i 's^PORT^$(PORT)^g'  jinstall/awwkoala.init
-	mv jinstall/awwkoala.init /etc/init.d/
+	cp jinstall/awwkoala.init /etc/init.d/awwkoala.init
 	chmod +x /etc/init.d/awwkoala.init
-	mv jinstall/awwkoala.nginx /etc/nginx/sites-available/awwkoala.nginx
-	rm /etc/nginx/sites-enabled/awwkoala.nginx
+	cp jinstall/awwkoala.nginx /etc/nginx/sites-available/awwkoala.nginx
 	ln -fs /etc/nginx/sites-available/awwkoala.nginx /etc/nginx/sites-enabled/awwkoala.nginx
 	/etc/init.d/nginx reload
 	/etc/init.d/nginx restart
