@@ -39,7 +39,7 @@ func main() {
 	databaseFile := path.Join(path.Dir(executableFile), "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")
 	flag.StringVar(&RuntimeArgs.DatabaseLocation, "db", databaseFile, "location of database file")
-	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to access admin priveleges")
+	flag.StringVar(&RuntimeArgs.AdminKey, "a", RandStringBytesMaskImprSrc(50), "key to access admin priveleges")
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "AwwKoala", "custom name for wiki")
@@ -68,11 +68,10 @@ Options:`)
 	p := WikiData{"about", "", []string{}, []string{}}
 	p.save(string(aboutFile))
 
-	fmt.Println(RandStringBytesMaskImprSrc(10))
-
 	// var q WikiData
 	// q.load("about")
 	// fmt.Println(getImportantVersions(q))
+	log.Println(RuntimeArgs.AdminKey)
 
 	r := gin.Default()
 	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
