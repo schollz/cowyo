@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -86,7 +85,7 @@ func timeTrack(start time.Time, name string) {
 	log.Printf("%s took %s", name, elapsed)
 }
 
-func getImportantVersions(p WikiData) []versionsInfo {
+func getImportantVersions(p WikiData) ([]versionsInfo, time.Duration) {
 	// defer timeTrack(time.Now(), "getImportantVersions")
 	m := map[int]int{}
 	lastTime := time.Now().AddDate(0, -1, 0)
@@ -129,7 +128,7 @@ func getImportantVersions(p WikiData) []versionsInfo {
 					for _, nn := range importantVersions {
 						r = append(r, versionsInfo{p.Timestamps[nn], nn})
 					}
-					return r
+					return r, totalTime
 				}
 			}
 		}
@@ -138,8 +137,7 @@ func getImportantVersions(p WikiData) []versionsInfo {
 	for _, nn := range importantVersions {
 		r = append(r, versionsInfo{p.Timestamps[nn], nn})
 	}
-	fmt.Println(totalTime)
-	return r
+	return r, totalTime
 }
 
 func rebuildTextsToDiffN(p WikiData, n int) string {
@@ -166,6 +164,7 @@ const (
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
+// RandStringBytesMaskImprSrc prints a random string
 func RandStringBytesMaskImprSrc(n int) string {
 	b := make([]byte, n)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!

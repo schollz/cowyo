@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
@@ -35,7 +36,7 @@ func editNote(c *gin.Context) {
 		} else {
 			version := c.DefaultQuery("version", "-1")
 			versionNum, _ := strconv.Atoi(version)
-			currentText, versions, currentVersion := getCurrentText(title, versionNum)
+			currentText, versions, currentVersion, totalTime := getCurrentText(title, versionNum)
 			numRows := len(strings.Split(currentText, "\n")) + 10
 			if currentVersion {
 				c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -45,6 +46,7 @@ func editNote(c *gin.Context) {
 					"CurrentText": currentText,
 					"NumRows":     numRows,
 					"Versions":    versions,
+					"TotalTime":   totalTime,
 				})
 			} else {
 				c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -54,6 +56,7 @@ func editNote(c *gin.Context) {
 					"CurrentText": currentText,
 					"NumRows":     numRows,
 					"Versions":    versions,
+					"TotalTime":   totalTime,
 					"NoEdit":      true,
 				})
 			}
@@ -71,10 +74,10 @@ func everythingElse(c *gin.Context) {
 		if strings.ToLower(title) == "about" {
 			versionNum = -1
 		}
-		currentText, versions, _ := getCurrentText(title, versionNum)
-		renderMarkdown(c, currentText, title, versions, "")
+		currentText, versions, _, totalTime := getCurrentText(title, versionNum)
+		renderMarkdown(c, currentText, title, versions, "", totalTime)
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey)
+		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()))
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -93,7 +96,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration) {
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -125,18 +128,20 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 
 	if AdminKey == "" {
 		c.HTML(http.StatusOK, "view.tmpl", gin.H{
-			"Title":    title,
-			"WikiName": RuntimeArgs.WikiName,
-			"Body":     template.HTML([]byte(html2)),
-			"Versions": versions,
+			"Title":     title,
+			"WikiName":  RuntimeArgs.WikiName,
+			"Body":      template.HTML([]byte(html2)),
+			"TotalTime": totalTime.String(),
+			"Versions":  versions,
 		})
 	} else {
 		c.HTML(http.StatusOK, "view.tmpl", gin.H{
-			"Title":    title,
-			"WikiName": RuntimeArgs.WikiName,
-			"Body":     template.HTML([]byte(html2)),
-			"Versions": versions,
-			"AdminKey": AdminKey,
+			"Title":     title,
+			"WikiName":  RuntimeArgs.WikiName,
+			"Body":      template.HTML([]byte(html2)),
+			"Versions":  versions,
+			"TotalTime": totalTime.String(),
+			"AdminKey":  AdminKey,
 		})
 	}
 }
