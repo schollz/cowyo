@@ -23,6 +23,10 @@ All previous versions of all notes are stored and can be accessed by adding `?ve
 
 Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
+## Admin
+
+The Admin can view/delete all the documents by setting the `-a YourAdminKey` when starting the program. Then the admin has access to the `/ls/YourAdminKey` to view and delete any of the pages.
+
 # Install
 To get started on your local network just do:
 
