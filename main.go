@@ -68,6 +68,8 @@ Options:`)
 	p := WikiData{"about", "", []string{}, []string{}}
 	p.save(string(aboutFile))
 
+	fmt.Println(RandStringBytesMaskImprSrc(10))
+
 	// var q WikiData
 	// q.load("about")
 	// fmt.Println(getImportantVersions(q))
