@@ -204,7 +204,7 @@ func deleteListItem(c *gin.Context) {
 				// fmt.Println("MATCHED")
 				if strings.Contains(lineString, "~~") == false {
 					// fmt.Println(p.Text, "("+lineString[2:]+"\n"+")", "~~"+lineString[2:]+"~~"+"\n")
-					newText = strings.Replace(newText+"\n", lineString[2:]+"\n", "~~"+lineString[2:]+"~~"+"\n", 1)
+					newText = strings.Replace(newText+"\n", lineString[2:]+"\n", "~~"+strings.TrimSpace(lineString[2:])+"~~"+"\n", 1)
 				} else {
 					newText = strings.Replace(newText+"\n", lineString[2:]+"\n", lineString[4:len(lineString)-2]+"\n", 1)
 				}
