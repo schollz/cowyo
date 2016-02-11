@@ -2,6 +2,7 @@ $(document).ready(function() {
   var isTyping = false;
   var typingTimer; //timer identifier
   var updateInterval;
+  var uhohTimer;
   var doneTypingInterval = 500; //time in ms, 5 second for example
   var pollToGetNewestCopyInterval = 10000;
   //on keyup, start the countdown
@@ -24,10 +25,16 @@ $(document).ready(function() {
   function doneTyping() {
     payload = JSON.stringify({ TextData: $('#emit_data').val(), Title: title_name, UpdateServer: true, UpdateClient: false })
     send(payload)
-    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-save");
+    uhohTimer = setTimeout(uhoh, 3000);
+    $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-open");
     console.log("Done typing")
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
     document.title = "[SAVED] " + title_name;
+  }
+
+  function uhoh() {
+      $('#saveInfo').removeClass().addClass("glyphicon glyphicon-remove");
+      setInterval(location.reload(), 1000);
   }
 
   function updateText() {
@@ -57,6 +64,7 @@ $(document).ready(function() {
     console.log(data.TextData)
     if (data.TextData == "saved") {
       $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-saved");
+      clearTimeout(uhohTimer);
     }
     console.log(data)
   }
