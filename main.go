@@ -78,6 +78,7 @@ Options:`)
 	r.GET("/:title", editNote)
 	r.GET("/:title/*option", everythingElse)
 	r.DELETE("/listitem", deleteListItem)
+	r.DELETE("/deletepage", deletePage)
 	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
 		r.RunTLS(RuntimeArgs.Port, RuntimeArgs.ServerCRT, RuntimeArgs.ServerKey)
 	} else {
