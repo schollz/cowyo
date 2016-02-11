@@ -72,9 +72,9 @@ func everythingElse(c *gin.Context) {
 			versionNum = -1
 		}
 		currentText, versions, _ := getCurrentText(title, versionNum)
-		renderMarkdown(c, currentText, title, versions)
+		renderMarkdown(c, currentText, title, versions, "")
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "ls", nil)
+		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey)
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -93,7 +93,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string) {
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -103,6 +103,9 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	pClean.AllowElements("img")
 	pClean.AllowAttrs("alt").OnElements("img")
 	pClean.AllowAttrs("src").OnElements("img")
+	pClean.AllowAttrs("class").OnElements("a")
+	pClean.AllowAttrs("href").OnElements("a")
+	pClean.AllowAttrs("id").OnElements("a")
 	pClean.AllowDataURIImages()
 	html := pClean.SanitizeBytes(unsafe)
 	html2 := string(html)
@@ -118,12 +121,24 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	html2 = strings.Replace(html2, "&amp;#36;", "&#36;", -1)
 	html2 = strings.Replace(html2, "&amp;#91;", "&#91;", -1)
 	html2 = strings.Replace(html2, "&amp;#93;", "&#93;", -1)
-	c.HTML(http.StatusOK, "view.tmpl", gin.H{
-		"Title":    title,
-		"WikiName": RuntimeArgs.WikiName,
-		"Body":     template.HTML([]byte(html2)),
-		"Versions": versions,
-	})
+	html2 = strings.Replace(html2, "&amp35;", "&#35;", -1)
+
+	if AdminKey == "" {
+		c.HTML(http.StatusOK, "view.tmpl", gin.H{
+			"Title":    title,
+			"WikiName": RuntimeArgs.WikiName,
+			"Body":     template.HTML([]byte(html2)),
+			"Versions": versions,
+		})
+	} else {
+		c.HTML(http.StatusOK, "view.tmpl", gin.H{
+			"Title":    title,
+			"WikiName": RuntimeArgs.WikiName,
+			"Body":     template.HTML([]byte(html2)),
+			"Versions": versions,
+			"AdminKey": AdminKey,
+		})
+	}
 }
 
 func reorderList(text string) ([]template.HTML, []string) {
@@ -223,9 +238,25 @@ func deleteListItem(c *gin.Context) {
 	}
 }
 
+func deletePage(c *gin.Context) {
+	deleteName := c.DefaultQuery("DeleteName", "None")
+	adminKey := c.DefaultQuery("AdminKey", "None")
+	if adminKey == RuntimeArgs.AdminKey {
+		p := WikiData{deleteName, "", []string{}, []string{}}
+		p.save("")
+		c.JSON(200, gin.H{
+			"message": "Done.",
+		})
+	} else {
+		c.JSON(404, gin.H{
+			"message": "?",
+		})
+	}
+}
+
 func listEverything() string {
-	everything := `| Title | Current size    | Changes  | Total Size |
-| --------- |-------------| -----| ------------- |
+	everything := `| Title | Current size    | Changes  | Total Size |  |
+| --------- |-------------| -----| ------------- | ------------- |
 `
 	db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
@@ -238,7 +269,7 @@ func listEverything() string {
 				contentSize := strconv.Itoa(len(p.CurrentText))
 				numChanges := strconv.Itoa(len(p.Diffs))
 				totalSize := strconv.Itoa(len(v))
-				everything += "| [" + p.Title + "](/" + p.Title + "/view) | " + contentSize + " | " + numChanges + " | " + totalSize + "|\n"
+				everything += "| [" + p.Title + "](/" + p.Title + "/view) | " + contentSize + " | " + numChanges + " | " + totalSize + ` | <a class="deleteable" id="` + p.Title + `">Delete</a> | ` + "\n"
 			}
 		}
 		return nil
