@@ -36,7 +36,7 @@ a.deleteable {
           <li class="dropdown active">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"  class="active"><span class="glyphicon glyphicon-sunglasses" aria-hidden="true"></span> View <span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li class="dropdown-header">Previous versions</li>
+              <li class="dropdown-header">Total time: {{ .TotalTime }}</li>
               <li><a href="/{{ .Title }}/view?version=0">First</a></li>
               {{ range .Versions }}
               <li><a href="/{{ $.Title }}/view?version={{ .VersionNum }}">{{ .VersionDate }}</a></li>

@@ -77,13 +77,14 @@ func hasPassword(title string) (bool, error) {
 	return hasPassword, nil
 }
 
-func getCurrentText(title string, version int) (string, []versionsInfo, bool) {
+func getCurrentText(title string, version int) (string, []versionsInfo, bool, time.Duration) {
 	title = strings.ToLower(title)
 	var vi []versionsInfo
+	totalTime := time.Now().Sub(time.Now())
 	isCurrent := true
 	currentText := ""
 	if !open {
-		return currentText, vi, isCurrent
+		return currentText, vi, isCurrent, totalTime
 	}
 	err := db.View(func(tx *bolt.Tx) error {
 		var err error
@@ -107,13 +108,14 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool) {
 			currentText = rebuildTextsToDiffN(p, version)
 			isCurrent = false
 		}
-		vi = getImportantVersions(p)
+		vi, totalTime = getImportantVersions(p)
+		log.Println(totalTime)
 		return nil
 	})
 	if err != nil {
 		fmt.Printf("Could not get WikiData: %s", err)
 	}
-	return currentText, vi, isCurrent
+	return currentText, vi, isCurrent, totalTime
 }
 
 func (p *WikiData) load(title string) error {
