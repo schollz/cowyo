@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -89,9 +90,13 @@ func getImportantVersions(p WikiData) []versionsInfo {
 	// defer timeTrack(time.Now(), "getImportantVersions")
 	m := map[int]int{}
 	lastTime := time.Now().AddDate(0, -1, 0)
+	totalTime := time.Now().Sub(time.Now())
 	for i := range p.Diffs {
 		parsedTime, _ := time.Parse(time.ANSIC, p.Timestamps[i])
 		duration := parsedTime.Sub(lastTime)
+		if duration.Minutes() < 3 {
+			totalTime += duration
+		}
 		m[i] = int(duration.Seconds())
 		if i > 0 {
 			m[i-1] = m[i]
@@ -133,6 +138,7 @@ func getImportantVersions(p WikiData) []versionsInfo {
 	for _, nn := range importantVersions {
 		r = append(r, versionsInfo{p.Timestamps[nn], nn})
 	}
+	fmt.Println(totalTime)
 	return r
 }
 
