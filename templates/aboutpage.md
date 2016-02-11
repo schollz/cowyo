@@ -18,3 +18,12 @@ If you are writing a list and you want to tick off things really easily, just ad
 
 ## Automatic versioning
 All previous versions of all notes are stored and can be accessed by adding `?version=X` onto `/view` or `/edit`. If you are on the `/view` or `/edit` pages the menu below will show the most substantial changes in the history. Note, only the _current_ version can be edited (no branching allowed, yet).
+
+# Contact
+Any other comments, questions or anything at all, just <a href="https://twitter.com/intent/tweet?screen_name=zack_118" class="twitter-mention-button" data-related="zack_118">tweet me @zack_118</a>
+
+Have fun.
+
+**Powered by Raspberry Pi, Go, and NGINX**
+
+![Raspberry Pi](/static/img/raspberrypi.png) ![Go Mascot](/static/img/gomascot.png) ![Nginx](/static/img/nginx.png)
