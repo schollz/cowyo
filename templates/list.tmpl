@@ -70,6 +70,20 @@
       }
 
     });
+
+    $(document).keydown(function(e){
+        if( e.which === 69 && e.ctrlKey && e.shiftKey ){
+           console.log('control + shift + e');
+           window.location = "/{{ .Title }}";
+        }
+    });
+    $(document).keydown(function(e){
+      if( e.which === 90 && e.ctrlKey && e.shiftKey ){
+         console.log('control + shift + z');
+         window.location = "/{{ .Title }}/view";
+      }
+    });
+
   </script>
 
 </body>

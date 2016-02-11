@@ -92,12 +92,18 @@
     });
 
     $(document).keydown(function(e){
-        if( e.which === 90 && e.ctrlKey && e.shiftKey ){
-           console.log('control + shift + z');
-           window.location = "/{{ .Title }}/view";
-        }
+      if( e.which === 90 && e.ctrlKey && e.shiftKey ){
+         console.log('control + shift + z');
+         window.location = "/{{ .Title }}/view";
+      }
     });
 
+    $(document).keydown(function(e){
+        if( e.which === 76 && e.ctrlKey && e.shiftKey ){
+           console.log('control + shift + l');
+           window.location = "/{{ .Title }}/list";
+        }
+    });
   </script>
 
 
