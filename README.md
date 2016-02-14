@@ -32,7 +32,11 @@ Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+S
 The Admin can view/delete all the documents by setting the `-a YourAdminKey` when starting the program. Then the admin has access to the `/ls/YourAdminKey` to view and delete any of the pages.
 
 # Install
-To get started on your local network just do:
+
+
+First [install Go](https://golang.org/doc/install).
+
+Then, if you want to host on your local network just do:
 
 ```
 git clone https://github.com/schollz/awwkoala.git
@@ -44,7 +48,7 @@ make
 and then goto the address `http://LOCALIPADDRESS:8001/`
 
 ## Production server
-I recommend using `NGINX` as middleware, as it will do caching of the static files for you. There is an example `NGINX` block in `install/`. To automatically install, on Raspberry Pi / Ubuntu / Debian system use:
+I recommend using `NGINX` as middleware, as it will do caching of the static files for you. There is an example `NGINX` block in `install/`. If you want to use SSL instead, follow the instructions in `letsencrypt/README.md`. To automatically install, on Raspberry Pi / Ubuntu / Debian system use:
 
 ```
 git clone https://github.com/schollz/awwkoala.git
