@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"fmt"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
@@ -257,17 +257,19 @@ func deleteListItem(c *gin.Context) {
 func deletePage(c *gin.Context) {
 	deleteName := c.DefaultQuery("DeleteName", "None")
 	adminKey := c.DefaultQuery("AdminKey", "None")
-	if adminKey == RuntimeArgs.AdminKey {
-		p := WikiData{deleteName, "", []string{}, []string{}}
-		p.save("")
-		c.JSON(200, gin.H{
-			"message": "Done.",
-		})
-	} else {
-		c.JSON(404, gin.H{
-			"message": "?",
-		})
-	}
+	fmt.Println(adminKey)
+	fmt.Println(deleteName)
+	// if adminKey == RuntimeArgs.AdminKey || true == true {
+	p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}}
+	p.save("")
+	c.JSON(200, gin.H{
+		"message": "Done.",
+	})
+	// } else {
+	// 	c.JSON(404, gin.H{
+	// 		"message": "?",
+	// 	})
+	// }
 }
 
 func listEverything() string {
