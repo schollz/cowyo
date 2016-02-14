@@ -8,6 +8,7 @@ import (
 	"path"
 	"runtime"
 
+	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -62,6 +63,18 @@ Options:`)
 	RuntimeArgs.SourcePath = path.Dir(executableFile)
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
+
+	// create programdata bucket
+	err := db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("programdata"))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return err
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	// Default page
 	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))

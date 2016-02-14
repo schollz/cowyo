@@ -172,8 +172,18 @@ func (p *WikiData) save(newText string) error {
 		if err != nil {
 			return fmt.Errorf("could not encode WikiData: %s", err)
 		}
+		p.Title = strings.ToLower(p.Title)
 		err = bucket.Put([]byte(p.Title), enc)
+		if err != nil {
+			return fmt.Errorf("could add to bucket: %s", err)
+		}
 		return err
+	})
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("programdata"))
+		id, _ := b.NextSequence()
+		idInt := int(id)
+		return b.Put(itob(idInt), []byte(p.Title))
 	})
 	return err
 }
