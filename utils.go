@@ -44,6 +44,7 @@ func randomAdjective() string {
 
 func randomAlliterateCombo() (combo string) {
 	combo = ""
+	// first determine which names are taken from program data
 	takenNames := []string{}
 	err := db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
@@ -57,6 +58,7 @@ func randomAlliterateCombo() (combo string) {
 	if err != nil {
 		panic(err)
 	}
+	// generate random alliteration thats not been used
 	for {
 		animal := randomAnimal()
 		adjective := randomAdjective()
@@ -68,6 +70,7 @@ func randomAlliterateCombo() (combo string) {
 	return
 }
 
+// is there a string in a slice?
 func stringInSlice(s string, strings []string) bool {
 	for _, k := range strings {
 		if s == k {
