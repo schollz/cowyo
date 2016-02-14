@@ -1,4 +1,4 @@
-First install the NGINX block in this directory. 
+First install the NGINX block in this directory. (There is an experimental Makefile that will do this, just try `sudo make install`.
 
 To use letsencrypt follow these steps:
 
