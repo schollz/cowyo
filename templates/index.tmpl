@@ -39,12 +39,24 @@
       max-width: 800px;
       margin: 0 auto;
     }
+
+
+    @media (min-width: 1200px) {
+    .container{
+        max-width: 800px;
+    }
+    }
+
   </style>
 
 
 </head>
 
 <body>
+
+
+
+
   <!-- Fixed navbar -->
   <nav class="navbar navbar-default navbar-fixed-bottom">
     <div class="container">
@@ -68,6 +80,9 @@
               <li><a href="/{{ $.Title }}?version={{ .VersionNum }}">{{ .VersionDate }}</a></li>
               {{ end }}
               <li><a href="/{{ .Title }}">Current</a></li>
+              <li role="separator" class="divider"></li>
+                  <li class="dropdown-header">Options</li>
+                  <li><a href="#" id="{{ .Title }}" class="deleteable">Erase</a></li>
             </ul>
           </li>
           <li><a href="/{{ .Title }}/view"><span class="glyphicon glyphicon-sunglasses" aria-hidden="true"></span> View</a></li>
@@ -78,6 +93,7 @@
       <!--/.nav-collapse -->
     </div>
   </nav>
+
 
   <form action='#' id="emit" method="post" name="emit">
 
@@ -103,6 +119,25 @@
            console.log('control + shift + l');
            window.location = "/{{ .Title }}/list";
         }
+    });
+
+
+    $('.deleteable').click(function(event) {
+      event.preventDefault();
+      var deleteName = $(this).attr('id')
+      var href = $(this).attr('href')
+        console.log(deleteName)
+        $.ajax({
+          url: "/deletepage" + '?' + $.param({
+            "DeleteName": deleteName,
+            "AdminKey": "none"
+          }),
+          type: 'DELETE',
+          success: function() {
+            window.location.reload(true);
+          }
+        });
+
     });
   </script>
 
