@@ -262,6 +262,37 @@ func deletePage(c *gin.Context) {
 	// if adminKey == RuntimeArgs.AdminKey || true == true {
 	p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}}
 	p.save("")
+
+	// // remove from program data
+	// var deleteKey []byte
+	// foundKey := false
+	// err := db.View(func(tx *bolt.Tx) error {
+	// 	b := tx.Bucket([]byte("programdata"))
+	// 	c := b.Cursor()
+	// 	for k, v := c.First(); k != nil; k, v = c.Next() {
+	// 		if strings.ToLower(string(v)) == strings.ToLower(deleteName) {
+	// 			fmt.Println("FOUND " + string(v))
+	// 			deleteKey = k
+	// 			foundKey = true
+	// 			break
+	// 		}
+	// 	}
+	// 	return nil
+	// })
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// if foundKey == true {
+	// 	fmt.Println(len([]string{}))
+	// 	fmt.Println(deleteKey)
+	// 	db.View(func(tx *bolt.Tx) error {
+	// 		b := tx.Bucket([]byte("programdata"))
+	// 		err := b.Delete(deleteKey)
+	// 		return err
+	// 	})
+	// }
+
+	// return OKAY
 	c.JSON(200, gin.H{
 		"message": "Done.",
 	})

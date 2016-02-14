@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/boltdb/bolt"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -44,25 +43,26 @@ func randomAdjective() string {
 
 func randomAlliterateCombo() (combo string) {
 	combo = ""
-	// first determine which names are taken from program data
-	takenNames := []string{}
-	err := db.View(func(tx *bolt.Tx) error {
-		// Assume bucket exists and has keys
-		b := tx.Bucket([]byte("programdata"))
-		c := b.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			takenNames = append(takenNames, strings.ToLower(string(v)))
-		}
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
+	// // first determine which names are taken from program data
+	// takenNames := []string{}
+	// err := db.View(func(tx *bolt.Tx) error {
+	// 	// Assume bucket exists and has keys
+	// 	b := tx.Bucket([]byte("programdata"))
+	// 	c := b.Cursor()
+	// 	for k, v := c.First(); k != nil; k, v = c.Next() {
+	// 		takenNames = append(takenNames, strings.ToLower(string(v)))
+	// 	}
+	// 	return nil
+	// })
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(takenNames)
 	// generate random alliteration thats not been used
 	for {
 		animal := randomAnimal()
 		adjective := randomAdjective()
-		if animal[0] == adjective[0] && stringInSlice(strings.ToLower(adjective+animal), takenNames) == false {
+		if animal[0] == adjective[0] { //&& stringInSlice(strings.ToLower(adjective+animal), takenNames) == false {
 			combo = adjective + animal
 			break
 		}
