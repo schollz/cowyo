@@ -179,18 +179,18 @@ func (p *WikiData) save(newText string) error {
 		}
 		return err
 	})
-	// Add the new name to the programdata so its not randomly generated
-	if err == nil {
-		err2 := db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("programdata"))
-			id, _ := b.NextSequence()
-			idInt := int(id)
-			return b.Put(itob(idInt), []byte(p.Title))
-		})
-		if err2 != nil {
-			return fmt.Errorf("could not add to programdata: %s", err)
-		}
-	}
+	// // Add the new name to the programdata so its not randomly generated
+	// if err == nil && len(p.Timestamps) > 0 && len(p.CurrentText) > 0 {
+	// 	err2 := db.Update(func(tx *bolt.Tx) error {
+	// 		b := tx.Bucket([]byte("programdata"))
+	// 		id, _ := b.NextSequence()
+	// 		idInt := int(id)
+	// 		return b.Put(itob(idInt), []byte(p.Title))
+	// 	})
+	// 	if err2 != nil {
+	// 		return fmt.Errorf("could not add to programdata: %s", err)
+	// 	}
+	// }
 	return err
 }
 
