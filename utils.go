@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -42,15 +44,44 @@ func randomAdjective() string {
 
 func randomAlliterateCombo() (combo string) {
 	combo = ""
+	takenNames := []string{}
+	err := db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte("programdata"))
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			takenNames = append(takenNames, strings.ToLower(string(v)))
+		}
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
 	for {
 		animal := randomAnimal()
 		adjective := randomAdjective()
-		if animal[0] == adjective[0] {
+		if animal[0] == adjective[0] && stringInSlice(strings.ToLower(adjective+animal), takenNames) == false {
 			combo = adjective + animal
 			break
 		}
 	}
 	return
+}
+
+func stringInSlice(s string, strings []string) bool {
+	for _, k := range strings {
+		if s == k {
+			return true
+		}
+	}
+	return false
+}
+
+// itob returns an 8-byte big endian representation of v.
+func itob(v int) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
 }
 
 func contentType(filename string) string {
