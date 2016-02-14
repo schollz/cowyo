@@ -108,7 +108,6 @@ faulty
 unfaithful
 wide
 accustomed
-used_to
 unaccustomed
 new
 unused
@@ -153,7 +152,6 @@ acrobatic
 agile
 hot
 hyperactive
-on_the_go
 sporty
 inactive
 desk-bound
@@ -222,7 +220,6 @@ subacute
 chronic
 degenerative
 virulent
-highly_infective
 deadly
 avirulent
 adaptive
@@ -480,7 +477,6 @@ dead
 asleep
 assassinated
 bloodless
-brain_dead
 breathless
 cold
 d.o.a.
@@ -501,12 +497,10 @@ eccrine
 artesian
 subartesian
 live
-in_play
 living
 dead
 extinct
 lifeless
-out_of_play
 alphabetic
 abecedarian
 alphabetized
@@ -582,7 +576,6 @@ aggravated
 angered
 black
 choleric
-hot_under_the_collar
 huffy
 indignant
 irate
@@ -604,13 +597,11 @@ inanimate
 nonconscious
 animated
 enlivened
-full_of_life
 reanimated
 unanimated
 lifeless
 wan
 enlivened
-perked_up
 unenlivened
 animate
 inanimate
@@ -654,7 +645,6 @@ back-to-back
 ensuing
 following
 following
-in_line
 postmortem
 precedented
 unprecedented
@@ -671,9 +661,7 @@ postwar
 retrograde
 anterograde
 antemeridian
-ante_meridiem
 postmeridian
-post_meridiem
 anterior
 frontal
 frontal
@@ -719,8 +707,6 @@ apropos
 apposite
 malapropos
 inapposite
-a_priori
-a_posteriori
 apteral
 amphiprostylar
 prostyle
@@ -755,7 +741,6 @@ armored
 armor-clad
 bony-plated
 bulletproof
-lightly_armored
 mail-cheeked
 mail-clad
 scaled
@@ -859,7 +844,6 @@ tie-on
 detachable
 clastic
 wary
-on_guard
 shy
 unwary
 gullible
@@ -908,7 +892,6 @@ credited
 traceable
 unattributable
 attributive
-attributive_genitive
 predicative
 pregnant
 big
@@ -973,18 +956,13 @@ addressable
 easy
 forthcoming
 gettable
-in_stock
 lendable
 visible
-on_hand
-on_tap
-on_tap
 open
 purchasable
 ready
 unavailable
 inaccessible
-out_of_stock
 awake
 astir
 awakened
@@ -992,10 +970,8 @@ insomniac
 unsleeping
 waking
 asleep
-at_rest
 dormant
 drowsy
-fast_asleep
 hypnoid
 sleepy
 slumberous
@@ -1540,7 +1516,6 @@ aglitter
 beady
 beaming
 blazing
-bright_as_a_new_penny
 brilliant
 ardent
 glimmery
@@ -1603,12 +1578,9 @@ buried
 belowground
 unburied
 busy
-at_work
 drudging
 engaged
 overbusy
-tied_up
-up_to
 idle
 bone-idle
 faineant
@@ -1845,10 +1817,8 @@ centrifugal
 certain
 definite
 indisputable
-sure_as_shooting
 uncertain
 indefinite
-up_in_the_air
 certain
 convinced
 uncertain
@@ -1868,11 +1838,9 @@ certain
 bound
 doomed
 foreordained
-in_for
 uncertain
 chancy
 contingent
-up_in_the_air
 certified
 certifiable
 certificated
@@ -1905,7 +1873,6 @@ unchangeable
 changeless
 confirmed
 fixed
-set_in_stone
 static
 commutable
 alterable
@@ -2017,7 +1984,6 @@ blackish-brown
 blackish-red
 blae
 blue
-bluish_green
 blue-lilac
 blue-purple
 blue-violet
@@ -2042,7 +2008,6 @@ coral
 coral-red
 creamy
 creamy-yellow
-cress_green
 crimson-magenta
 crimson-purple
 crimson-yellow
@@ -2074,13 +2039,11 @@ lilac-blue
 lilac-pink
 lilac-purple
 magenta
-magenta_pink
 maroon
 maroon-purple
 mauve
 mauve-blue
 mauve-pink
-moss_green
 mousy
 ocher
 olive-brown
@@ -2098,7 +2061,6 @@ pink-orange
 pink-red
 pink-tinged
 pink-purple
-powder_blue
 purple
 purple-blue
 purple-brown
@@ -2180,7 +2142,6 @@ lily-white
 milk-white
 olive-grey
 oxford-grey
-pearl_grey
 pearly
 pinkish-white
 purple-black
@@ -2217,7 +2178,6 @@ brightly-colored
 buff-colored
 chestnut-colored
 chocolate-colored
-cinnamon_colored
 cinnamon-red
 cream-colored
 dark-colored
@@ -2405,7 +2365,6 @@ clear
 broad
 clear-cut
 limpid
-prima_facie
 unmistakable
 vivid
 unclear
@@ -2476,7 +2435,6 @@ faraway
 farther
 farthermost
 further
-off_the_beaten_track
 outlying
 near
 adjacent
@@ -2496,8 +2454,6 @@ adjacent
 ambient
 appressed
 approximate
-at_hand
-at_hand
 close-hauled
 close-set
 contiguous
@@ -2511,7 +2467,6 @@ scalelike
 walk-to
 distant
 faraway
-loosely_knit
 removed
 ulterior
 close
@@ -2547,7 +2502,6 @@ red-coated
 suited
 surpliced
 togged
-turned_out
 tuxedoed
 underdressed
 uniformed
@@ -2560,7 +2514,6 @@ bareheaded
 barelegged
 bottomless
 clothesless
-en_deshabille
 exposed
 half-clothed
 mother-naked
@@ -2569,7 +2522,6 @@ seminude
 starkers
 stripped
 unappareled
-without_a_stitch
 saddled
 unsaddled
 bareback
@@ -2696,7 +2648,6 @@ incommensurate
 disproportionate
 incommensurable
 proportionate
-per_capita
 proportionable
 proportional
 proportional
@@ -2726,7 +2677,6 @@ standard
 uncommon
 especial
 rare
-red_carpet
 unusual
 unwonted
 usual
@@ -2816,8 +2766,6 @@ shifting
 silty
 unconsolidated
 comparable
-comparable_with
-comparable_to
 incomparable
 all-time
 incommensurable
@@ -2886,7 +2834,6 @@ waist-length
 whole
 half
 committed
-bound_up
 pledged
 uncommitted
 fancy-free
@@ -2908,7 +2855,6 @@ clean
 completed
 dead
 exhaustive
-fleshed_out
 full
 full-blown
 full-dress
@@ -3053,7 +2999,6 @@ definitive
 inconclusive
 equivocal
 indeterminate
-neck_and_neck
 nisi
 consummated
 completed
@@ -3068,7 +3013,6 @@ concordant
 consensual
 consentaneous
 discordant
-at_variance
 dissentious
 contracted
 contractile
@@ -3167,7 +3111,6 @@ cold
 comatose
 innocent
 insensible
-knocked_out
 nonconscious
 semicomatose
 subconscious
@@ -3199,7 +3142,6 @@ reconciled
 self-consistent
 unchanging
 inconsistent
-at_odds
 discrepant
 spotty
 unconformable
@@ -3210,7 +3152,6 @@ big
 bold
 crying
 featured
-in_evidence
 marked
 outstanding
 inconspicuous
@@ -3285,7 +3226,6 @@ ceaseless
 continual
 dogging
 endless
-free_burning
 straight
 sustained
 discontinuous
@@ -3297,7 +3237,6 @@ continued
 continuing
 discontinued
 interrupted
-out_of_print
 controlled
 contained
 disciplined
@@ -3325,7 +3264,6 @@ polemic
 uncontroversial
 unchallengeable
 undisputed
-agreed_upon
 argumentative
 quarrelsome
 contentious
@@ -3394,7 +3332,6 @@ disenchanting
 unconvincing
 unpersuasive
 cooked
-au_gratin
 baked
 barbecued
 batter-fried
@@ -3420,7 +3357,6 @@ seared
 soft-boiled
 souffle-like
 steamed
-sunny-side_up
 toasted
 wafer-like
 well-done
@@ -3453,7 +3389,6 @@ antiphlogistic
 considerable
 appreciable
 goodly
-right_smart
 significant
 inconsiderable
 substantial
@@ -3653,7 +3588,6 @@ three-dimensional
 four-dimensional
 cut
 chopped
-cut_up
 incised
 perforated
 pierced
@@ -3665,7 +3599,6 @@ unpierced
 cut
 uncut
 cut
-cut_out
 hewn
 sheared
 slashed
@@ -3701,7 +3634,6 @@ obsolescent
 cursed
 accursed
 blasted
-cursed_with
 damn
 damnable
 blessed
@@ -3779,7 +3711,6 @@ deaf
 deaf-and-dumb
 deafened
 hard-of-hearing
-profoundly_deaf
 tone-deaf
 hearing
 sharp-eared
@@ -3798,7 +3729,6 @@ indecisive
 decisive
 unhesitating
 indecisive
-on_the_fence
 hesitant
 suspensive
 declarative
@@ -3814,7 +3744,6 @@ undeclared
 unacknowledged
 unavowed
 decorous
-in_good_taste
 sedate
 indecorous
 deductible
@@ -3836,8 +3765,6 @@ heavy
 profound
 shallow
 light
-de_facto
-de_jure
 defeasible
 indefeasible
 unforfeitable
@@ -4045,12 +3972,10 @@ unenviable
 destroyed
 annihilated
 blighted
-blotted_out
 broken
 burned
 demolished
 despoiled
-done_for
 extinguished
 fallen
 finished
@@ -4061,7 +3986,6 @@ war-torn
 wrecked
 preserved
 conserved
-kept_up
 preservable
 protected
 retained
@@ -4140,7 +4064,6 @@ courtly
 distinguished
 undignified
 demeaning
-infra_dig
 pathetic
 statesmanlike
 unstatesmanlike
@@ -4377,7 +4300,6 @@ half-seas-over
 high
 hopped-up
 sober
-cold_sober
 drug-free
 dry
 uninebriated
@@ -4524,7 +4446,6 @@ northwestern
 west-central
 eastern
 east-central
-middle_Atlantic
 northeastern
 southeastern
 ectomorphic
@@ -4631,15 +4552,12 @@ appointed
 unassigned
 optional
 elective
-ex_gratia
 facultative
 nonmandatory
 obligatory
 bounden
 compulsory
-de_rigueur
 imposed
-incumbent_on
 indispensable
 prerequisite
 elegant
@@ -4658,7 +4576,6 @@ eligible
 bailable
 desirable
 entitled
-in_line
 legal
 pensionable
 ineligible
@@ -4672,7 +4589,6 @@ bathetic
 cathartic
 charged
 funky
-het_up
 hot-blooded
 little
 lyric
@@ -4690,7 +4606,6 @@ phlegmatic
 stoic
 unblinking
 empirical
-a_posteriori
 confirmable
 experiential
 experimental
@@ -4699,7 +4614,6 @@ semiempirical
 trial-and-error
 theoretical
 abstractive
-a_priori
 conjectural
 notional
 metaphysical
@@ -4748,7 +4662,6 @@ unencumbered
 burdenless
 clear
 burdened
-bowed_down
 laden
 saddled
 unburdened
@@ -4839,7 +4752,6 @@ avid
 crazy
 evangelical
 glowing
-gung_ho
 overenthusiastic
 unenthusiastic
 cold
@@ -4970,7 +4882,6 @@ curly-grained
 irregular
 jagged
 lumpy
-out_of_true
 patchy
 pebble-grained
 ragged
@@ -5078,7 +4989,6 @@ unexpected
 unannounced
 unanticipated
 unhoped
-unprovided_for
 upset
 expedient
 advantageous
@@ -5098,7 +5008,6 @@ overpriced
 cheap
 bargain-priced
 catchpenny
-dirt_cheap
 low-budget
 low-cost
 nickel-and-dime
@@ -5134,7 +5043,6 @@ express
 graphic
 hard-core
 implicit
-implicit_in
 silent
 unexpressed
 exploited
@@ -5227,7 +5135,6 @@ clean
 fair-minded
 fair-and-square
 unfair
-below_the_belt
 cheating
 raw
 equitable
@@ -5242,7 +5149,6 @@ apostate
 punic
 untrue
 faithful
-true_to
 unfaithful
 adulterous
 loyal
@@ -5289,7 +5195,6 @@ quaint
 weird
 familiar
 common
-common_or_garden
 everyday
 fashionable
 latest
@@ -5471,8 +5376,6 @@ unfertilized
 finished
 complete
 done
-done_with
-fin_de_siecle
 up
 unfinished
 incomplete
@@ -5692,7 +5595,6 @@ form-only
 full-dress
 nominal
 positive
-pro_forma
 semiformal
 starchy
 white-tie
@@ -5712,9 +5614,7 @@ subliterary
 unliterary
 former
 latter
-last_mentioned
 fortunate
-better_off
 felicitous
 fortuitous
 good
@@ -5795,7 +5695,6 @@ detached
 floating
 unfirm
 free
-at_large
 autonomous
 available
 aweigh
@@ -5810,7 +5709,6 @@ unrestricted
 unfree
 adscript
 apprenticed
-at_bay
 captive
 entangled
 nonautonomous
@@ -5978,7 +5876,6 @@ up
 malfunctioning
 amiss
 bad
-out_of_whack
 run-down
 functional
 organic
@@ -6006,7 +5903,6 @@ framed
 unframed
 furnished
 appointed
-fitted_out
 stocked
 volumed
 well-appointed
@@ -6031,9 +5927,7 @@ geared
 back-geared
 double-geared
 engaged
-in_gear
 ungeared
-out_of_gear
 general
 broad
 general-purpose
@@ -6044,7 +5938,6 @@ pandemic
 universal
 widespread
 specific
-ad_hoc
 circumstantial
 limited
 particular
@@ -6141,7 +6034,6 @@ a-ok
 no-go
 good
 bang-up
-good_enough
 goodish
 hot
 redeeming
@@ -6271,7 +6163,6 @@ regretful
 unregretful
 hard
 adamantine
-al_dente
 corneous
 tumid
 firm
@@ -6790,7 +6681,6 @@ inhospitable
 hostile
 aggressive
 antagonistic
-at_loggerheads
 bitter
 dirty
 head-on
@@ -7175,7 +7065,6 @@ absolved
 acquitted
 blameless
 guilty
-at_fault
 blameworthy
 bloodguilty
 chargeable
@@ -7233,7 +7122,6 @@ compounded
 conglomerate
 occluded
 one
-rolled_into_one
 uncombined
 uncompounded
 integrative
@@ -7320,8 +7208,6 @@ intercollegiate
 intermural
 interscholastic
 outside
-intra_vires
-ultra_vires
 intrinsic
 built-in
 inner
@@ -7381,8 +7267,6 @@ tantalizing
 tantalizing
 uninviting
 unattractive
-in_vitro
-in_vivo
 ironed
 pressed
 smoothed
@@ -7433,7 +7317,6 @@ funereal
 mirthless
 unsmiling
 juicy
-au_jus
 lush
 sappy
 juiceless
@@ -7621,7 +7504,6 @@ jural
 lawful
 ratified
 statutory
-sub_judice
 illegal
 amerciable
 banned
@@ -7736,7 +7618,6 @@ illiterate
 literate
 illiterate
 analphabetic
-functionally_illiterate
 preliterate
 semiliterate
 semiliterate
@@ -7865,7 +7746,6 @@ abbreviated
 brief
 clipped
 fleeting
-short_and_sweet
 short-dated
 short-range
 short-run
@@ -7957,7 +7837,6 @@ thin
 pale
 piano
 pianissimo
-pianissimo_assai
 forte
 fortemente
 fortissimo
@@ -8293,7 +8172,6 @@ intensive
 extensive
 involved
 active
-caught_up
 concerned
 embroiled
 engaged
@@ -8474,8 +8352,6 @@ univalent
 bivalent
 multivalent
 monotonic
-decreasing_monotonic
-increasing_monotonic
 nonmonotonic
 monovalent
 polyvalent
@@ -8498,13 +8374,10 @@ high-principled
 unprincipled
 many
 galore
-many_a
 numerous
 some
 umpteen
 few
-a_few
-hardly_a
 much
 overmuch
 some
@@ -8806,7 +8679,6 @@ obedient
 acquiescent
 conformable
 dutiful
-Y2K_compliant
 disobedient
 contrary
 fractious
@@ -8841,7 +8713,6 @@ frank
 open-and-shut
 self-explanatory
 transparent
-writ_large
 unobvious
 unapparent
 unprovable
@@ -8895,13 +8766,11 @@ assaultive
 hit-and-run
 incursive
 marauding
-on_the_offensive
 defensive
 antiaircraft
 antisubmarine
 antitank
 defending
-en_garde
 offending
 sinning
 offensive
@@ -8912,7 +8781,6 @@ self-deprecating
 unapologetic
 official
 authoritative
-ex_officio
 formal
 formalized
 semiofficial
@@ -9337,7 +9205,6 @@ cloaked
 secret
 sub-rosa
 subterranean
-under_wraps
 undisclosed
 paid
 cashed
@@ -9354,7 +9221,6 @@ buckshee
 complimentary
 non-paying
 outstanding
-pro_bono
 rent-free
 uncompensated
 painful
@@ -9482,10 +9348,8 @@ instant
 latter-day
 future
 approaching
-future_day
 early
 emerging
-in_store
 proximo
 born
 hatched
@@ -9620,7 +9484,6 @@ evanescent
 fly-by-night
 improvised
 interim
-pro_tem
 shipboard
 temporal
 terminable
@@ -9667,7 +9530,6 @@ preclusive
 preemptive
 prohibitive
 perplexed
-at_a_loss
 baffled
 metagrobolized
 questioning
@@ -9675,7 +9537,6 @@ stuck
 unperplexed
 unbaffled
 personal
-ad_hominem
 face-to-face
 individual
 individualized
@@ -9857,7 +9718,6 @@ preset
 put-up
 unplanned
 casual
-ad_hoc
 casual
 unpremeditated
 studied
@@ -9890,7 +9750,6 @@ ungrateful
 unhappy
 pleased
 amused
-bucked_up
 chuffed
 delighted
 gratified
@@ -10080,7 +9939,6 @@ finespun
 meticulous
 microscopic
 nice
-on_the_nose
 very
 imprecise
 general
@@ -10126,7 +9984,6 @@ attendant
 ever-present
 existing
 here
-naturally_occurring
 omnipresent
 absent
 away
@@ -10197,7 +10054,6 @@ semiprivate
 tete-a-tete
 toffee-nosed
 public
-in_the_public_eye
 national
 open
 semipublic
@@ -10315,7 +10171,6 @@ prospective
 likely
 future
 retrospective
-ex_post_facto
 protected
 bastioned
 battlemented
@@ -10364,7 +10219,6 @@ evidenced
 tested
 verified
 unproved
-on_trial
 unverified
 provident
 careful
@@ -10497,8 +10351,6 @@ impugnable
 self-styled
 unquestionable
 acknowledged
-beyond_doubt
-for_sure
 mathematical
 unimpeachable
 quiet
@@ -10564,9 +10416,7 @@ inert
 noble
 stable
 ready
-at_the_ready
 fit
-in_order
 prompt
 ripe
 waiting
@@ -10790,13 +10640,11 @@ unconnected
 related
 affiliated
 age-related
-bound_up
 cognate
 connate
 coreferent
 correlative
 corresponding
-side_by_side
 unrelated
 misrelated
 orthogonal
@@ -11062,9 +10910,7 @@ comfortable
 poor
 broke
 destitute
-hard_up
 moneyless
-unprovided_for
 rich
 poor
 resourceless
@@ -11106,7 +10952,6 @@ reactionary
 rightish
 rightist
 left
-far_left
 leftish
 leftist
 liberal
@@ -11269,9 +11114,7 @@ sadistic
 masochistic
 safe
 fail-safe
-off_the_hook
 risk-free
-safe_and_sound
 dangerous
 breakneck
 chancy
@@ -11279,7 +11122,6 @@ desperate
 hazardous
 insidious
 mordacious
-on_the_hook
 parlous
 self-destructive
 treacherous
@@ -11337,8 +11179,6 @@ quasi
 sympathetic
 dissimilar
 sane
-compos_mentis
-in_his_right_mind
 lucid
 insane
 amuck
@@ -11353,12 +11193,9 @@ lunatic
 maniacal
 manic-depressive
 maniclike
-mentally_ill
-non_compos_mentis
 paranoid
 psychopathic
 psychotic
-raving_mad
 schizophrenic
 screw-loose
 satiate
@@ -11378,7 +11215,6 @@ saturnine
 unsarcastic
 satisfactory
 adequate
-all_right
 alright
 comforting
 copacetic
@@ -11428,7 +11264,6 @@ furtive
 hidden
 hidden
 incognito
-lying_in_wait
 sealed
 secret
 sneaking
@@ -11508,7 +11343,6 @@ sensitive
 delicate
 erogenous
 excitable
-highly_sensitive
 irritable
 light-sensitive
 radiosensitive
@@ -11959,7 +11793,6 @@ multifactorial
 multiplex
 thickening
 sincere
-bona_fide
 cordial
 dear
 honest
@@ -12082,31 +11915,7 @@ ninety-seven
 ninety-eight
 ninety-nine
 hundred
-hundred_and_one
-one_hundred_five
-one_hundred_ten
-one_hundred_fifteen
-one_hundred_twenty
-one_hundred_twenty-five
-one_hundred_thirty
-one_hundred_thirty-five
-one_hundred_forty
-one_hundred_forty-five
-one_hundred_fifty
-one_hundred_fifty-five
-one_hundred_sixty
-one_hundred_sixty-five
-one_hundred_seventy
-one_hundred_seventy-five
-one_hundred_eighty
-one_hundred_ninety
-two_hundred
-three_hundred
-four_hundred
-five_hundred
 thousand
-ten_thousand
-hundred_thousand
 million
 billion
 billion
@@ -12217,7 +12026,6 @@ azygous
 one-man
 lone
 singular
-sui_generis
 unary
 uninominal
 multiple
@@ -12302,7 +12110,6 @@ crude
 hopeless
 humble
 lubberly
-out_of_practice
 semiskilled
 weak
 verbal
@@ -12433,7 +12240,6 @@ tod
 unattended
 accompanied
 unaccompanied
-a_cappella
 solo
 gregarious
 social
@@ -12540,7 +12346,6 @@ zero
 all
 each
 every
-every_last
 every
 sophisticated
 blase
@@ -12588,7 +12393,6 @@ spinous
 spineless
 spirited
 boisterous
-con_brio
 dashing
 ebullient
 feisty
@@ -12902,7 +12706,6 @@ victorious
 unsuccessful
 attempted
 defeated
-done_for
 down-and-out
 empty-handed
 hitless
@@ -13027,7 +12830,6 @@ accessory
 accessary
 certificatory
 collateral
-demonstrative_of
 encouraging
 unsupportive
 confounding
@@ -13124,7 +12926,6 @@ even
 interchangeable
 isosceles
 radial
-radially_symmetrical
 rhombohedral
 asymmetrical
 lopsided
@@ -13183,7 +12984,6 @@ discerning
 tactless
 tall
 gangling
-in_height
 leggy
 leggy
 long
@@ -13340,7 +13140,6 @@ filamentous
 fine
 light
 hyperfine
-paper_thin
 papery
 ribbonlike
 sleazy
@@ -13371,7 +13170,6 @@ thoughtful
 bemused
 brooding
 cogitative
-well_thought_out
 deliberative
 excogitative
 thoughtless
@@ -13391,7 +13189,6 @@ neat
 neat
 ruly
 shipshape
-slicked_up
 straight
 uncluttered
 untidy
@@ -13440,7 +13237,6 @@ thorn-tipped
 yellow-tipped
 untipped
 tired
-all_in
 aweary
 bleary
 bored
@@ -13573,8 +13369,6 @@ balking
 refractory
 uncontrollable
 unmalleable
-table_d'hote
-a_la_carte
 traceable
 untraceable
 tracked
@@ -13582,7 +13376,6 @@ caterpillar-tracked
 half-track
 trackless
 traveled
-heavily_traveled
 untraveled
 untraversed
 trimmed
@@ -13709,7 +13502,6 @@ conjugate
 conjunct
 federate
 incorporate
-in_league
 one
 suprasegmental
 tied
@@ -13815,7 +13607,6 @@ downstream
 uptown
 downtown
 used
-in_use
 utilized
 misused
 abused
@@ -13927,7 +13718,6 @@ nefarious
 peccable
 visible
 circumpolar
-in_sight
 ocular
 macroscopic
 megascopic
@@ -13979,7 +13769,6 @@ indefensible
 insecure
 penetrable
 threatened
-under_attack
 unguarded
 invulnerable
 airtight
@@ -14096,8 +13885,6 @@ feverish
 funny
 gouty
 green
-laid_low
-laid_up
 milk-sick
 nauseated
 palsied
@@ -14214,7 +14001,6 @@ disposed
 glad
 ready
 volitional
-willing_and_able
 unwilling
 grudging
 loath
@@ -14300,14 +14086,12 @@ worn
 aged
 attrited
 battered
-clapped_out
 creaky
 dog-eared
 eroded
 frayed
 mangy
 moth-eaten
-played_out
 ragged
 raddled
 moth-eaten
@@ -14325,15 +14109,12 @@ unweathered
 worthy
 applaudable
 creditable
-cum_laude
 deserving
 exemplary
-magna_cum_laude
 meritorious
 noteworthy
 quotable
 sacred
-summa_cum_laude
 valued
 valuable
 worthwhile
@@ -14611,7 +14392,6 @@ Biedermeier
 annelid
 annexational
 hermeneutic
-Middle_Eastern
 annunciatory
 alliaceous
 anodic
@@ -15295,7 +15075,6 @@ existential
 existentialist
 extropic
 facial
-factor_analytical
 factorial
 facultative
 Fahrenheit
@@ -15612,13 +15391,11 @@ neonatal
 neoplastic
 neotenic
 Nestorian
-New_Caledonian
 Noachian
 nominal
 nominal
 nominalistic
 nominative
-North_Vietnamese
 nosocomial
 numeral
 numerological
@@ -15703,8 +15480,6 @@ plumbic
 plutocratic
 polarographic
 polemoniaceous
-politically_correct
-politically_incorrect
 polydactyl
 polyhedral
 polymeric
@@ -16490,7 +16265,6 @@ macrencephalic
 macrocephalic
 microcephalic
 microelectronic
-machine_readable
 macromolecular
 isotopic
 isothermic
@@ -16595,9 +16369,7 @@ obstetric
 neurological
 spectrometric
 spectroscopic
-mass_spectroscopic
 mass-spectrometric
-electron_microscopic
 microscopic
 insurrectional
 conspiratorial
@@ -16653,9 +16425,6 @@ anti-American
 pro-American
 Indian
 Indian
-North_American
-South_American
-South_African
 asymptotic
 subtropical
 tropical
@@ -16747,8 +16516,6 @@ etiological
 exuvial
 behavioral
 African
-East_African
-East_Indian
 Afro-Asian
 phenotypical
 genotypical
@@ -16844,7 +16611,6 @@ chronological
 Italian
 Russian
 German
-East_German
 Celtic
 Britannic
 Teutonic
@@ -16906,8 +16672,6 @@ Uruguayan
 Bolivian
 Colombian
 Korean
-North_Korean
-South_Korean
 European
 Asian
 Cambodian
@@ -17093,7 +16857,6 @@ non-metric
 mythic
 nacreous
 normative
-North_African
 ordinal
 palatal
 Paleozoic
@@ -17116,7 +16879,6 @@ centennial
 bicentennial
 tricentenary
 sophistic
-national_socialist
 Nazi
 capitalist
 zymotic
@@ -17143,7 +16905,6 @@ English
 English
 Irish
 Afghani
-Central_American
 idiomatic
 dialectal
 percussive
@@ -17400,7 +17161,6 @@ anaesthetic
 ablative
 accusatorial
 inquisitorial
-West_African
 Afrikaans
 aneroid
 Angolan
@@ -17490,7 +17250,6 @@ concessive
 Congolese
 consular
 Coptic
-Costa_Rican
 creaseproof
 creedal
 Creole
@@ -17843,7 +17602,6 @@ sabbatical
 sacral
 sacrificial
 Samoan
-San_Marinese
 Sarawakian
 satyric
 Saudi-Arabian
@@ -17864,12 +17622,10 @@ Thai
 Thai
 Thai
 Siberian
-Sierra_Leonean
 Singaporean
 Singaporean
 Singhalese
 Sinhala
-Sri_Lankan
 Slav
 Slavonic
 small-capitalization
@@ -17959,7 +17715,6 @@ xerographic
 Yemeni
 Zairean
 Zambian
-New_Zealander
 zenithal
 Zimbabwean
 Zionist
@@ -18069,9 +17824,6 @@ zero
 zoonotic
 zygomatic
 zymoid
-.22_caliber
-.38_caliber
-.45_caliber
 nosohusial
 avenged
 unavenged
@@ -18096,9 +17848,7 @@ fitted
 hypophysectomized
 malted
 unmalted
-marched_upon
 mercerized
-mounded_over
 operating
 oxidized
 parked
