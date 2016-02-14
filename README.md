@@ -15,7 +15,7 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. You 
 
 **Automatic versioning**. All previous versions of all notes are stored and can be accessed by adding `?version=X` onto `/view` or `/edit`. If you are on the `/view` or `/edit` pages the menu below will show the most substantial changes in the history. Note, only the _current_ version can be edited (no branching allowed, yet).
 
-**Security**. HTTPS support is provided. Also uses a HTML sanitizer to prevent XSS attacks. Though all URLs are publically accessible, you are free to secure your website by using an obscure (or random) name. 
+**Security**. HTTPS support is provided. Also uses a HTML sanitizer to prevent XSS attacks. Though all URLs are publically accessible, you are free to secure your website by using an obscure (or random) name. The automatic URL is an alliterative animal description, of which there are almost 1,000,000 possibilities.
 
 **Keyboard Shortcuts**. Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
