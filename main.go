@@ -35,7 +35,7 @@ var RuntimeArgs struct {
 var VersionNum string
 
 func main() {
-	VersionNum = "1.01"
+	VersionNum = "1.1"
 	_, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	databaseFile := path.Join(path.Dir(executableFile), "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")

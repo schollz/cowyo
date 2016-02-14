@@ -2,7 +2,7 @@
 
 # AwwKoala - [Demo](http://awwkoala.com/)
 ## A Websocket Wiki and Kind Of A List Application
-[![Version 1.0](https://img.shields.io/badge/version-1.0-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/AwwKoala)](https://goreportcard.com/report/github.com/schollz/AwwKoala) [![Join the chat at https://gitter.im/schollz/AwwKoala](https://badges.gitter.im/schollz/AwwKoala.svg)](https://gitter.im/schollz/AwwKoala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Version 1.1](https://img.shields.io/badge/version-1.0-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/AwwKoala)](https://goreportcard.com/report/github.com/schollz/AwwKoala) [![Join the chat at https://gitter.im/schollz/AwwKoala](https://badges.gitter.im/schollz/AwwKoala.svg)](https://gitter.im/schollz/AwwKoala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a self-contained wiki webserver that makes sharing easy and _fast_. You can make any page you want, and any page is editable by anyone. Pages load instantly for editing, and have special rendering for whether you want to view as a web page or view as list.
 
@@ -11,11 +11,11 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. You 
 
 **Viewing**. All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](http://AwwKoala.com/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](http://AwwKoala.com/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. To quickly link to `/view` pages, just use `[[AnythingYouWnat]]`. Math is supported with [Katex](https://github.com/Khan/KaTeX) using `$\frac{1}{2}$` for inline equations and `$$\frac{1}{2}$$` for regular equations.
 
-**Listifying**. If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://AwwKoala.com/grocery), goto [`/grocery/list`](http://AwwKoala.com/grocery/list). In this page, whatever you click on will be striked through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
+**Listifying**. If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://AwwKoala.com/grocery), goto [`/grocery/list`](http://AwwKoala.com/grocery/list). In this page, whatever you click on will be struck through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
 **Automatic versioning**. All previous versions of all notes are stored and can be accessed by adding `?version=X` onto `/view` or `/edit`. If you are on the `/view` or `/edit` pages the menu below will show the most substantial changes in the history. Note, only the _current_ version can be edited (no branching allowed, yet).
 
-**Security**. HTTPS support is provided. Also uses a HTML sanitizer to prevent XSS attacks. Though all URLs are publically accessible, you are free to secure your website by using an obscure (or random) name. The automatic URL is an alliterative animal description, of which there are over 500,000 possibilities.
+**Security**. HTTPS support is provided and everything is sanitized to prevent XSS attacks. Though all URLs are publicly accessible, you are free to obfuscate your website by using an obscure/random address (read: the site is still publicly accessible, just hard to find!). The automatic URL is an alliterative animal description - of which there are over 500,000 possibilities - so the URL is easy to remember and hard to guess.
 
 **Keyboard Shortcuts**. Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
