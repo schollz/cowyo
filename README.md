@@ -21,7 +21,7 @@ All previous versions of all notes are stored and can be accessed by adding `?ve
 
 ## Security
 
-Now comes with HTTPS!
+HTTPS support is provided. Also uses a HTML sanitizer to prevent XSS attacks.
 
 ## Keyboard Shortcuts
 
