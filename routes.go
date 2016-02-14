@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"fmt"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
@@ -197,8 +198,18 @@ func renderList(c *gin.Context, title string) {
 		panic(err)
 	}
 
-	listItems, _ := reorderList(p.CurrentText)
-
+	fmt.Println(p.CurrentText)
+	pClean := bluemonday.UGCPolicy()
+	pClean.AllowElements("img")
+	pClean.AllowAttrs("alt").OnElements("img")
+	pClean.AllowAttrs("src").OnElements("img")
+	pClean.AllowAttrs("class").OnElements("a")
+	pClean.AllowAttrs("href").OnElements("a")
+	pClean.AllowAttrs("id").OnElements("a")
+	pClean.AllowDataURIImages()
+	text := pClean.SanitizeBytes([]byte(p.CurrentText))
+	listItems, _ := reorderList(string(text))
+	fmt.Println(string(text))
 	c.HTML(http.StatusOK, "list.tmpl", gin.H{
 		"Title":     title,
 		"WikiName":  RuntimeArgs.WikiName,
