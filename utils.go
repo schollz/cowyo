@@ -27,7 +27,7 @@ func init() {
 	animalsText, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/animals"))
 	animals = strings.Split(string(animalsText), ",")
 	adjectivesText, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/adjectives"))
-	adjectives = strings.Split(string(adjectivesText), ",")
+	adjectives = strings.Split(string(adjectivesText), "\n")
 	robotsTxtFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/robots.txt"))
 	robotsTxt = string(robotsTxtFile)
 }
