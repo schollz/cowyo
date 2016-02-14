@@ -260,9 +260,10 @@ func deletePage(c *gin.Context) {
 	fmt.Println(adminKey)
 	fmt.Println(deleteName)
 	// if adminKey == RuntimeArgs.AdminKey || true == true {
-	p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}}
-	p.save("")
-
+	if strings.ToLower(deleteName) != "about" {
+		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}}
+		p.save("")
+	}
 	// // remove from program data
 	// var deleteKey []byte
 	// foundKey := false
