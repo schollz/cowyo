@@ -44,7 +44,7 @@ $(document).ready(function() {
   }
 
   // websockets
-  url = 'ws://'+external_ip+'/ws';
+  url = socketType + '://'+external_ip+'/ws';
   c = new WebSocket(url);
 
   send = function(data){

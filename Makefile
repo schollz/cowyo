@@ -28,4 +28,14 @@ install:
 	/etc/init.d/awwkoala.init restart
 	rm -rf jinstall
 
+binaries:
+	rm -rf binaries
+	rm -f awwkoala
+	mkdir binaries
+	env GOOS=linux GOARCH=amd64 go build -o awwkoala -v *.go
+	zip -9 -r awwkoala-linux-amd64.zip awwkoala static/* templates/*
+	rm -f awwkoala
+
+
 .PHONY: install
+.PHONY: binaries
