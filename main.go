@@ -4,10 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
-	"runtime"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
@@ -37,8 +35,8 @@ var RuntimeArgs struct {
 var VersionNum string
 
 func main() {
-	VersionNum = "1.1"
-	_, executableFile, _, _ := runtime.Caller(0) // get full path of this file
+	VersionNum = "1.2"
+	// _, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	cwd, _ := os.Getwd()
 	databaseFile := path.Join(cwd, "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")
@@ -63,7 +61,7 @@ Options:`)
 	if RuntimeArgs.ExternalIP == "" {
 		RuntimeArgs.ExternalIP = GetLocalIP() + RuntimeArgs.Port
 	}
-	RuntimeArgs.SourcePath = path.Dir(executableFile)
+	RuntimeArgs.SourcePath = cwd
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
 
@@ -87,7 +85,6 @@ Options:`)
 	// var q WikiData
 	// q.load("about")
 	// fmt.Println(getImportantVersions(q))
-	log.Println(RuntimeArgs.AdminKey)
 
 	r := gin.Default()
 	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
@@ -100,13 +97,15 @@ Options:`)
 	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
 		RuntimeArgs.Socket = "wss"
 		fmt.Println("--------------------------")
-		fmt.Println("AwwKoala is up and running on https://" + RuntimeArgs.ExternalIP)
+		fmt.Println("AwwKoala (version " + VersionNum + ") is up and running on https://" + RuntimeArgs.ExternalIP)
+		fmt.Println("Admin key: " + RuntimeArgs.AdminKey)
 		fmt.Println("--------------------------")
 		r.RunTLS(RuntimeArgs.Port, RuntimeArgs.ServerCRT, RuntimeArgs.ServerKey)
 	} else {
 		RuntimeArgs.Socket = "ws"
 		fmt.Println("--------------------------")
-		fmt.Println("AwwKoala is up and running on http://" + RuntimeArgs.ExternalIP)
+		fmt.Println("AwwKoala (version " + VersionNum + ") is up and running on http://" + RuntimeArgs.ExternalIP)
+		fmt.Println("Admin key: " + RuntimeArgs.AdminKey)
 		fmt.Println("--------------------------")
 		r.Run(RuntimeArgs.Port)
 	}
