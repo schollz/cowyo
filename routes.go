@@ -48,6 +48,7 @@ func editNote(c *gin.Context) {
 					"NumRows":     numRows,
 					"Versions":    versions,
 					"TotalTime":   totalTime,
+					"SocketType":  RuntimeArgs.Socket,
 				})
 			} else {
 				c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -58,6 +59,7 @@ func editNote(c *gin.Context) {
 					"NumRows":     numRows,
 					"Versions":    versions,
 					"TotalTime":   totalTime,
+					"SocketType":  RuntimeArgs.Socket,
 					"NoEdit":      true,
 				})
 			}
