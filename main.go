@@ -31,6 +31,7 @@ var RuntimeArgs struct {
 	ServerKey        string
 	SourcePath       string
 	AdminKey         string
+	Socket           string
 }
 var VersionNum string
 
@@ -45,10 +46,10 @@ func main() {
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "AwwKoala", "custom name for wiki")
 	flag.CommandLine.Usage = func() {
-		fmt.Println(`AwwKoala: A Websocket Wiki and Kind Of A List Application
+		fmt.Println(`AwwKoala (version ` + VersionNum + `): A Websocket Wiki and Kind Of A List Application
 run this to start the server and then visit localhost at the port you specify
 (see parameters).
-Example: 'awwkoala localhost'
+Example: 'awwkoala yourserver.com'
 Example: 'awwkoala -p :8080 localhost:8080'
 Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost:8003'
 Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
@@ -58,7 +59,7 @@ Options:`)
 	flag.Parse()
 	RuntimeArgs.ExternalIP = flag.Arg(0)
 	if RuntimeArgs.ExternalIP == "" {
-		log.Fatal("You need to specify the external IP address")
+		RuntimeArgs.ExternalIP = GetLocalIP() + RuntimeArgs.Port
 	}
 	RuntimeArgs.SourcePath = path.Dir(executableFile)
 	Open(RuntimeArgs.DatabaseLocation)
@@ -95,9 +96,16 @@ Options:`)
 	r.DELETE("/listitem", deleteListItem)
 	r.DELETE("/deletepage", deletePage)
 	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
+		RuntimeArgs.Socket = "wss"
+		fmt.Println("--------------------------")
+		fmt.Println("AwwKoala is up and running on https://" + RuntimeArgs.ExternalIP)
+		fmt.Println("--------------------------")
 		r.RunTLS(RuntimeArgs.Port, RuntimeArgs.ServerCRT, RuntimeArgs.ServerKey)
 	} else {
-		log.Println("No crt/key found, running non-https")
+		RuntimeArgs.Socket = "ws"
+		fmt.Println("--------------------------")
+		fmt.Println("AwwKoala is up and running on http://" + RuntimeArgs.ExternalIP)
+		fmt.Println("--------------------------")
 		r.Run(RuntimeArgs.Port)
 	}
 }
