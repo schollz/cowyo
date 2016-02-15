@@ -2,7 +2,7 @@
 
 # AwwKoala
 ## A Websocket Wiki and Kind Of A List Application
-![Version 1.1](https://img.shields.io/badge/version-1.0-brightgreen.svg)
+![Version 0.9](https://img.shields.io/badge/version-0.9-brightgreen.svg)
 
 This is a self-contained wiki webserver that makes sharing easy and _fast_. You can make any page you want, and any page is editable by anyone. Pages load instantly for editing, and have special rendering for whether you want to view as a web page or view as list. **AwwKoala** is also [Open Source](https://github.com/schollz/AwwKoala).
 
