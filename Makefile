@@ -33,8 +33,18 @@ binaries:
 	rm -f awwkoala
 	mkdir binaries
 	env GOOS=linux GOARCH=amd64 go build -o awwkoala -v *.go
-	zip -9 -r awwkoala-linux-amd64.zip awwkoala static/* templates/*
+	zip -9 -r awwkoala-linux-64bit.zip awwkoala static/* templates/*
 	rm -f awwkoala
+	env GOOS=windows GOARCH=amd64 go build -o awwkoala.exe -v *.go
+	zip -9 -r awwkoala-windows-64bit.zip awwkoala.exe static/* templates/*
+	rm -f awwkoala.exe
+	env GOOS=linux GOARCH=arm go build -o awwkoala -v *.go
+	zip -9 -r awwkoala-raspberrypi.zip awwkoala static/* templates/*
+	rm -f awwkoala
+	env GOOS=darwin GOARCH=amd64 go build -o awwkoala -v *.go
+	zip -9 -r awwkoala-macosx-64bit.zip awwkoala static/* templates/*
+	rm -f awwkoala
+	mv *.zip binaries/
 
 
 .PHONY: install
