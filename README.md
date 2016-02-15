@@ -2,7 +2,7 @@
 
 # AwwKoala - [Demo](http://awwkoala.com/)
 ## A Websocket Wiki and Kind Of A List Application
-[![Version 1.1](https://img.shields.io/badge/version-1.0-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/AwwKoala)](https://goreportcard.com/report/github.com/schollz/AwwKoala) [![Join the chat at https://gitter.im/schollz/AwwKoala](https://badges.gitter.im/schollz/AwwKoala.svg)](https://gitter.im/schollz/AwwKoala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Version 0.9](https://img.shields.io/badge/version-0.9-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/AwwKoala)](https://goreportcard.com/report/github.com/schollz/AwwKoala) [![Join the chat at https://gitter.im/schollz/AwwKoala](https://badges.gitter.im/schollz/AwwKoala.svg)](https://gitter.im/schollz/AwwKoala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a self-contained wiki webserver that makes sharing easy and _fast_. You can make any page you want, and any page is editable by anyone. Pages load instantly for editing, and have special rendering for whether you want to view as a web page or view as list.
 
