@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"runtime"
 
@@ -38,7 +39,8 @@ var VersionNum string
 func main() {
 	VersionNum = "1.1"
 	_, executableFile, _, _ := runtime.Caller(0) // get full path of this file
-	databaseFile := path.Join(path.Dir(executableFile), "data.db")
+	cwd, _ := os.Getwd()
+	databaseFile := path.Join(cwd, "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")
 	flag.StringVar(&RuntimeArgs.DatabaseLocation, "db", databaseFile, "location of database file")
 	flag.StringVar(&RuntimeArgs.AdminKey, "a", RandStringBytesMaskImprSrc(50), "key to access admin priveleges")
