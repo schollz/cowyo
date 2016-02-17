@@ -91,6 +91,7 @@ text-decoration-color: rgba(0, 0, 0, 0.4);
 color: #555;
 -moz-text-decoration-color: rgba(0, 0, 0, 0.6);
 text-decoration-color: rgba(0, 0, 0, 0.6);
+text-decoration: none;
 }
 
 .yue h1 a,
