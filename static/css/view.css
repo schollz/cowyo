@@ -8,7 +8,7 @@
 
 .yue {
 font: 400 18px/1.62 "Georgia", "Xin Gothic", "Hiragino Sans GB", "Droid Sans Fallback", "Microsoft YaHei", sans-serif;
-color: #444443;
+color: #333334;
 }
 
 .windows .yue {
@@ -31,7 +31,9 @@ background-color: rgba(0,0,0,0.2);
 .yue h5,
 .yue h6 {
 font-family: "Georgia", "Xin Gothic", "Hiragino Sans GB", "Droid Sans Fallback", "Microsoft YaHei", "SimSun", sans-serif;
-color: #222223;
+color: #222222;
+font-weight: 600;
+letter-spacing: -0.02em;
 }
 
 .yue h1 {
@@ -255,7 +257,7 @@ box-sizing: border-box;
 .yue td {
 text-align: left;
 padding: 4px 8px 4px 10px;
-border: 1px solid #dadada;
+border: 1px solid #c1c1bd;
 }
 
 .yue td {
@@ -263,7 +265,7 @@ vertical-align: top;
 }
 
 .yue tr:nth-child(even) {
-background-color: #efefee;
+background-color: #dadad8;
 }
 
 .yue iframe {
@@ -298,16 +300,16 @@ background: none;
 body {
 margin: 0;
 padding: 0.4em 1em 6em;
-background: #fff;
+background: #f4f4f4;
 }
 .yue {
-max-width: 800px;
+max-width: 700px;
 margin: 0 auto;
 }
 
 
 @media (min-width: 1200px) {
 .container{
-    max-width: 800px;
+    max-width: 700px;
 }
 }
