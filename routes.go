@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"regexp"
 	"strconv"
@@ -327,4 +328,23 @@ func listEverything() string {
 		return nil
 	})
 	return everything
+}
+
+func dumpEverything() {
+	err := os.MkdirAll("dump", 0777)
+	if err != nil {
+		fmt.Println("Already exists")
+	}
+	db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		b := tx.Bucket([]byte("datas"))
+		c := b.Cursor()
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			var p WikiData
+			p.load(string(k))
+			fmt.Println(string(k), len(p.CurrentText))
+			ioutil.WriteFile(path.Join("dump", string(k)+".md"), []byte(p.CurrentText), 0644)
+		}
+		return nil
+	})
 }

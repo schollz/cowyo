@@ -45,6 +45,7 @@ func main() {
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "AwwKoala", "custom name for wiki")
+	dumpDataset := flag.Bool("dump", false, "flag to dump all data to 'dump' directory")
 	flag.CommandLine.Usage = func() {
 		fmt.Println(`AwwKoala (version ` + VersionNum + `): A Websocket Wiki and Kind Of A List Application
 run this to start the server and then visit localhost at the port you specify
@@ -57,11 +58,21 @@ Options:`)
 		flag.CommandLine.PrintDefaults()
 	}
 	flag.Parse()
+
+	if *dumpDataset {
+		fmt.Println("Dumping data to 'dump' folder...")
+		Open(RuntimeArgs.DatabaseLocation)
+		dumpEverything()
+		Close()
+		os.Exit(1)
+	}
+
 	RuntimeArgs.ExternalIP = flag.Arg(0)
 	if RuntimeArgs.ExternalIP == "" {
 		RuntimeArgs.ExternalIP = GetLocalIP() + RuntimeArgs.Port
 	}
 	RuntimeArgs.SourcePath = cwd
+
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
 
