@@ -15,6 +15,8 @@ a.deleteable {
     cursor: pointer;
 }
 </style>
+<script src="/static/js/sweetalert-dev.js"></script>
+<link rel="stylesheet" href="/static/css/sweetalert.css">
 </head>
 
 <body>
@@ -44,6 +46,10 @@ a.deleteable {
               <li><a href="/{{ $.Title }}/view?version={{ .VersionNum }}">{{ .VersionDate }}</a></li>
               {{ end }}
               <li><a href="/{{ .Title }}/view">Current</a></li>
+              {{ if .Encrypted }}
+              <li class="dropdown-header">Options</li>
+              <li><a href="#" class="postdecrypt">Decrypt</a></li>
+              {{ end }}
             </ul>
           </li>
           <li><a href="/{{ .Title }}/list"><span class="glyphicon glyphicon-align-left" aria-hidden="true"></span> List</a></li>
@@ -71,6 +77,46 @@ $( document ).ready(function() {
       katex.render(el.getAttribute("data-expr"), el, { displayMode: true });
   });
 
+
+  $('.postdecrypt').click(function(event) {
+    var pass1 = "";
+    event.preventDefault();
+    swal({
+      title: "Encryption",
+      text: "Enter your passphrase:",
+      type: "input",
+      showCancelButton: true,
+      closeOnConfirm: false,
+      animation: "slide-from-top",
+      inputPlaceholder: "Write something"
+    }, function(inputValue) {
+      if (inputValue === false) return false;
+      if (inputValue === "") {
+        swal.showInputError("You need to write something!");
+        return false
+      }
+      pass1 = inputValue;
+      $.ajax({
+          type: "POST",
+          //the url where you want to sent the userName and password to
+          url: '/{{ .Title }}/decrypt',
+          dataType: 'json',
+          data: JSON.stringify({
+            text: " ",
+            password: pass1
+          }),
+          success: function (data) {
+            if (data['success'] == true) {
+              swal("Decryption", "Decrypted!", "success");
+              window.location.href = '/{{ .Title }}/view';
+            } else {
+              swal("Decryption", data['status'], "error");
+            }
+          }
+      });
+    });
+  });
+
 });
 
 $(document).keydown(function(e){
@@ -87,6 +133,7 @@ $(document).keydown(function(e){
        window.location = "/{{ .Title }}/list";
     }
 });
+
 
 {{ if .AdminKey }}
   $('.deleteable').click(function(event) {

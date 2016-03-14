@@ -90,7 +90,7 @@ Options:`)
 
 	// Default page
 	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
-	p := WikiData{"about", "", []string{}, []string{}}
+	p := WikiData{"about", "", []string{}, []string{}, false}
 	p.save(string(aboutFile))
 
 	// var q WikiData
@@ -103,6 +103,7 @@ Options:`)
 	r.HEAD("/", func(c *gin.Context) { c.Status(200) })
 	r.GET("/:title", editNote)
 	r.GET("/:title/*option", everythingElse)
+	r.POST("/:title/*option", encryptionRoute)
 	r.DELETE("/listitem", deleteListItem)
 	r.DELETE("/deletepage", deletePage)
 	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
