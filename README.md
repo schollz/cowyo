@@ -21,6 +21,8 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. You 
 
 **Admin controls**. The Admin can view/delete all the documents by setting the `-a YourAdminKey` when starting the program. Then the admin has access to the `/ls/YourAdminKey` to view and delete any of the pages.
 
+**Self-destructing messages**. You can write a message that will delete itself when a user loads it (in any view). Useful for transmitting sensitive information. To use, simply add a line somewhere that says only "`self-destruct`".
+
 # Install
 
 First [install Go](https://golang.org/doc/install). Then continue.
