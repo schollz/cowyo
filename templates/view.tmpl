@@ -74,9 +74,10 @@ a.deleteable {
 $( document ).ready(function() {
 
   {{ if .Encrypted }}
+  {{ if .Prompt }}
     var pass1 = "";
     swal({
-      title: "Encryption",
+      title: "Decryption",
       text: "Enter your passphrase:",
       type: "input",
       showCancelButton: true,
@@ -109,11 +110,12 @@ $( document ).ready(function() {
           }
       });
     });
+    {{ end }}
     $('.postdecrypt').click(function(event) {
     var pass1 = "";
     event.preventDefault();
     swal({
-      title: "Encryption",
+      title: "Decryption",
       text: "Enter your passphrase:",
       type: "input",
       showCancelButton: true,
