@@ -61,9 +61,7 @@ Options:`)
 
 	if *dumpDataset {
 		fmt.Println("Dumping data to 'dump' folder...")
-		Open(RuntimeArgs.DatabaseLocation)
 		dumpEverything()
-		Close()
 		os.Exit(1)
 	}
 
@@ -87,7 +85,7 @@ Options:`)
 		panic(err)
 	}
 	Close()
-	
+
 	// Default page
 	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
 	p := WikiData{"help", "", []string{}, []string{}, false}
