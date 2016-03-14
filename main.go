@@ -35,7 +35,7 @@ var RuntimeArgs struct {
 var VersionNum string
 
 func main() {
-	VersionNum = "0.92"
+	VersionNum = "0.93"
 	// _, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	cwd, _ := os.Getwd()
 	databaseFile := path.Join(cwd, "data.db")
