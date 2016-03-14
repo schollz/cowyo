@@ -18,6 +18,74 @@ import (
 	"github.com/russross/blackfriday"
 )
 
+type EncryptionPost struct {
+	Text     string `form:"text" json:"text" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
+}
+
+func encryptionRoute(c *gin.Context) {
+	title := c.Param("title")
+	option := c.Param("option")
+	fmt.Println(option, title)
+	var jsonLoad EncryptionPost
+	if option == "/decrypt" {
+		fmt.Println("Decrypting...")
+		if c.BindJSON(&jsonLoad) == nil {
+			var err error
+			currentText, _, _, _, encrypted := getCurrentText(title, -1)
+			fmt.Println(currentText, encrypted, jsonLoad.Password)
+			if encrypted == true {
+				currentText, err = decryptString(currentText, jsonLoad.Password)
+				if err != nil {
+					c.JSON(200, gin.H{
+						"status":  "Inorrect passphrase.",
+						"title":   title,
+						"option":  option,
+						"success": false,
+					})
+				} else {
+					p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false}
+					p.save(currentText)
+					c.JSON(200, gin.H{
+						"status":  "posted",
+						"title":   title,
+						"option":  option,
+						"success": true,
+					})
+				}
+			}
+		} else {
+			c.JSON(200, gin.H{
+				"status":  "Could not bind",
+				"title":   title,
+				"option":  option,
+				"success": false,
+			})
+		}
+	}
+	if option == "/encrypt" {
+		if c.BindJSON(&jsonLoad) == nil {
+			fmt.Println(jsonLoad)
+			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, true}
+			p.save(encryptString(jsonLoad.Text, jsonLoad.Password))
+			c.JSON(200, gin.H{
+				"status":  "posted",
+				"title":   title,
+				"option":  option,
+				"success": true,
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"status":  "posted",
+				"title":   title,
+				"option":  option,
+				"success": false,
+			})
+		}
+	}
+
+}
+
 func newNote(c *gin.Context) {
 	title := randomAlliterateCombo()
 	c.Redirect(302, "/"+title)
@@ -38,7 +106,10 @@ func editNote(c *gin.Context) {
 		} else {
 			version := c.DefaultQuery("version", "-1")
 			versionNum, _ := strconv.Atoi(version)
-			currentText, versions, currentVersion, totalTime := getCurrentText(title, versionNum)
+			currentText, versions, currentVersion, totalTime, encrypted := getCurrentText(title, versionNum)
+			if encrypted {
+				c.Redirect(302, "/"+title+"/view")
+			}
 			if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
 				c.Redirect(302, "/"+title+"/view")
 			}
@@ -81,16 +152,16 @@ func everythingElse(c *gin.Context) {
 		if strings.ToLower(title) == "about" {
 			versionNum = -1
 		}
-		currentText, versions, _, totalTime := getCurrentText(title, versionNum)
+		currentText, versions, _, totalTime, encrypted := getCurrentText(title, versionNum)
 		if (strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct")) && strings.ToLower(title) != "about" {
 			currentText = strings.Replace(currentText, "self-destruct\n", `> *This page has been deleted, you cannot return after closing.*`+"\n", 1)
 			currentText = strings.Replace(currentText, "\nself-destruct", "\n"+`> *This page has been deleted, you cannot return after closing.*`, 1)
-			p := WikiData{strings.ToLower(title), "", []string{}, []string{}}
+			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false}
 			p.save("")
 		}
-		renderMarkdown(c, currentText, title, versions, "", totalTime)
+		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted)
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()))
+		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false)
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -109,7 +180,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool) {
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -139,24 +210,16 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	html2 = strings.Replace(html2, "&amp;#93;", "&#93;", -1)
 	html2 = strings.Replace(html2, "&amp35;", "&#35;", -1)
 
-	if AdminKey == "" {
-		c.HTML(http.StatusOK, "view.tmpl", gin.H{
-			"Title":     title,
-			"WikiName":  RuntimeArgs.WikiName,
-			"Body":      template.HTML([]byte(html2)),
-			"TotalTime": totalTime.String(),
-			"Versions":  versions,
-		})
-	} else {
-		c.HTML(http.StatusOK, "view.tmpl", gin.H{
-			"Title":     title,
-			"WikiName":  RuntimeArgs.WikiName,
-			"Body":      template.HTML([]byte(html2)),
-			"Versions":  versions,
-			"TotalTime": totalTime.String(),
-			"AdminKey":  AdminKey,
-		})
-	}
+	c.HTML(http.StatusOK, "view.tmpl", gin.H{
+		"Title":     title,
+		"WikiName":  RuntimeArgs.WikiName,
+		"Body":      template.HTML([]byte(html2)),
+		"Versions":  versions,
+		"TotalTime": totalTime.String(),
+		"AdminKey":  AdminKey,
+		"Encrypted": encrypted,
+	})
+
 }
 
 func reorderList(text string) ([]template.HTML, []string) {
@@ -212,6 +275,9 @@ func renderList(c *gin.Context, title string) {
 
 	currentText := p.CurrentText
 	if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
+		c.Redirect(302, "/"+title+"/view")
+	}
+	if p.Encrypted {
 		c.Redirect(302, "/"+title+"/view")
 	}
 
@@ -277,7 +343,7 @@ func deletePage(c *gin.Context) {
 	fmt.Println(deleteName)
 	// if adminKey == RuntimeArgs.AdminKey || true == true {
 	if strings.ToLower(deleteName) != "about" {
-		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}}
+		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}, false}
 		p.save("")
 	}
 	// // remove from program data

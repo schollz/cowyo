@@ -9,7 +9,8 @@
 
 
   <script src="/static/js/jquery.autogrowtextarea.min.js"></script>
-  {{if .NoEdit}} {{else}} <script src="/static/js/websockets.js"></script>  {{end}}
+  {{if .NoEdit}} {{else}}
+  <script src="/static/js/websockets.js"></script> {{end}}
 
   <script>
     external_ip = '{{ .ExternalIP }}'
@@ -41,13 +42,11 @@
       margin: 0 auto;
     }
 
-
     @media (min-width: 1200px) {
-    .container{
+      .container {
         max-width: 800px;
+      }
     }
-    }
-
   </style>
   <script src="/static/js/sweetalert-dev.js"></script>
   <link rel="stylesheet" href="/static/css/sweetalert.css">
@@ -74,7 +73,7 @@
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           <li class="dropdown active">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"  class="active"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Edit <span class="caret"></span></a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" class="active"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Edit <span class="caret"></span></a>
             <ul class="dropdown-menu">
               <li class="dropdown-header">Time edited: {{ .TotalTime }}</li>
               <li role="separator" class="divider"></li>
@@ -85,8 +84,9 @@
               {{ end }}
               <li><a href="/{{ .Title }}">Current</a></li>
               <li role="separator" class="divider"></li>
-                  <li class="dropdown-header">Options</li>
-                  <li><a href="#" id="{{ .Title }}" class="deleteable">Erase</a></li>
+              <li class="dropdown-header">Options</li>
+              <li><a href="#" class="postencrypt">Encrypt</a></li>
+              <li><a href="#" id="{{ .Title }}" class="deleteable">Erase</a></li>
             </ul>
           </li>
           <li><a href="/{{ .Title }}/view"><span class="glyphicon glyphicon-sunglasses" aria-hidden="true"></span> View</a></li>
@@ -111,33 +111,94 @@
       $("#emit_data").autoGrow();
     });
 
-    $(document).keydown(function(e){
-      if( e.which === 90 && e.ctrlKey && e.shiftKey ){
-         console.log('control + shift + z');
-         window.location = "/{{ .Title }}/view";
+    $(document).keydown(function(e) {
+      if (e.which === 90 && e.ctrlKey && e.shiftKey) {
+        console.log('control + shift + z');
+        window.location = "/{{ .Title }}/view";
       }
     });
 
-    $(document).keydown(function(e){
-        if( e.which === 76 && e.ctrlKey && e.shiftKey ){
-           console.log('control + shift + l');
-           window.location = "/{{ .Title }}/list";
-        }
+    $(document).keydown(function(e) {
+      if (e.which === 76 && e.ctrlKey && e.shiftKey) {
+        console.log('control + shift + l');
+        window.location = "/{{ .Title }}/list";
+      }
     });
 
+
+    $('.postencrypt').click(function(event) {
+      var pass1 = "";
+      var pass2 = "";
+      event.preventDefault();
+      swal({
+        title: "Encryption",
+        text: "Enter your passphrase:",
+        type: "input",
+        showCancelButton: true,
+        closeOnConfirm: false,
+        animation: "slide-from-top",
+        inputPlaceholder: "Write something"
+      }, function(inputValue) {
+        if (inputValue === false) return false;
+        if (inputValue === "") {
+          swal.showInputError("You need to write something!");
+          return false
+        }
+        pass1 = inputValue;
+          swal({
+            title: "Encryption",
+            text: "Enter your passphrase again:",
+            type: "input",
+            showCancelButton: true,
+            closeOnConfirm: false,
+            animation: "slide-from-top",
+            inputPlaceholder: "Write something"
+          }, function(inputValue) {
+            if (inputValue === false) return false;
+            if (inputValue === "") {
+              swal.showInputError("You need to write something!");
+              return false
+            }
+            pass2 = inputValue
+            if (pass1 == pass2) {
+              swal("Encryption", "Passwords match!", "success");
+              $.ajax({
+                  type: "POST",
+                  //the url where you want to sent the userName and password to
+                  url: '/{{ .Title }}/encrypt',
+                  dataType: 'json',
+                  data: JSON.stringify({
+                    text: $('#emit_data').val(),
+                    password: pass1
+                  }),
+                  success: function (data) {
+                    if (data['success'] == true) {
+                      swal("Encryption", "Encrypted!", "success");
+                      window.location.href = '/{{ .Title }}/view';
+                    } else {
+                      swal("Encryption", "Something went wrong.", "error");
+                    }
+                  }
+              });
+            } else {
+              swal("Encryption", "Passwords do not match.", "error");
+            }
+          });
+      });
+    });
 
     $('.deleteable').click(function(event) {
       event.preventDefault();
       var deleteName = $(this).attr('id')
       var href = $(this).attr('href')
       swal({
-          title: "Are you sure?",
-          text: "You will not be able to recover /{{ .Title }}!",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#DD6B55",
-          confirmButtonText: "Yes, delete it!",
-          closeOnConfirm: false
+        title: "Are you sure?",
+        text: "You will not be able to recover /{{ .Title }}!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes, delete it!",
+        closeOnConfirm: false
       }, function() {
         $.ajax({
           url: "/deletepage" + '?' + $.param({
@@ -147,7 +208,9 @@
           type: 'DELETE',
           success: function() {
             swal("Deleted!", "/{{ .Title }} has been deleted.", "success");
-            setTimeout(function(){ window.location.reload(true); }, 1000);
+            setTimeout(function() {
+              window.location.reload(true);
+            }, 1000);
 
           }
         });
