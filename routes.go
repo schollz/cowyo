@@ -94,8 +94,8 @@ func editNote(c *gin.Context) {
 		wshandler(c.Writer, c.Request)
 	} else if title == "robots.txt" {
 		c.Data(200, "text/plain", []byte(robotsTxt))
-	} else if strings.ToLower(title) == "about" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
-		c.Redirect(302, "/about/view")
+	} else if strings.ToLower(title) == "help" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
+		c.Redirect(302, "/Help/view")
 	} else {
 		locked, _ := hasPassword(title)
 		if locked {
@@ -134,11 +134,11 @@ func everythingElse(c *gin.Context) {
 		version := c.DefaultQuery("version", "-1")
 		noprompt := c.DefaultQuery("noprompt", "-1")
 		versionNum, _ := strconv.Atoi(version)
-		if strings.ToLower(title) == "about" {
+		if strings.ToLower(title) == "help" {
 			versionNum = -1
 		}
 		currentText, versions, _, totalTime, encrypted := getCurrentText(title, versionNum)
-		if (strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct")) && strings.ToLower(title) != "about" {
+		if (strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct")) && strings.ToLower(title) != "help" {
 			currentText = strings.Replace(currentText, "self-destruct\n", `> *This page has been deleted, you cannot return after closing.*`+"\n", 1)
 			currentText = strings.Replace(currentText, "\nself-destruct", "\n"+`> *This page has been deleted, you cannot return after closing.*`, 1)
 			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false}
@@ -250,8 +250,8 @@ func reorderList(text string) ([]template.HTML, []string) {
 }
 
 func renderList(c *gin.Context, title string) {
-	if strings.ToLower(title) == "about" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
-		c.Redirect(302, "/about/view")
+	if strings.ToLower(title) == "help" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
+		c.Redirect(302, "/Help/view")
 	}
 	var p WikiData
 	err := p.load(strings.ToLower(title))
@@ -328,7 +328,7 @@ func deletePage(c *gin.Context) {
 	fmt.Println(adminKey)
 	fmt.Println(deleteName)
 	// if adminKey == RuntimeArgs.AdminKey || true == true {
-	if strings.ToLower(deleteName) != "about" {
+	if strings.ToLower(deleteName) != "help" {
 		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}, false}
 		p.save("")
 	}
