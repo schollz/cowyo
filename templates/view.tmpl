@@ -72,18 +72,45 @@ a.deleteable {
 
 <script>
 $( document ).ready(function() {
-  var texi = document.getElementsByClassName("texi");
-  Array.prototype.forEach.call(texi, function(el) {
-      katex.render(el.getAttribute("data-expr"), el, { displayMode: false });
-  });
 
-  var texp = document.getElementsByClassName("texp");
-  Array.prototype.forEach.call(texp, function(el) {
-      katex.render(el.getAttribute("data-expr"), el, { displayMode: true });
-  });
-
-
-  $('.postdecrypt').click(function(event) {
+  {{ if .Encrypted }}
+    var pass1 = "";
+    event.preventDefault();
+    swal({
+      title: "Encryption",
+      text: "Enter your passphrase:",
+      type: "input",
+      showCancelButton: true,
+      closeOnConfirm: false,
+      animation: "slide-from-top",
+      inputPlaceholder: "Write something"
+    }, function(inputValue) {
+      if (inputValue === false) return false;
+      if (inputValue === "") {
+        swal.showInputError("You need to write something!");
+        return false
+      }
+      pass1 = inputValue;
+      $.ajax({
+          type: "POST",
+          //the url where you want to sent the userName and password to
+          url: '/{{ .Title }}/decrypt',
+          dataType: 'json',
+          data: JSON.stringify({
+            text: " ",
+            password: pass1
+          }),
+          success: function (data) {
+            if (data['success'] == true) {
+              swal("Decryption", "Decrypted!", "success");
+              window.location.href = '/{{ .Title }}/view';
+            } else {
+              swal("Decryption", data['status'], "error");
+            }
+          }
+      });
+    });
+    $('.postdecrypt').click(function(event) {
     var pass1 = "";
     event.preventDefault();
     swal({
@@ -121,6 +148,21 @@ $( document ).ready(function() {
       });
     });
   });
+  {{ end }}
+
+
+
+  var texi = document.getElementsByClassName("texi");
+  Array.prototype.forEach.call(texi, function(el) {
+      katex.render(el.getAttribute("data-expr"), el, { displayMode: false });
+  });
+
+  var texp = document.getElementsByClassName("texp");
+  Array.prototype.forEach.call(texp, function(el) {
+      katex.render(el.getAttribute("data-expr"), el, { displayMode: true });
+  });
+
+
 
 });
 
