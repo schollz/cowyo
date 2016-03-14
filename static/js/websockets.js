@@ -1,3 +1,4 @@
+var selfDestruct = false;
 $(document).ready(function() {
   var isTyping = false;
   var typingTimer; //timer identifier
@@ -30,6 +31,17 @@ $(document).ready(function() {
     console.log("Done typing")
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
     document.title = "[SAVED] " + title_name;
+    if ($('#emit_data').val().indexOf("self-destruct\n") > -1 || $('#emit_data').val().indexOf("\nself-destruct") > -1) {
+      if (selfDestruct == false) {
+        selfDestruct = true;
+        swal({   title: "Info",   text: "This page is primed to self-destruct.",   timer: 1000,   showConfirmButton: true });
+      }
+    } else {
+      if (selfDestruct == true) {
+        selfDestruct = false;
+        swal({   title: "Info",   text: "This page is no longer primed to self-destruct.",   timer: 1000,   showConfirmButton: true });
+      }
+    }
   }
 
   function uhoh() {
