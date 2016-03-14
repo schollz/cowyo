@@ -25,7 +25,7 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. You 
 
 ![Simply type to edit.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/Main4.gif)
 
-**PGP encryption**. In addition to TLS support, you can PGP-encrypt your messages using a passphrase.
+**Security**. HTTPS support is provided and everything is sanitized to prevent XSS attacks. Though all URLs are publicly accessible, you are free to obfuscate your website by using an obscure/random address (read: the site is still publicly accessible, just hard to find!). In addition to TLS support, you can PGP-encrypt your messages using a passphrase.
 
 ![Simply type to edit.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/Main7.gif)
 
@@ -33,7 +33,7 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. You 
 
 **Admin controls**. The Admin can view/delete all the documents by setting the `-a YourAdminKey` when starting the program. Then the admin has access to the `/ls/YourAdminKey` to view and delete any of the pages.
 
-**Security**. HTTPS support is provided and everything is sanitized to prevent XSS attacks. Though all URLs are publicly accessible, you are free to obfuscate your website by using an obscure/random address (read: the site is still publicly accessible, just hard to find!). The automatic URL is an alliterative animal description - of which there are over 500,000 possibilities - so the URL is easy to remember and hard to guess.
+
 
 
 # Install
