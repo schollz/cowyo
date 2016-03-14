@@ -380,6 +380,8 @@ func deletePage(c *gin.Context) {
 }
 
 func listEverything() string {
+	Open(RuntimeArgs.DatabaseLocation)
+	defer Close()
 	everything := `| Title | Current size    | Changes  | Total Size |  |
 | --------- |-------------| -----| ------------- | ------------- |
 `
@@ -403,6 +405,8 @@ func listEverything() string {
 }
 
 func dumpEverything() {
+	Open(RuntimeArgs.DatabaseLocation)
+	defer Close()
 	err := os.MkdirAll("dump", 0777)
 	if err != nil {
 		fmt.Println("Already exists")
