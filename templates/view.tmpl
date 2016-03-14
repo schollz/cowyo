@@ -61,9 +61,14 @@ a.deleteable {
   </nav>
 
   <div class="yue">
+{{ if .Encrypted }}
+<pre>
+  {{ .Body }}
+</pre>
+{{ else }}
     {{ .Body }}
-  </div>
-
+{{ end }}
+</div>
 
 <script>
 $( document ).ready(function() {
