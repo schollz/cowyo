@@ -43,6 +43,8 @@ type WikiData struct {
 }
 
 func hasPassword(title string) (bool, error) {
+	Open(RuntimeArgs.DatabaseLocation)
+	defer Close()
 	title = strings.ToLower(title)
 	if !open {
 		return false, fmt.Errorf("db must be opened before loading")
@@ -79,6 +81,8 @@ func hasPassword(title string) (bool, error) {
 }
 
 func getCurrentText(title string, version int) (string, []versionsInfo, bool, time.Duration, bool) {
+	Open(RuntimeArgs.DatabaseLocation)
+	defer Close()
 	title = strings.ToLower(title)
 	var vi []versionsInfo
 	totalTime := time.Now().Sub(time.Now())
@@ -122,6 +126,8 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool, ti
 }
 
 func (p *WikiData) load(title string) error {
+	Open(RuntimeArgs.DatabaseLocation)
+	defer Close()
 	title = strings.ToLower(title)
 	if !open {
 		return fmt.Errorf("db must be opened before loading!")
@@ -156,6 +162,8 @@ func (p *WikiData) load(title string) error {
 }
 
 func (p *WikiData) save(newText string) error {
+	Open(RuntimeArgs.DatabaseLocation)
+	defer Close()
 	if !open {
 		return fmt.Errorf("db must be opened before saving")
 	}

@@ -73,10 +73,9 @@ Options:`)
 	}
 	RuntimeArgs.SourcePath = cwd
 
-	Open(RuntimeArgs.DatabaseLocation)
-	defer Close()
-
 	// create programdata bucket
+	Open(RuntimeArgs.DatabaseLocation)
+
 	err := db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte("programdata"))
 		if err != nil {
@@ -87,7 +86,8 @@ Options:`)
 	if err != nil {
 		panic(err)
 	}
-
+	Close()
+	
 	// Default page
 	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
 	p := WikiData{"help", "", []string{}, []string{}, false}
