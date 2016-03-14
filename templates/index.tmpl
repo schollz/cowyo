@@ -174,7 +174,7 @@
                   success: function (data) {
                     if (data['success'] == true) {
                       swal("Encryption", "Encrypted!", "success");
-                      window.location.href = '/{{ .Title }}/view';
+                      window.location.href = '/{{ .Title }}/view?noprompt=1';
                     } else {
                       swal("Encryption", "Something went wrong.", "error");
                     }

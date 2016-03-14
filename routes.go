@@ -29,11 +29,9 @@ func encryptionRoute(c *gin.Context) {
 	fmt.Println(option, title)
 	var jsonLoad EncryptionPost
 	if option == "/decrypt" {
-		fmt.Println("Decrypting...")
 		if c.BindJSON(&jsonLoad) == nil {
 			var err error
 			currentText, _, _, _, encrypted := getCurrentText(title, -1)
-			fmt.Println(currentText, encrypted, jsonLoad.Password)
 			if encrypted == true {
 				currentText, err = decryptString(currentText, jsonLoad.Password)
 				if err != nil {
@@ -65,7 +63,6 @@ func encryptionRoute(c *gin.Context) {
 	}
 	if option == "/encrypt" {
 		if c.BindJSON(&jsonLoad) == nil {
-			fmt.Println(jsonLoad)
 			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, true}
 			p.save(encryptString(jsonLoad.Text, jsonLoad.Password))
 			c.JSON(200, gin.H{
@@ -114,30 +111,17 @@ func editNote(c *gin.Context) {
 				c.Redirect(302, "/"+title+"/view")
 			}
 			numRows := len(strings.Split(currentText, "\n")) + 10
-			if currentVersion {
-				c.HTML(http.StatusOK, "index.tmpl", gin.H{
-					"Title":       title,
-					"WikiName":    RuntimeArgs.WikiName,
-					"ExternalIP":  RuntimeArgs.ExternalIP,
-					"CurrentText": currentText,
-					"NumRows":     numRows,
-					"Versions":    versions,
-					"TotalTime":   totalTime,
-					"SocketType":  RuntimeArgs.Socket,
-				})
-			} else {
-				c.HTML(http.StatusOK, "index.tmpl", gin.H{
-					"Title":       title,
-					"WikiName":    RuntimeArgs.WikiName,
-					"ExternalIP":  RuntimeArgs.ExternalIP,
-					"CurrentText": currentText,
-					"NumRows":     numRows,
-					"Versions":    versions,
-					"TotalTime":   totalTime,
-					"SocketType":  RuntimeArgs.Socket,
-					"NoEdit":      true,
-				})
-			}
+			c.HTML(http.StatusOK, "index.tmpl", gin.H{
+				"Title":       title,
+				"WikiName":    RuntimeArgs.WikiName,
+				"ExternalIP":  RuntimeArgs.ExternalIP,
+				"CurrentText": currentText,
+				"NumRows":     numRows,
+				"Versions":    versions,
+				"TotalTime":   totalTime,
+				"SocketType":  RuntimeArgs.Socket,
+				"NoEdit":      !currentVersion,
+			})
 
 		}
 	}
@@ -148,6 +132,7 @@ func everythingElse(c *gin.Context) {
 	title := c.Param("title")
 	if option == "/view" {
 		version := c.DefaultQuery("version", "-1")
+		noprompt := c.DefaultQuery("noprompt", "-1")
 		versionNum, _ := strconv.Atoi(version)
 		if strings.ToLower(title) == "about" {
 			versionNum = -1
@@ -159,9 +144,9 @@ func everythingElse(c *gin.Context) {
 			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false}
 			p.save("")
 		}
-		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted)
+		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted, noprompt == "-1")
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false)
+		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false, false)
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -180,7 +165,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool, noprompt bool) {
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -218,6 +203,7 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 		"TotalTime": totalTime.String(),
 		"AdminKey":  AdminKey,
 		"Encrypted": encrypted,
+		"Prompt":    noprompt,
 	})
 
 }
