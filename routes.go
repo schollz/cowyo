@@ -39,6 +39,9 @@ func editNote(c *gin.Context) {
 			version := c.DefaultQuery("version", "-1")
 			versionNum, _ := strconv.Atoi(version)
 			currentText, versions, currentVersion, totalTime := getCurrentText(title, versionNum)
+			if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
+				c.Redirect(302, "/"+title+"/view")
+			}
 			numRows := len(strings.Split(currentText, "\n")) + 10
 			if currentVersion {
 				c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -79,6 +82,12 @@ func everythingElse(c *gin.Context) {
 			versionNum = -1
 		}
 		currentText, versions, _, totalTime := getCurrentText(title, versionNum)
+		if (strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct")) && strings.ToLower(title) != "about" {
+			currentText = strings.Replace(currentText, "self-destruct\n", `> *This page has been deleted, you cannot return after closing.*`+"\n", 1)
+			currentText = strings.Replace(currentText, "\nself-destruct", "\n"+`> *This page has been deleted, you cannot return after closing.*`, 1)
+			p := WikiData{strings.ToLower(title), "", []string{}, []string{}}
+			p.save("")
+		}
 		renderMarkdown(c, currentText, title, versions, "", totalTime)
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
 		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()))
@@ -201,7 +210,11 @@ func renderList(c *gin.Context, title string) {
 		panic(err)
 	}
 
-	fmt.Println(p.CurrentText)
+	currentText := p.CurrentText
+	if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
+		c.Redirect(302, "/"+title+"/view")
+	}
+
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
 	pClean.AllowAttrs("alt").OnElements("img")
