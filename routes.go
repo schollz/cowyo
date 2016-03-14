@@ -111,6 +111,10 @@ func editNote(c *gin.Context) {
 				c.Redirect(302, "/"+title+"/view")
 			}
 			numRows := len(strings.Split(currentText, "\n")) + 10
+			totalTimeString := totalTime.String()
+			if totalTime.Seconds() < 1 {
+				totalTimeString = "< 1 s"
+			}
 			c.HTML(http.StatusOK, "index.tmpl", gin.H{
 				"Title":       title,
 				"WikiName":    RuntimeArgs.WikiName,
@@ -118,7 +122,7 @@ func editNote(c *gin.Context) {
 				"CurrentText": currentText,
 				"NumRows":     numRows,
 				"Versions":    versions,
-				"TotalTime":   totalTime,
+				"TotalTime":   totalTimeString,
 				"SocketType":  RuntimeArgs.Socket,
 				"NoEdit":      !currentVersion,
 			})
@@ -194,13 +198,16 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	html2 = strings.Replace(html2, "&amp;#91;", "&#91;", -1)
 	html2 = strings.Replace(html2, "&amp;#93;", "&#93;", -1)
 	html2 = strings.Replace(html2, "&amp35;", "&#35;", -1)
-
+	totalTimeString := totalTime.String()
+	if totalTime.Seconds() < 1 {
+		totalTimeString = "< 1 s"
+	}
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
 		"Title":     title,
 		"WikiName":  RuntimeArgs.WikiName,
 		"Body":      template.HTML([]byte(html2)),
 		"Versions":  versions,
-		"TotalTime": totalTime.String(),
+		"TotalTime": totalTimeString,
 		"AdminKey":  AdminKey,
 		"Encrypted": encrypted,
 		"Prompt":    noprompt,
