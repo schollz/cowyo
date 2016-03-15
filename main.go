@@ -35,7 +35,7 @@ var RuntimeArgs struct {
 var VersionNum string
 
 func main() {
-	VersionNum = "0.93"
+	VersionNum = "0.94"
 	// _, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	cwd, _ := os.Getwd()
 	databaseFile := path.Join(cwd, "data.db")
@@ -88,7 +88,7 @@ Options:`)
 
 	// Default page
 	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
-	p := WikiData{"help", "", []string{}, []string{}, false}
+	p := WikiData{"help", "", []string{}, []string{}, false, "zzz"}
 	p.save(string(aboutFile))
 
 	// var q WikiData
