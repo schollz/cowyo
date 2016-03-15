@@ -40,6 +40,7 @@ type WikiData struct {
 	Diffs       []string
 	Timestamps  []string
 	Encrypted   bool
+	Locked      string
 }
 
 func hasPassword(title string) (bool, error) {
@@ -79,7 +80,7 @@ func hasPassword(title string) (bool, error) {
 	return hasPassword, nil
 }
 
-func getCurrentText(title string, version int) (string, []versionsInfo, bool, time.Duration, bool) {
+func getCurrentText(title string, version int) (string, []versionsInfo, bool, time.Duration, bool, string) {
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
 	title = strings.ToLower(title)
@@ -88,8 +89,9 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool, ti
 	isCurrent := true
 	currentText := ""
 	encrypted := false
+	locked := ""
 	if !open {
-		return currentText, vi, isCurrent, totalTime, encrypted
+		return currentText, vi, isCurrent, totalTime, encrypted, locked
 	}
 	err := db.View(func(tx *bolt.Tx) error {
 		var err error
@@ -109,6 +111,7 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool, ti
 		}
 		currentText = p.CurrentText
 		encrypted = p.Encrypted
+		locked = p.Locked
 		if version > -1 && version < len(p.Diffs) {
 			// get that version of text instead
 			currentText = rebuildTextsToDiffN(p, version)
@@ -121,7 +124,7 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool, ti
 	if err != nil {
 		fmt.Printf("Could not get WikiData: %s", err)
 	}
-	return currentText, vi, isCurrent, totalTime, encrypted
+	return currentText, vi, isCurrent, totalTime, encrypted, locked
 }
 
 func (p *WikiData) load(title string) error {

@@ -31,7 +31,7 @@ func encryptionRoute(c *gin.Context) {
 	if option == "/decrypt" {
 		if c.BindJSON(&jsonLoad) == nil {
 			var err error
-			currentText, _, _, _, encrypted := getCurrentText(title, -1)
+			currentText, _, _, _, encrypted, _ := getCurrentText(title, -1)
 			if encrypted == true {
 				currentText, err = decryptString(currentText, jsonLoad.Password)
 				if err != nil {
@@ -42,7 +42,7 @@ func encryptionRoute(c *gin.Context) {
 						"success": false,
 					})
 				} else {
-					p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false}
+					p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false, ""}
 					p.save(currentText)
 					c.JSON(200, gin.H{
 						"status":  "posted",
@@ -63,7 +63,7 @@ func encryptionRoute(c *gin.Context) {
 	}
 	if option == "/encrypt" {
 		if c.BindJSON(&jsonLoad) == nil {
-			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, true}
+			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, true, ""}
 			p.save(encryptString(jsonLoad.Text, jsonLoad.Password))
 			c.JSON(200, gin.H{
 				"status":  "posted",
@@ -71,6 +71,63 @@ func encryptionRoute(c *gin.Context) {
 				"option":  option,
 				"success": true,
 			})
+		} else {
+			c.JSON(200, gin.H{
+				"status":  "posted",
+				"title":   title,
+				"option":  option,
+				"success": false,
+			})
+		}
+	}
+	if option == "/lock" {
+		if c.BindJSON(&jsonLoad) == nil {
+			var p WikiData
+			err := p.load(strings.ToLower(title))
+			if err != nil {
+				panic(err)
+			}
+			p.Locked = jsonLoad.Password
+			p.save(p.CurrentText)
+			c.JSON(200, gin.H{
+				"status":  "posted",
+				"title":   title,
+				"option":  option,
+				"success": true,
+			})
+		} else {
+			c.JSON(200, gin.H{
+				"status":  "posted",
+				"title":   title,
+				"option":  option,
+				"success": false,
+			})
+		}
+	}
+	if option == "/unlock" {
+		if c.BindJSON(&jsonLoad) == nil {
+			var p WikiData
+			err := p.load(strings.ToLower(title))
+			if err != nil {
+				panic(err)
+			}
+			if len(p.Locked) > 0 && p.Locked == jsonLoad.Password {
+				p.Locked = ""
+				p.save(p.CurrentText)
+				c.JSON(200, gin.H{
+					"status":  "Unlocked!",
+					"title":   title,
+					"option":  option,
+					"success": true,
+				})
+			} else {
+				c.JSON(200, gin.H{
+					"status":  "Incorrect password!",
+					"title":   title,
+					"option":  option,
+					"success": false,
+				})
+			}
 		} else {
 			c.JSON(200, gin.H{
 				"status":  "posted",
@@ -103,8 +160,8 @@ func editNote(c *gin.Context) {
 		} else {
 			version := c.DefaultQuery("version", "-1")
 			versionNum, _ := strconv.Atoi(version)
-			currentText, versions, currentVersion, totalTime, encrypted := getCurrentText(title, versionNum)
-			if encrypted {
+			currentText, versions, currentVersion, totalTime, encrypted, locked := getCurrentText(title, versionNum)
+			if encrypted || len(locked) > 0 {
 				c.Redirect(302, "/"+title+"/view")
 			}
 			if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
@@ -141,16 +198,16 @@ func everythingElse(c *gin.Context) {
 		if strings.ToLower(title) == "help" {
 			versionNum = -1
 		}
-		currentText, versions, _, totalTime, encrypted := getCurrentText(title, versionNum)
+		currentText, versions, _, totalTime, encrypted, locked := getCurrentText(title, versionNum)
 		if (strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct")) && strings.ToLower(title) != "help" {
 			currentText = strings.Replace(currentText, "self-destruct\n", `> *This page has been deleted, you cannot return after closing.*`+"\n", 1)
 			currentText = strings.Replace(currentText, "\nself-destruct", "\n"+`> *This page has been deleted, you cannot return after closing.*`, 1)
-			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false}
+			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false, ""}
 			p.save("")
 		}
-		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted, noprompt == "-1")
+		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted, noprompt == "-1", len(locked) > 0)
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false, false)
+		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false, false, false)
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -169,7 +226,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool, noprompt bool) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool, noprompt bool, locked bool) {
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -203,14 +260,16 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 		totalTimeString = "< 1 s"
 	}
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
-		"Title":     title,
-		"WikiName":  RuntimeArgs.WikiName,
-		"Body":      template.HTML([]byte(html2)),
-		"Versions":  versions,
-		"TotalTime": totalTimeString,
-		"AdminKey":  AdminKey,
-		"Encrypted": encrypted,
-		"Prompt":    noprompt,
+		"Title":             title,
+		"WikiName":          RuntimeArgs.WikiName,
+		"Body":              template.HTML([]byte(html2)),
+		"Versions":          versions,
+		"TotalTime":         totalTimeString,
+		"AdminKey":          AdminKey,
+		"Encrypted":         encrypted,
+		"Locked":            locked,
+		"Prompt":            noprompt,
+		"LockedOrEncrypted": locked || encrypted,
 	})
 
 }
@@ -270,7 +329,7 @@ func renderList(c *gin.Context, title string) {
 	if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
 		c.Redirect(302, "/"+title+"/view")
 	}
-	if p.Encrypted {
+	if p.Encrypted || len(p.Locked) > 0 {
 		c.Redirect(302, "/"+title+"/view")
 	}
 
@@ -336,7 +395,7 @@ func deletePage(c *gin.Context) {
 	fmt.Println(deleteName)
 	// if adminKey == RuntimeArgs.AdminKey || true == true {
 	if strings.ToLower(deleteName) != "help" {
-		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}, false}
+		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}, false, ""}
 		p.save("")
 	}
 	// // remove from program data

@@ -86,6 +86,7 @@
               <li role="separator" class="divider"></li>
               <li class="dropdown-header">Options</li>
               <li><a href="#" class="postencrypt">Encrypt</a></li>
+              <li><a href="#" class="postlock">Lock</a></li>
               <li><a href="#" id="{{ .Title }}" class="deleteable">Erase</a></li>
             </ul>
           </li>
@@ -126,28 +127,13 @@
     });
 
 
-    $('.postencrypt').click(function(event) {
-      var pass1 = "";
-      var pass2 = "";
-      event.preventDefault();
-      swal({
-        title: "Encryption",
-        text: "Enter your passphrase:",
-        type: "input",
-        showCancelButton: true,
-        closeOnConfirm: false,
-        animation: "slide-from-top",
-        inputPlaceholder: "Write something"
-      }, function(inputValue) {
-        if (inputValue === false) return false;
-        if (inputValue === "") {
-          swal.showInputError("You need to write something!");
-          return false
-        }
-        pass1 = inputValue;
+        $('.postencrypt').click(function(event) {
+          var pass1 = "";
+          var pass2 = "";
+          event.preventDefault();
           swal({
             title: "Encryption",
-            text: "Enter your passphrase again:",
+            text: "Enter your passphrase:",
             type: "input",
             showCancelButton: true,
             closeOnConfirm: false,
@@ -159,33 +145,112 @@
               swal.showInputError("You need to write something!");
               return false
             }
-            pass2 = inputValue
-            if (pass1 == pass2) {
-              swal("Encryption", "Passwords match!", "success");
-              $.ajax({
-                  type: "POST",
-                  //the url where you want to sent the userName and password to
-                  url: '/{{ .Title }}/encrypt',
-                  dataType: 'json',
-                  data: JSON.stringify({
-                    text: $('#emit_data').val(),
-                    password: pass1
-                  }),
-                  success: function (data) {
-                    if (data['success'] == true) {
-                      swal("Encryption", "Encrypted!", "success");
-                      window.location.href = '/{{ .Title }}/view?noprompt=1';
-                    } else {
-                      swal("Encryption", "Something went wrong.", "error");
-                    }
-                  }
+            pass1 = inputValue;
+              swal({
+                title: "Encryption",
+                text: "Enter your passphrase again:",
+                type: "input",
+                showCancelButton: true,
+                closeOnConfirm: false,
+                animation: "slide-from-top",
+                inputPlaceholder: "Write something"
+              }, function(inputValue) {
+                if (inputValue === false) return false;
+                if (inputValue === "") {
+                  swal.showInputError("You need to write something!");
+                  return false
+                }
+                pass2 = inputValue
+                if (pass1 == pass2) {
+                  swal("Encryption", "Passwords match!", "success");
+                  $.ajax({
+                      type: "POST",
+                      //the url where you want to sent the userName and password to
+                      url: '/{{ .Title }}/encrypt',
+                      dataType: 'json',
+                      data: JSON.stringify({
+                        text: $('#emit_data').val(),
+                        password: pass1
+                      }),
+                      success: function (data) {
+                        if (data['success'] == true) {
+                          swal("Encryption", "Encrypted!", "success");
+                          window.location.href = '/{{ .Title }}/view?noprompt=1';
+                        } else {
+                          swal("Encryption", "Something went wrong.", "error");
+                        }
+                      }
+                  });
+                } else {
+                  swal("Encryption", "Passwords do not match.", "error");
+                }
               });
-            } else {
-              swal("Encryption", "Passwords do not match.", "error");
-            }
           });
-      });
-    });
+        });
+
+
+
+
+            $('.postlock').click(function(event) {
+              var pass1 = "";
+              var pass2 = "";
+              event.preventDefault();
+              swal({
+                title: "Locking",
+                text: "Enter your passphrase:",
+                type: "input",
+                showCancelButton: true,
+                closeOnConfirm: false,
+                animation: "slide-from-top",
+                inputPlaceholder: "Write something"
+              }, function(inputValue) {
+                if (inputValue === false) return false;
+                if (inputValue === "") {
+                  swal.showInputError("You need to write something!");
+                  return false
+                }
+                pass1 = inputValue;
+                  swal({
+                    title: "Locking",
+                    text: "Enter your passphrase again:",
+                    type: "input",
+                    showCancelButton: true,
+                    closeOnConfirm: false,
+                    animation: "slide-from-top",
+                    inputPlaceholder: "Write something"
+                  }, function(inputValue) {
+                    if (inputValue === false) return false;
+                    if (inputValue === "") {
+                      swal.showInputError("You need to write something!");
+                      return false
+                    }
+                    pass2 = inputValue
+                    if (pass1 == pass2) {
+                      swal("Locking", "Passwords match!", "success");
+                      $.ajax({
+                          type: "POST",
+                          //the url where you want to sent the userName and password to
+                          url: '/{{ .Title }}/lock',
+                          dataType: 'json',
+                          data: JSON.stringify({
+                            text: $('#emit_data').val(),
+                            password: pass1
+                          }),
+                          success: function (data) {
+                            if (data['success'] == true) {
+                              swal("Locking", "Page locked!", "success");
+                              window.location.href = '/{{ .Title }}/view';
+                            } else {
+                              swal("Locking", "Something went wrong.", "error");
+                            }
+                          }
+                      });
+                    } else {
+                      swal("Encryption", "Passwords do not match.", "error");
+                    }
+                  });
+              });
+            });
 
     $('.deleteable').click(function(event) {
       event.preventDefault();

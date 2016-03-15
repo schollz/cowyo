@@ -46,9 +46,14 @@ a.deleteable {
               <li><a href="/{{ $.Title }}/view?version={{ .VersionNum }}">{{ .VersionDate }}</a></li>
               {{ end }}
               <li><a href="/{{ .Title }}/view">Current</a></li>
-              {{ if .Encrypted }}
+              {{ if .LockedOrEncrypted }}
               <li class="dropdown-header">Options</li>
+              {{ if .Encrypted }}
               <li><a href="#" class="postdecrypt">Decrypt</a></li>
+              {{end }}
+              {{ if .Locked }}
+              <li><a href="#" class="postunlock">Unlock</a></li>
+              {{end }}
               {{ end }}
             </ul>
           </li>
@@ -73,83 +78,125 @@ a.deleteable {
 <script>
 $( document ).ready(function() {
 
-  {{ if .Encrypted }}
-  {{ if .Prompt }}
-    var pass1 = "";
-    swal({
-      title: "Decryption",
-      text: "Enter your passphrase:",
-      type: "input",
-      showCancelButton: true,
-      closeOnConfirm: false,
-      animation: "slide-from-top",
-      inputPlaceholder: "Write something"
-    }, function(inputValue) {
-      if (inputValue === false) return false;
-      if (inputValue === "") {
-        swal.showInputError("You need to write something!");
-        return false
-      }
-      pass1 = inputValue;
-      $.ajax({
-          type: "POST",
-          //the url where you want to sent the userName and password to
-          url: '/{{ .Title }}/decrypt',
-          dataType: 'json',
-          data: JSON.stringify({
-            text: " ",
-            password: pass1
-          }),
-          success: function (data) {
-            if (data['success'] == true) {
-              swal("Decryption", "Decrypted!", "success");
-              window.location.href = '/{{ .Title }}/view';
-            } else {
-              swal("Decryption", data['status'], "error");
+    {{ if .Encrypted }}
+    {{ if .Prompt }}
+      var pass1 = "";
+      swal({
+        title: "Decryption",
+        text: "Enter your passphrase:",
+        type: "input",
+        showCancelButton: true,
+        closeOnConfirm: false,
+        animation: "slide-from-top",
+        inputPlaceholder: "Write something"
+      }, function(inputValue) {
+        if (inputValue === false) return false;
+        if (inputValue === "") {
+          swal.showInputError("You need to write something!");
+          return false
+        }
+        pass1 = inputValue;
+        $.ajax({
+            type: "POST",
+            //the url where you want to sent the userName and password to
+            url: '/{{ .Title }}/decrypt',
+            dataType: 'json',
+            data: JSON.stringify({
+              text: " ",
+              password: pass1
+            }),
+            success: function (data) {
+              if (data['success'] == true) {
+                swal("Decryption", "Decrypted!", "success");
+                window.location.href = '/{{ .Title }}/view';
+              } else {
+                swal("Decryption", data['status'], "error");
+              }
             }
-          }
+        });
+      });
+      {{ end }}
+      $('.postdecrypt').click(function(event) {
+      var pass1 = "";
+      event.preventDefault();
+      swal({
+        title: "Decryption",
+        text: "Enter your passphrase:",
+        type: "input",
+        showCancelButton: true,
+        closeOnConfirm: false,
+        animation: "slide-from-top",
+        inputPlaceholder: "Write something"
+      }, function(inputValue) {
+        if (inputValue === false) return false;
+        if (inputValue === "") {
+          swal.showInputError("You need to write something!");
+          return false
+        }
+        pass1 = inputValue;
+        $.ajax({
+            type: "POST",
+            //the url where you want to sent the userName and password to
+            url: '/{{ .Title }}/decrypt',
+            dataType: 'json',
+            data: JSON.stringify({
+              text: " ",
+              password: pass1
+            }),
+            success: function (data) {
+              if (data['success'] == true) {
+                swal("Decryption", "Decrypted!", "success");
+                window.location.href = '/{{ .Title }}/view';
+              } else {
+                swal("Decryption", data['status'], "error");
+              }
+            }
+        });
       });
     });
     {{ end }}
-    $('.postdecrypt').click(function(event) {
-    var pass1 = "";
-    event.preventDefault();
-    swal({
-      title: "Decryption",
-      text: "Enter your passphrase:",
-      type: "input",
-      showCancelButton: true,
-      closeOnConfirm: false,
-      animation: "slide-from-top",
-      inputPlaceholder: "Write something"
-    }, function(inputValue) {
-      if (inputValue === false) return false;
-      if (inputValue === "") {
-        swal.showInputError("You need to write something!");
-        return false
-      }
-      pass1 = inputValue;
-      $.ajax({
-          type: "POST",
-          //the url where you want to sent the userName and password to
-          url: '/{{ .Title }}/decrypt',
-          dataType: 'json',
-          data: JSON.stringify({
-            text: " ",
-            password: pass1
-          }),
-          success: function (data) {
-            if (data['success'] == true) {
-              swal("Decryption", "Decrypted!", "success");
-              window.location.href = '/{{ .Title }}/view';
-            } else {
-              swal("Decryption", data['status'], "error");
-            }
+
+      {{ if .Locked }}
+
+        $('.postunlock').click(function(event) {
+        var pass1 = "";
+        event.preventDefault();
+        swal({
+          title: "Unlock",
+          text: "Enter your passphrase:",
+          type: "input",
+          showCancelButton: true,
+          closeOnConfirm: false,
+          animation: "slide-from-top",
+          inputPlaceholder: "Write something"
+        }, function(inputValue) {
+          if (inputValue === false) return false;
+          if (inputValue === "") {
+            swal.showInputError("You need to write something!");
+            return false
           }
+          pass1 = inputValue;
+          $.ajax({
+              type: "POST",
+              //the url where you want to sent the userName and password to
+              url: '/{{ .Title }}/unlock',
+              dataType: 'json',
+              data: JSON.stringify({
+                text: " ",
+                password: pass1
+              }),
+              success: function (data) {
+                if (data['success'] == true) {
+                  swal("Unlock", "Unlocked!", "success");
+                  window.location.href = '/{{ .Title }}';
+                } else {
+                  swal("Unlock", data['status'], "error");
+                }
+              }
+          });
+        });
       });
-    });
-  });
-  {{ end }}
+      {{ end }}
 
 
 
