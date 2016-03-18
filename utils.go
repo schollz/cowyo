@@ -16,7 +16,6 @@ import (
 
 var animals []string
 var adjectives []string
-var robotsTxt string
 var aboutPageText string
 
 type versionsInfo struct {
@@ -30,8 +29,6 @@ func init() {
 	animals = strings.Split(string(animalsText), ",")
 	adjectivesText, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/adjectives"))
 	adjectives = strings.Split(string(adjectivesText), "\n")
-	robotsTxtFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/robots.txt"))
-	robotsTxt = string(robotsTxtFile)
 }
 
 func randomAnimal() string {
