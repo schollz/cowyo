@@ -150,7 +150,11 @@ func editNote(c *gin.Context) {
 	if title == "ws" {
 		wshandler(c.Writer, c.Request)
 	} else if title == "robots.txt" {
-		c.Data(200, "text/plain", []byte(robotsTxt))
+		robotsTxtFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/robots.txt"))
+		c.Data(200, "text/plain", robotsTxtFile)
+	} else if title == "sitemap.xml" {
+		robotsTxtFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/sitemap.xml"))
+		c.Data(200, "text/plain", robotsTxtFile)
 	} else if strings.ToLower(title) == "help" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
 		c.Redirect(302, "/Help/view")
 	} else {
