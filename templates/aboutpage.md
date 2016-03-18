@@ -17,6 +17,14 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. The 
 
 ![Lists are easy to make.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/Main3.gif)
 
+
+<br>
+
+**Page locking**. Pages can be locked by providing a password to prevent further editing. The whole version tree will still be available. _Note_: This is not available for list mode.
+
+![Locking is easy.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/Main8.gif)
+
+
 <br>
 
 **Automatic versioning**. All previous versions of all notes are stored and can be accessed by adding `?version=X` onto `/view` or `/edit`. If you are on the `/view` or `/edit` pages the menu below will show the most substantial changes in the history. Note, only the _current_ version can be edited (no branching allowed, yet).
@@ -37,8 +45,6 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. The 
 ![Simply type to edit.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/Main7.gif)
 
 <br>
-
-**Page locking**. You can apply a password to a page to allow further edits from being available. The whole version tree will still be available. _Note_: This is not available for list mode.
 
 **Keyboard Shortcuts**. Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
