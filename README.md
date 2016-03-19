@@ -132,3 +132,5 @@ If you'd like help, go ahead and clone and send a pull request. If you find a bu
 
 # Contributors
 Thanks to [tscholl2](https://github.com/tscholl2).
+
+Icons made by [Freepik](http://www.freepik.com) from [www.flaticon.com](http://www.flaticon.com) is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
