@@ -12,7 +12,7 @@ import (
 )
 
 // AllowedIPs is a white/black list of
-// IP addresses allowed to access awwkoala
+// IP addresses allowed to access cowyo
 var AllowedIPs = map[string]bool{
 	"192.168.1.13": true,
 	"192.168.1.12": true,
@@ -44,16 +44,16 @@ func main() {
 	flag.StringVar(&RuntimeArgs.AdminKey, "a", RandStringBytesMaskImprSrc(50), "key to access admin priveleges")
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
-	flag.StringVar(&RuntimeArgs.WikiName, "w", "AwwKoala", "custom name for wiki")
+	flag.StringVar(&RuntimeArgs.WikiName, "w", "cowyo", "custom name for wiki")
 	dumpDataset := flag.Bool("dump", false, "flag to dump all data to 'dump' directory")
 	flag.CommandLine.Usage = func() {
-		fmt.Println(`AwwKoala (version ` + VersionNum + `): A Websocket Wiki and Kind Of A List Application
+		fmt.Println(`cowyo (version ` + VersionNum + `): A Websocket Wiki and Kind Of A List Application
 run this to start the server and then visit localhost at the port you specify
 (see parameters).
-Example: 'awwkoala yourserver.com'
-Example: 'awwkoala -p :8080 localhost:8080'
-Example: 'awwkoala -db /var/lib/awwkoala/db.bolt localhost:8003'
-Example: 'awwkoala -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
+Example: 'cowyo yourserver.com'
+Example: 'cowyo -p :8080 localhost:8080'
+Example: 'cowyo -db /var/lib/cowyo/db.bolt localhost:8003'
+Example: 'cowyo -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
 Options:`)
 		flag.CommandLine.PrintDefaults()
 	}
@@ -107,14 +107,14 @@ Options:`)
 	if RuntimeArgs.ServerCRT != "" && RuntimeArgs.ServerKey != "" {
 		RuntimeArgs.Socket = "wss"
 		fmt.Println("--------------------------")
-		fmt.Println("AwwKoala (version " + VersionNum + ") is up and running on https://" + RuntimeArgs.ExternalIP)
+		fmt.Println("cowyo (version " + VersionNum + ") is up and running on https://" + RuntimeArgs.ExternalIP)
 		fmt.Println("Admin key: " + RuntimeArgs.AdminKey)
 		fmt.Println("--------------------------")
 		r.RunTLS(RuntimeArgs.Port, RuntimeArgs.ServerCRT, RuntimeArgs.ServerKey)
 	} else {
 		RuntimeArgs.Socket = "ws"
 		fmt.Println("--------------------------")
-		fmt.Println("AwwKoala (version " + VersionNum + ") is up and running on http://" + RuntimeArgs.ExternalIP)
+		fmt.Println("cowyo (version " + VersionNum + ") is up and running on http://" + RuntimeArgs.ExternalIP)
 		fmt.Println("Admin key: " + RuntimeArgs.AdminKey)
 		fmt.Println("--------------------------")
 		r.Run(RuntimeArgs.Port)
