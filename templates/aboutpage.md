@@ -4,7 +4,7 @@
 ## Collections of Organized Words You Open
 ![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)
 
-This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features. **AwwKoala** is also [Open Source](https://github.com/schollz/cowyo).
+This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features. **CowYo** is also [Open Source](https://github.com/schollz/cowyo).
 
 ## Features
 **Simplicity**. The philosophy here is to *just type*. To jot a note, simply load the page at [`/`](/) and just start typing. No need to press edit, the browser will already be focused on the text. No need to press save - it will automatically save when you stop writing. The URL at [`/`](/) will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. But, you can also use any URL you want, e.g. [`/AnythingYouWant`](/AnythingYouWant). All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. To quickly link to `/view` pages, just use `[[AnythingYouWnat]]`.
@@ -13,7 +13,7 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. The 
 
 <br>
 
-**Listifying**. If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://AwwKoala.com/grocery), goto [`/grocery/list`](http://AwwKoala.com/grocery/list). In this page, whatever you click on will be struck through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
+**Listifying**. If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](/grocery), goto [`/grocery/list`](/grocery/list). In this page, whatever you click on will be struck through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
 ![Lists are easy to make.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help2.gif)
 
