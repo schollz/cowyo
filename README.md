@@ -1,8 +1,8 @@
-![Logo](https://i.imgur.com/ixnBYOl.png)
+![Logo](/static/img/cowyo.png)
 
-# AwwKoala - [Demo](http://awwkoala.com/)
-## A Websocket Wiki and Kind Of A List Application
-[![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/AwwKoala)](https://goreportcard.com/report/github.com/schollz/AwwKoala) [![Join the chat at https://gitter.im/schollz/AwwKoala](https://badges.gitter.im/schollz/AwwKoala.svg)](https://gitter.im/schollz/AwwKoala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# CowYo - [Demo](http://cowyo.com/)
+## Collections of Organized Words You Open
+[![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features.
 
