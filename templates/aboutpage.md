@@ -1,7 +1,7 @@
-![Logo](https://i.imgur.com/ixnBYOl.png)
+![Logo](/static/img/cowyo.png)
 
-# AwwKoala
-## A Websocket Wiki and Kind Of A List Application
+# CowYo
+## Collections of Organized Words You Open
 ![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)
 
 This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features. **AwwKoala** is also [Open Source](https://github.com/schollz/AwwKoala).
