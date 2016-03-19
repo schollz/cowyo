@@ -7,42 +7,40 @@
 This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features.
 
 # Features
-**Simplicity**. The philosophy here is to *just type*. To jot a note, simply load the page at [`/`](http://AwwKoala.com/) and just start typing. No need to press edit, the browser will already be focused on the text. No need to press save - it will automatically save when you stop writing. The URL at [`/`](http://AwwKoala.com/) will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. But, you can also use any URL you want, e.g. [`/AnythingYouWant`](http://AwwKoala.com/AnythingYouWant). All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](http://AwwKoala.com/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](http://AwwKoala.com/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. To quickly link to `/view` pages, just use `[[AnythingYouWnat]]`.
+**Simplicity**. The philosophy here is to *just type*. To jot a note, simply load the page at [`/`](http://cowyo.com/) and just start typing. No need to press edit, the browser will already be focused on the text. No need to press save - it will automatically save when you stop writing. The URL at [`/`](http://cowyo.com/) will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. But, you can also use any URL you want, e.g. [`/AnythingYouWant`](http://AwwKoala.com/AnythingYouWant). All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](http://cowyo.com/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. To quickly link to `/view` pages, just use `[[AnythingYouWnat]]`.
 
-![Simply type to edit.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/help1.gif)
+![Simply type to edit.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help1.gif)
 
 <br>
 
 **Listifying**. If you are writing a list and you want to tick off things really easily, just add `/list`. For example, after editing [`/grocery`](http://AwwKoala.com/grocery), goto [`/grocery/list`](http://AwwKoala.com/grocery/list). In this page, whatever you click on will be struck through and moved to the end. This is helpful if you write a grocery list and then want to easily delete things from it.
 
-![Lists are easy to make.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/help2.gif)
+![Lists are easy to make.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help2.gif)
 
 <br>
 
 **Page locking**. Pages can be locked by providing a password to prevent further editing. The whole version tree will still be available. _Note_: This is not available for list mode.
 
-![Locking is easy.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/help3.gif)
-
-
+![Locking is easy.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help3.gif)
 
 <br>
 
 **Automatic versioning**. All previous versions of all notes are stored and can be accessed by adding `?version=X` onto `/view` or `/edit`. If you are on the `/view` or `/edit` pages the menu below will show the most substantial changes in the history. Note, only the _current_ version can be edited (no branching allowed, yet).
 
-![Versioning is easy.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/help4.gif)
+![Versioning is easy.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help4.gif)
 
 <br>
 
 **Self-destructing messages**. You can write a message that will delete itself when a user loads it (in any view). Useful for transmitting sensitive information. To use, simply add a line somewhere that says only "`self-destruct`".
 
-![Simply type to edit.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/help5.gif)
+![Mission impossible style self-destruction.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help5.gif)
 
 
 <br>
 
 **Security**. HTTPS support is provided and everything is sanitized to prevent XSS attacks. Though all URLs are publicly accessible, you are free to obfuscate your website by using an obscure/random address (read: the site is still publicly accessible, just hard to find!). In addition to TLS support, you can PGP-encrypt your messages using a passphrase (_Note: This will delete the version tree_).
 
-![Simply type to edit.](https://raw.githubusercontent.com/schollz/awwkoala/master/static/img/help6.gif)
+![Security and encryption baked in.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help6.gif)
 
 <br>
 
