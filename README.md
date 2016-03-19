@@ -1,6 +1,6 @@
 ![Logo](/static/img/cowyo.png)
 
-# CowYo - [Demo](http://cowyo.com/)
+# CowYo - [Try it!](http://cowyo.com/)
 
 [![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
