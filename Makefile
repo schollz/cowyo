@@ -1,4 +1,4 @@
-ADDRESS = awwkoala.com
+ADDRESS = cowyo.com
 PORT = 8003
 
 CUR_DIR = $(shell bash -c 'pwd')
@@ -10,40 +10,40 @@ make:
 install:
 	rm -rf jinstall
 	mkdir jinstall
-	cp install/awwkoala.nginx jinstall/awwkoala.nginx
-	sed -i 's/PORT/$(PORT)/g'  jinstall/awwkoala.nginx
-	sed -i 's/ADDRESS/$(ADDRESS)/g'  jinstall/awwkoala.nginx
-	sed -i 's^CUR_DIR^$(CUR_DIR)^g'  jinstall/awwkoala.nginx
-	cp install/awwkoala.init jinstall/awwkoala.init
-	sed -i 's/EXT_ADDRESS/$(ADDRESS)/g'  jinstall/awwkoala.init
-	sed -i 's^CUR_DIR^$(CUR_DIR)^g'  jinstall/awwkoala.init
-	sed -i 's^USERCUR^$(USERCUR)^g'  jinstall/awwkoala.init
-	sed -i 's^PORT^$(PORT)^g'  jinstall/awwkoala.init
-	cp jinstall/awwkoala.init /etc/init.d/awwkoala.init
-	chmod +x /etc/init.d/awwkoala.init
-	cp jinstall/awwkoala.nginx /etc/nginx/sites-available/awwkoala.nginx
-	ln -fs /etc/nginx/sites-available/awwkoala.nginx /etc/nginx/sites-enabled/awwkoala.nginx
+	cp install/cowyo.nginx jinstall/cowyo.nginx
+	sed -i 's/PORT/$(PORT)/g'  jinstall/cowyo.nginx
+	sed -i 's/ADDRESS/$(ADDRESS)/g'  jinstall/cowyo.nginx
+	sed -i 's^CUR_DIR^$(CUR_DIR)^g'  jinstall/cowyo.nginx
+	cp install/cowyo.init jinstall/cowyo.init
+	sed -i 's/EXT_ADDRESS/$(ADDRESS)/g'  jinstall/cowyo.init
+	sed -i 's^CUR_DIR^$(CUR_DIR)^g'  jinstall/cowyo.init
+	sed -i 's^USERCUR^$(USERCUR)^g'  jinstall/cowyo.init
+	sed -i 's^PORT^$(PORT)^g'  jinstall/cowyo.init
+	cp jinstall/cowyo.init /etc/init.d/cowyo.init
+	chmod +x /etc/init.d/cowyo.init
+	cp jinstall/cowyo.nginx /etc/nginx/sites-available/cowyo.nginx
+	ln -fs /etc/nginx/sites-available/cowyo.nginx /etc/nginx/sites-enabled/cowyo.nginx
 	/etc/init.d/nginx reload
 	/etc/init.d/nginx restart
-	/etc/init.d/awwkoala.init restart
+	/etc/init.d/cowyo.init restart
 	rm -rf jinstall
 
 binaries:
 	rm -rf binaries
-	rm -f awwkoala
+	rm -f cowyo
 	mkdir binaries
-	env GOOS=linux GOARCH=amd64 go build -o awwkoala -v *.go
-	zip -9 -r awwkoala-linux-64bit.zip awwkoala static/* templates/*
-	rm -f awwkoala
-	env GOOS=windows GOARCH=amd64 go build -o awwkoala.exe -v *.go
-	zip -9 -r awwkoala-windows-64bit.zip awwkoala.exe static/* templates/*
-	rm -f awwkoala.exe
-	env GOOS=linux GOARCH=arm go build -o awwkoala -v *.go
-	zip -9 -r awwkoala-raspberrypi.zip awwkoala static/* templates/*
-	rm -f awwkoala
-	env GOOS=darwin GOARCH=amd64 go build -o awwkoala -v *.go
-	zip -9 -r awwkoala-macosx-64bit.zip awwkoala static/* templates/*
-	rm -f awwkoala
+	env GOOS=linux GOARCH=amd64 go build -o cowyo -v *.go
+	zip -9 -r cowyo-linux-64bit.zip cowyo static/* templates/*
+	rm -f cowyo
+	env GOOS=windows GOARCH=amd64 go build -o cowyo.exe -v *.go
+	zip -9 -r cowyo-windows-64bit.zip cowyo.exe static/* templates/*
+	rm -f cowyo.exe
+	env GOOS=linux GOARCH=arm go build -o cowyo -v *.go
+	zip -9 -r cowyo-raspberrypi.zip cowyo static/* templates/*
+	rm -f cowyo
+	env GOOS=darwin GOARCH=amd64 go build -o cowyo -v *.go
+	zip -9 -r cowyo-macosx-64bit.zip cowyo static/* templates/*
+	rm -f cowyo
 	mv *.zip binaries/
 
 
