@@ -10,8 +10,8 @@ sudo ./letsencrypt-auto certonly --standalone --email youremail@somewhere.com -d
 sudo service nginx start
 ```
 
-Then startup `cowyo` with
+Then startup `awwkoala` with
 
 ```bash
-sudo ./cowyo -p :8001 -key /etc/letsencrypt/live/yourserver.com/privkey.pem -crt /etc/letsencrypt/live/yourserver.com/cert.pem yourserver.com
+sudo ./awwkoala -p :8001 -key /etc/letsencrypt/live/yourserver.com/privkey.pem -crt /etc/letsencrypt/live/yourserver.com/cert.pem yourserver.com
 ```
