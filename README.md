@@ -1,10 +1,10 @@
 ![Logo](/static/img/cowyo.png)
 
 # CowYo - [Demo](http://cowyo.com/)
-## Collections of Organized Words You Open
+
 [![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features.
+This is a self-contained notepad webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features.
 
 # Features
 **Simplicity**. The philosophy here is to *just type*. To jot a note, simply load the page at [`/`](http://cowyo.com/) and just start typing. No need to press edit, the browser will already be focused on the text. No need to press save - it will automatically save when you stop writing. The URL at [`/`](http://cowyo.com/) will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. But, you can also use any URL you want, e.g. [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant). All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](http://cowyo.com/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. To quickly link to `/view` pages, just use `[[AnythingYouWant]]`.
