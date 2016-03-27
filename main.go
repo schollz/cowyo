@@ -31,6 +31,7 @@ var RuntimeArgs struct {
 	SourcePath       string
 	AdminKey         string
 	Socket           string
+	ForceWss         bool
 }
 var VersionNum string
 
@@ -45,6 +46,7 @@ func main() {
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "cowyo", "custom name for wiki")
+	flag.BoolVar(&RuntimeArgs.ForceWss, "e", false, "force encrypted sockets")
 	dumpDataset := flag.Bool("dump", false, "flag to dump all data to 'dump' directory")
 	flag.CommandLine.Usage = func() {
 		fmt.Println(`cowyo (version ` + VersionNum + `): A Websocket Wiki and Kind Of A List Application
@@ -113,6 +115,9 @@ Options:`)
 		r.RunTLS(RuntimeArgs.Port, RuntimeArgs.ServerCRT, RuntimeArgs.ServerKey)
 	} else {
 		RuntimeArgs.Socket = "ws"
+		if RuntimeArgs.ForceWss {
+			RuntimeArgs.Socket = "wss"
+		}
 		fmt.Println("--------------------------")
 		fmt.Println("cowyo (version " + VersionNum + ") is up and running on http://" + RuntimeArgs.ExternalIP)
 		fmt.Println("Admin key: " + RuntimeArgs.AdminKey)
