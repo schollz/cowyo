@@ -158,37 +158,31 @@ func editNote(c *gin.Context) {
 	} else if strings.ToLower(title) == "help" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
 		c.Redirect(302, "/Help/view")
 	} else {
-		locked, _ := hasPassword(title)
-		if locked {
+		version := c.DefaultQuery("version", "-1")
+		versionNum, _ := strconv.Atoi(version)
+		currentText, versions, currentVersion, totalTime, encrypted, locked := getCurrentText(title, versionNum)
+		if encrypted || len(locked) > 0 {
 			c.Redirect(302, "/"+title+"/view")
-		} else {
-			version := c.DefaultQuery("version", "-1")
-			versionNum, _ := strconv.Atoi(version)
-			currentText, versions, currentVersion, totalTime, encrypted, locked := getCurrentText(title, versionNum)
-			if encrypted || len(locked) > 0 {
-				c.Redirect(302, "/"+title+"/view")
-			}
-			if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
-				c.Redirect(302, "/"+title+"/view")
-			}
-			numRows := len(strings.Split(currentText, "\n")) + 10
-			totalTimeString := totalTime.String()
-			if totalTime.Seconds() < 1 {
-				totalTimeString = "< 1 s"
-			}
-			c.HTML(http.StatusOK, "index.tmpl", gin.H{
-				"Title":       title,
-				"WikiName":    RuntimeArgs.WikiName,
-				"ExternalIP":  RuntimeArgs.ExternalIP,
-				"CurrentText": currentText,
-				"NumRows":     numRows,
-				"Versions":    versions,
-				"TotalTime":   totalTimeString,
-				"SocketType":  RuntimeArgs.Socket,
-				"NoEdit":      !currentVersion,
-			})
-
 		}
+		if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
+			c.Redirect(302, "/"+title+"/view")
+		}
+		numRows := len(strings.Split(currentText, "\n")) + 10
+		totalTimeString := totalTime.String()
+		if totalTime.Seconds() < 1 {
+			totalTimeString = "< 1 s"
+		}
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"Title":       title,
+			"WikiName":    RuntimeArgs.WikiName,
+			"ExternalIP":  RuntimeArgs.ExternalIP,
+			"CurrentText": currentText,
+			"NumRows":     numRows,
+			"Versions":    versions,
+			"TotalTime":   totalTimeString,
+			"SocketType":  RuntimeArgs.Socket,
+			"NoEdit":      !currentVersion,
+		})
 	}
 }
 
