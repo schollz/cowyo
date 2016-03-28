@@ -109,10 +109,6 @@ Options:`)
 	r.GET("/:title", editNote)
 	r.PUT("/:title", func(c *gin.Context) {
 		filename := c.Param("title")
-		fmt.Println(filename)
-		fmt.Println(c.Request.Body)
-		fmt.Println(c.Request.ContentLength)
-		fmt.Println(c.Request.Header)
 		contentLength := c.Request.ContentLength
 		var reader io.Reader
 		reader = c.Request.Body
@@ -154,10 +150,9 @@ Options:`)
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(reader)
 		fmt.Println("---------------")
-		fmt.Println(buf.String())
+		fmt.Println(filename)
 		fmt.Println("---------------")
-		fmt.Println(c.ContentType())
-		fmt.Println(c.Request.Header)
+		fmt.Println(buf.String())
 		fmt.Println("---------------")
 		p := WikiData{filename, "", []string{}, []string{}, false, ""}
 		p.save(buf.String())
