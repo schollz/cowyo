@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 
@@ -34,6 +37,8 @@ var RuntimeArgs struct {
 	ForceWss         bool
 }
 var VersionNum string
+
+const _24K = (1 << 20) * 24
 
 func main() {
 	VersionNum = "0.94"
@@ -102,6 +107,60 @@ Options:`)
 	r.GET("/", newNote)
 	r.HEAD("/", func(c *gin.Context) { c.Status(200) })
 	r.GET("/:title", editNote)
+	r.PUT("/:title", func(c *gin.Context) {
+		filename := c.Param("title")
+		fmt.Println(filename)
+		fmt.Println(c.Request.Body)
+		fmt.Println(c.Request.ContentLength)
+		fmt.Println(c.Request.Header)
+		contentLength := c.Request.ContentLength
+		var reader io.Reader
+		reader = c.Request.Body
+		if contentLength == -1 {
+			// queue file to disk, because s3 needs content length
+			var err error
+			var f io.Reader
+
+			f = reader
+
+			var b bytes.Buffer
+
+			n, err := io.CopyN(&b, f, _24K+1)
+			if err != nil && err != io.EOF {
+				log.Printf("%s", err.Error())
+			}
+
+			if n > _24K {
+				file, err := ioutil.TempFile("./", "transfer-")
+				if err != nil {
+					log.Printf("%s", err.Error())
+				}
+
+				defer file.Close()
+
+				n, err = io.Copy(file, io.MultiReader(&b, f))
+				if err != nil {
+					os.Remove(file.Name())
+					log.Printf("%s", err.Error())
+				}
+
+				reader, err = os.Open(file.Name())
+			} else {
+				reader = bytes.NewReader(b.Bytes())
+			}
+
+			contentLength = n
+		}
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(reader)
+		s := buf.String() // Does a complete copy of the bytes in the buffer.
+		fmt.Println("---------------")
+		fmt.Println(s)
+		fmt.Println("---------------")
+		fmt.Println(c.ContentType())
+		fmt.Println(c.Request.Header)
+		fmt.Println("---------------")
+	})
 	r.GET("/:title/*option", everythingElse)
 	r.POST("/:title/*option", encryptionRoute)
 	r.DELETE("/listitem", deleteListItem)
