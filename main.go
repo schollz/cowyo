@@ -153,13 +153,14 @@ Options:`)
 		}
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(reader)
-		s := buf.String() // Does a complete copy of the bytes in the buffer.
 		fmt.Println("---------------")
-		fmt.Println(s)
+		fmt.Println(buf.String())
 		fmt.Println("---------------")
 		fmt.Println(c.ContentType())
 		fmt.Println(c.Request.Header)
 		fmt.Println("---------------")
+		p := WikiData{filename, "", []string{}, []string{}, false, ""}
+		p.save(buf.String())
 	})
 	r.GET("/:title/*option", everythingElse)
 	r.POST("/:title/*option", encryptionRoute)
