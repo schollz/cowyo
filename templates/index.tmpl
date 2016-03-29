@@ -59,7 +59,16 @@
   </style>
   <script src="/static/js/sweetalert-dev.js"></script>
   <link rel="stylesheet" href="/static/css/sweetalert.css">
-
+  {{ if .Coding }}
+  <script src="/static/js/codemirror.js"></script>
+  <link rel="stylesheet" href="/static/css/codemirror.css">
+  <script src="/static/js/{{ .CodeType }}.js"></script>
+  {{ if eq .CodeType "htmlmixed" }}
+  <script src="/static/js/css.js"></script>
+  <script src="/static/js/javascript.js"></script>
+  <script src="/static/js/xml.js"></script>
+  {{ end }}
+  {{ end }}
 </head>
 
 <body>
@@ -301,9 +310,6 @@
 
 
       {{ if .Coding }}
-      <script src="/static/js/codemirror.js"></script>
-      <link rel="stylesheet" href="/static/css/codemirror.css">
-      <script src="/static/js/{{ .CodeType }}.js"></script>
       <script>
         var editor = CodeMirror.fromTextArea(document.getElementById("emit_data"), {
           lineNumbers: true,
