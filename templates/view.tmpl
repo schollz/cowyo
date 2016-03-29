@@ -15,6 +15,43 @@ a.deleteable {
     cursor: pointer;
 }
 </style>
+{{ if .Coding }}
+<style>
+.CodeMirror {
+      border: 1px solid #eee;
+      height: auto;
+}
+
+
+  textarea {
+    width: 100%;
+    margin: 5px 0;
+    padding: 10px;
+    border: none;
+    overflow: auto;
+    outline: none;
+    font-size: large;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    font-family: Tahoma, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    background: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding-bottom: 65px;
+  }
+
+  @media (min-width: 1200px) {
+    .container {
+      max-width: 800px;
+    }
+  }
+  </style>
+{{ end }}
 <script src="/static/js/sweetalert-dev.js"></script>
 <link rel="stylesheet" href="/static/css/sweetalert.css">
 </head>
@@ -65,6 +102,13 @@ a.deleteable {
     </div>
   </nav>
 
+{{ if .Coding }}
+
+  <div>
+    <textarea autofocus rows={{ .NumRows }} class='auto_submit_item' id="emit_data" name="emit_data" placeholder="Start typing, it will save automatically.">{{ .CurrentText }}</textarea>
+  </div>
+
+{{ else }}
   <div class="yue">
 {{ if .Encrypted }}
 <pre>
@@ -74,6 +118,7 @@ a.deleteable {
     {{ .Body }}
 {{ end }}
 </div>
+{{ end }}
 
 <script>
 $( document ).ready(function() {
@@ -250,6 +295,23 @@ $(document).keydown(function(e){
   });
 {{ end }}
 </script>
+
+
+      {{ if .Coding }}
+      <script src="/static/js/codemirror.js"></script>
+      <link rel="stylesheet" href="/static/css/codemirror.css">
+      <script src="/static/js/{{ .CodeType }}.js"></script>
+      <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("emit_data"), {
+          lineNumbers: true,
+          mode:  "{{ .CodeType }}",
+          matchBrackets: true,
+          viewportMargin: Infinity,
+          readOnly: true
+        });
+      editor.setSize("100%", "100%")
+      </script>
+    {{ end }}
 </body>
 
 </html>

@@ -207,6 +207,19 @@ func newNote(c *gin.Context) {
 	c.Redirect(302, "/"+title)
 }
 
+func getCodeType(title string) string {
+	if strings.Contains(title, ".js") {
+		return "javascript"
+	} else if strings.Contains(title, ".py") {
+		return "python"
+	} else if strings.Contains(title, ".go") {
+		return "go"
+	} else if strings.Contains(title, ".html") {
+		return "htmlmixed"
+	}
+	return ""
+}
+
 func editNote(c *gin.Context) {
 	title := c.Param("title")
 	if title == "ws" {
@@ -240,16 +253,8 @@ func editNote(c *gin.Context) {
 		if totalTime.Seconds() < 1 {
 			totalTimeString = "< 1 s"
 		}
-		CodeType := ""
-		if strings.Contains(title, ".js") {
-			CodeType = "javascript"
-		} else if strings.Contains(title, ".py") {
-			CodeType = "python"
-		} else if strings.Contains(title, ".go") {
-			CodeType = "go"
-		} else if strings.Contains(title, ".html") {
-			CodeType = "htmlmixed"
-		}
+
+		CodeType := getCodeType(title)
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"Title":       title,
 			"WikiName":    RuntimeArgs.WikiName,
@@ -305,6 +310,7 @@ func serveStaticFile(c *gin.Context, option string) {
 }
 
 func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool, noprompt bool, locked bool) {
+	originalText := currentText
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -337,10 +343,12 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	if totalTime.Seconds() < 1 {
 		totalTimeString = "< 1 s"
 	}
+	CodeType := getCodeType(title)
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
 		"Title":             title,
 		"WikiName":          RuntimeArgs.WikiName,
 		"Body":              template.HTML([]byte(html2)),
+		"CurrentText":       originalText,
 		"Versions":          versions,
 		"TotalTime":         totalTimeString,
 		"AdminKey":          AdminKey,
@@ -348,6 +356,8 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 		"Locked":            locked,
 		"Prompt":            noprompt,
 		"LockedOrEncrypted": locked || encrypted,
+		"Coding":            len(CodeType) > 0,
+		"CodeType":          CodeType,
 	})
 
 }
