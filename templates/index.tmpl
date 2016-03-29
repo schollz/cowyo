@@ -6,11 +6,7 @@
 
   {{ template "header" }}
 
-{{ if .Coding }}
-<script src="/static/js/codemirror.js"></script>
-<link rel="stylesheet" href="/static/css/codemirror.css">
-<script src="/static/js/{{ .CodeType }}.js"></script>
-{{ end }}
+
 
   <script src="/static/js/jquery.autogrowtextarea.min.js"></script>
   {{if .NoEdit}} {{else}}
@@ -30,7 +26,7 @@
   .CodeMirror {
         border: 1px solid #eee;
         height: auto;
-      }
+  }
 
 
     textarea {
@@ -58,7 +54,6 @@
     @media (min-width: 1200px) {
       .container {
         max-width: 800px;
-        padding-bottom: 65px;
       }
     }
   </style>
@@ -305,6 +300,9 @@
 
 
       {{ if .Coding }}
+      <script src="/static/js/codemirror.js"></script>
+      <link rel="stylesheet" href="/static/css/codemirror.css">
+      <script src="/static/js/{{ .CodeType }}.js"></script>
       <script>
         var editor = CodeMirror.fromTextArea(document.getElementById("emit_data"), {
           lineNumbers: true,
@@ -318,11 +316,11 @@
       }
       </script>
 {{ else }}
-<script>
-function currentText() {
-  return $('#emit_data').val()
-}
-</script>
+    <script>
+    function currentText() {
+      return $('#emit_data').val()
+    }
+    </script>
 
     {{ end }}
 
