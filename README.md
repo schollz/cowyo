@@ -47,16 +47,16 @@ This is a self-contained notepad webserver that makes sharing easy and _fast_. T
 **CLI support**. Want to upload/download from a server? Its super easy. Upload/download files like this:
 ```bash
 $ echo "Hello, world!" > hi.txt
-$ curl --upload-file hi.txt cowyo.com
+$ curl -L --upload-file hi.txt cowyo.com
   File uploaded to http://cowyo.com/hi.txt
-$ curl cowyo.com/test.txt
+$ curl -L cowyo.com/test.txt
   Hello, world!
 ```
 or just skip the file-creation step,
 ```bash
-$ echo "Wow, so easy" | curl --upload-file "-" cowyo.com
+$ echo "Wow, so easy" | curl -L --upload-file "-" cowyo.com
   File uploaded to http://cowyo.com/CautiousCommonLoon
-$ curl cowyo.com/CautiousCommonLoon
+$ curl -L cowyo.com/CautiousCommonLoon
   Wow, so easy
 ```
 
