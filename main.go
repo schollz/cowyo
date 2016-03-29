@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/boltdb/bolt"
 	"github.com/gin-gonic/gin"
@@ -32,6 +35,8 @@ var RuntimeArgs struct {
 	AdminKey         string
 	Socket           string
 	ForceWss         bool
+	DumpDataset      string
+	RestoreDataset   string
 }
 var VersionNum string
 
@@ -51,7 +56,8 @@ func main() {
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of SSL key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "cowyo", "custom name for wiki")
 	flag.BoolVar(&RuntimeArgs.ForceWss, "e", false, "force encrypted sockets (use if using Caddy auto HTTPS)")
-	dumpDataset := flag.Bool("dump", false, "flag to dump all data to 'dump' directory")
+	flag.StringVar(&RuntimeArgs.DumpDataset, "dump", "", "directory to dump all data to")
+	flag.StringVar(&RuntimeArgs.RestoreDataset, "restore", "", "directory to restore all data from")
 	flag.CommandLine.Usage = func() {
 		fmt.Println(`cowyo (version ` + VersionNum + `)
 
@@ -70,9 +76,9 @@ Options:`)
 	}
 	flag.Parse()
 
-	if *dumpDataset {
-		fmt.Println("Dumping data to 'dump' folder...")
-		dumpEverything()
+	if len(RuntimeArgs.DumpDataset) > 0 {
+		fmt.Println("Dumping data to '" + RuntimeArgs.DumpDataset + "' folder...")
+		dumpEverything(RuntimeArgs.DumpDataset)
 		os.Exit(1)
 	}
 
@@ -105,6 +111,11 @@ Options:`)
 	p := WikiData{"help", "", []string{}, []string{}, false, "zzz"}
 	p.save(string(aboutFile))
 
+	if len(RuntimeArgs.RestoreDataset) > 0 {
+		fmt.Println("Restoring data from '" + RuntimeArgs.RestoreDataset + "' folder...")
+		filepath.Walk(RuntimeArgs.RestoreDataset, restoreFile)
+		os.Exit(1)
+	}
 	// var q WikiData
 	// q.load("about")
 	// fmt.Println(getImportantVersions(q))
@@ -138,4 +149,17 @@ Options:`)
 		fmt.Println("--------------------------")
 		r.Run(RuntimeArgs.Port)
 	}
+}
+
+func restoreFile(path string, f os.FileInfo, err error) error {
+	fName := filepath.Base(path)
+	buf := bytes.NewBuffer(nil)
+	fOpen, _ := os.Open(path) // Error handling elided for brevity.
+	io.Copy(buf, fOpen)       // Error handling elided for brevity.
+	fOpen.Close()
+	s := string(buf.Bytes())
+	fmt.Println(fName)
+	p := WikiData{fName, "", []string{}, []string{}, false, ""}
+	p.save(s)
+	return nil
 }
