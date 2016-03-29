@@ -578,10 +578,10 @@ func listEverything() string {
 	return everything
 }
 
-func dumpEverything() {
+func dumpEverything(folderpath string) {
 	Open(RuntimeArgs.DatabaseLocation)
 	defer Close()
-	err := os.MkdirAll("dump", 0777)
+	err := os.MkdirAll(folderpath, 0777)
 	if err != nil {
 		fmt.Println("Already exists")
 	}
@@ -593,7 +593,7 @@ func dumpEverything() {
 			var p WikiData
 			p.load(string(k))
 			fmt.Println(string(k), len(p.CurrentText))
-			ioutil.WriteFile(path.Join("dump", string(k)+".md"), []byte(p.CurrentText), 0644)
+			ioutil.WriteFile(path.Join(folderpath, string(k)), []byte(p.CurrentText), 0644)
 		}
 		return nil
 	})
