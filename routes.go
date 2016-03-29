@@ -216,6 +216,12 @@ func getCodeType(title string) string {
 		return "go"
 	} else if strings.Contains(title, ".html") {
 		return "htmlmixed"
+	} else if strings.Contains(title, ".txt") || strings.Contains(title, ".md") {
+		return "markdown"
+	} else if strings.Contains(title, ".sh") {
+		return "shell"
+	} else if strings.Contains(title, ".css") {
+		return "css"
 	}
 	return ""
 }
@@ -289,6 +295,20 @@ func everythingElse(c *gin.Context) {
 			p.save("")
 		}
 		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted, noprompt == "-1", len(locked) > 0)
+	} else if option == "/raw" {
+		version := c.DefaultQuery("version", "-1")
+		versionNum, _ := strconv.Atoi(version)
+		if strings.ToLower(title) == "help" {
+			versionNum = -1
+		}
+		currentText, _, _, _, _, _ := getCurrentText(title, versionNum)
+		c.Writer.Header().Set("Content-Type", contentType(title))
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Data(200, contentType(title), []byte(currentText))
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
 		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false, false, false)
 	} else if option == "/list" {
@@ -311,6 +331,10 @@ func serveStaticFile(c *gin.Context, option string) {
 
 func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool, noprompt bool, locked bool) {
 	originalText := currentText
+	CodeType := getCodeType(title)
+	if CodeType == "markdown" {
+		CodeType = ""
+	}
 	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	for _, s := range r.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
@@ -343,7 +367,9 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 	if totalTime.Seconds() < 1 {
 		totalTimeString = "< 1 s"
 	}
-	CodeType := getCodeType(title)
+	if encrypted {
+		CodeType = "asciiarmor"
+	}
 	c.HTML(http.StatusOK, "view.tmpl", gin.H{
 		"Title":             title,
 		"WikiName":          RuntimeArgs.WikiName,
