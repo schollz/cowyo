@@ -6,7 +6,11 @@
 
   {{ template "header" }}
 
-
+{{ if .Coding }}
+<script src="/static/js/codemirror.js"></script>
+<link rel="stylesheet" href="/static/css/codemirror.css">
+<script src="/static/js/{{ .CodeType }}.js"></script>
+{{ end }}
 
   <script src="/static/js/jquery.autogrowtextarea.min.js"></script>
   {{if .NoEdit}} {{else}}
@@ -16,6 +20,8 @@
     external_ip = '{{ .ExternalIP }}'
     title_name = '{{ .Title }}'
     socketType = '{{ .SocketType }}'
+
+
   </script>
 
 
@@ -54,6 +60,8 @@
 </head>
 
 <body>
+
+
 
 
 
@@ -284,7 +292,33 @@
 
 
     });
+
   </script>
+
+
+      {{ if .Coding }}
+      <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("emit_data"), {
+          lineNumbers: true,
+          mode:  "javascript",
+          matchBrackets: true,
+          viewportMargin: Infinity
+        });
+      editor.setSize("100%", "100%")
+      function currentText() {
+        return editor.getValue()
+      }
+      </script>
+{{ else }}
+<script>
+function currentText() {
+  return $('#emit_data').val()
+}
+</script>
+
+    {{ end }}
+
+
 
 
 </body>
