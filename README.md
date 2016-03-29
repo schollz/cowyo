@@ -2,7 +2,7 @@
 
 # [cowyo.com](http://cowyo.com/)
 
-[![Version 0.95](https://img.shields.io/badge/version-0.95-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Version 1.0](https://img.shields.io/badge/version-1.0-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a self-contained notepad webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, syntax highlighting, command line support, content-delivery, and listifying. Read on to learn more about the features.
 
@@ -44,9 +44,9 @@ This is a self-contained notepad webserver that makes sharing easy and _fast_. T
 
 <br>
 
-**Syntax highlighting**. There is CodeMirror support for many languages. Just use an extension (e.g. .py, .md, .txt, .js, ...) for your document and then you'll be able to edit/view your code in a simple and easy way.
+**Syntax highlighting**. If you use a coding extension (e.g. .py, .md, .txt, .js, ...) then you'll automatically see syntax highlighting and line numbers.
 
-![Coding syntax is provided if you use an extension](NEED GIF)
+![Coding syntax is provided if you use an extension](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help7.gif)
 
 <br>
 
