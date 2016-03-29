@@ -2,7 +2,7 @@
 
 # [cowyo.com](http://cowyo.com/)
 
-[![Version 0.95](https://img.shields.io/badge/version-0.94-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Version 0.95](https://img.shields.io/badge/version-0.95-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a self-contained notepad webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features.
 
