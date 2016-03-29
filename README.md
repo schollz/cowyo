@@ -2,7 +2,7 @@
 
 # [cowyo.com](http://cowyo.com/)
 
-[![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Version 0.95](https://img.shields.io/badge/version-0.94-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a self-contained notepad webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features.
 
@@ -44,6 +44,23 @@ This is a self-contained notepad webserver that makes sharing easy and _fast_. T
 
 <br>
 
+**CLI support**. Want to upload/download from a server? Its super easy. Upload/download files like this:
+```bash
+$ echo "Hello, world!" > hi.txt
+$ curl --upload-file hi.txt cowyo.com
+  File uploaded to http://cowyo.com/hi.txt
+$ curl cowyo.com/test.txt
+  Hello, world!
+```
+or just skip the file-creation step,
+```bash
+$ echo "Wow, so easy" | curl --upload-file "-" cowyo.com
+  File uploaded to http://cowyo.com/CautiousCommonLoon
+$ curl cowyo.com/CautiousCommonLoon
+  Wow, so easy
+```
+
+<br>
 
 **Keyboard Shortcuts**. Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
