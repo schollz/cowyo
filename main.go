@@ -45,7 +45,7 @@ func init() {
 }
 
 func main() {
-	VersionNum = "0.95"
+	VersionNum = "1.0"
 	// _, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	cwd, _ := os.Getwd()
 	databaseFile := path.Join(cwd, "data.db")
