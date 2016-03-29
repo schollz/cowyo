@@ -240,6 +240,16 @@ func editNote(c *gin.Context) {
 		if totalTime.Seconds() < 1 {
 			totalTimeString = "< 1 s"
 		}
+		CodeType := ""
+		if strings.Contains(title, ".js") {
+			CodeType = "javascript"
+		} else if strings.Contains(title, ".py") {
+			CodeType = "python"
+		} else if strings.Contains(title, ".go") {
+			CodeType = "go"
+		} else if strings.Contains(title, ".html") {
+			CodeType = "htmlmixed"
+		}
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"Title":       title,
 			"WikiName":    RuntimeArgs.WikiName,
@@ -250,6 +260,8 @@ func editNote(c *gin.Context) {
 			"TotalTime":   totalTimeString,
 			"SocketType":  RuntimeArgs.Socket,
 			"NoEdit":      !currentVersion,
+			"Coding":      len(CodeType) > 0,
+			"CodeType":    CodeType,
 		})
 	}
 }

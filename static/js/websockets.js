@@ -1,4 +1,5 @@
 var selfDestruct = false;
+
 $(document).ready(function() {
   var isTyping = false;
   var typingTimer; //timer identifier
@@ -24,14 +25,14 @@ $(document).ready(function() {
 
   //user is "finished typing," do something
   function doneTyping() {
-    payload = JSON.stringify({ TextData: $('#emit_data').val(), Title: title_name, UpdateServer: true, UpdateClient: false })
+    payload = JSON.stringify({ TextData: currentText(), Title: title_name, UpdateServer: true, UpdateClient: false })
     send(payload)
     uhohTimer = setTimeout(uhoh, 3000);
     $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-open");
     console.log("Done typing")
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
     document.title = "[SAVED] " + title_name;
-    if ($('#emit_data').val().indexOf("self-destruct\n") > -1 || $('#emit_data').val().indexOf("\nself-destruct") > -1) {
+    if (currentText().indexOf("self-destruct\n") > -1 || currentText().indexOf("\nself-destruct") > -1) {
       if (selfDestruct == false) {
         selfDestruct = true;
         swal({   title: "Info",   text: "This page is primed to self-destruct.",   timer: 1000,   showConfirmButton: true });
@@ -51,7 +52,7 @@ $(document).ready(function() {
 
   function updateText() {
     console.log("Getting server's latest copy")
-    payload = JSON.stringify({ TextData: $('#emit_data').val(), Title: title_name, UpdateServer: false, UpdateClient: true })
+    payload = JSON.stringify({ TextData: currentText(), Title: title_name, UpdateServer: false, UpdateClient: true })
     send(payload)
   }
 
@@ -60,6 +61,7 @@ $(document).ready(function() {
   c = new WebSocket(url);
 
   send = function(data){
+
     console.log("Sending: " + data)
     c.send(data)
   }
