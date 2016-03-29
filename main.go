@@ -35,6 +35,10 @@ var RuntimeArgs struct {
 }
 var VersionNum string
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 func main() {
 	VersionNum = "0.95"
 	// _, executableFile, _, _ := runtime.Caller(0) // get full path of this file
@@ -42,20 +46,25 @@ func main() {
 	databaseFile := path.Join(cwd, "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")
 	flag.StringVar(&RuntimeArgs.DatabaseLocation, "db", databaseFile, "location of database file")
-	flag.StringVar(&RuntimeArgs.AdminKey, "a", RandStringBytesMaskImprSrc(50), "key to access admin priveleges")
-	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of ssl crt")
-	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of ssl key")
+	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to access admin priveleges")
+	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of SSL certificate")
+	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of SSL key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "cowyo", "custom name for wiki")
-	flag.BoolVar(&RuntimeArgs.ForceWss, "e", false, "force encrypted sockets")
+	flag.BoolVar(&RuntimeArgs.ForceWss, "e", false, "force encrypted sockets (use if using Caddy auto HTTPS)")
 	dumpDataset := flag.Bool("dump", false, "flag to dump all data to 'dump' directory")
 	flag.CommandLine.Usage = func() {
-		fmt.Println(`cowyo (version ` + VersionNum + `): A Websocket Wiki and Kind Of A List Application
-run this to start the server and then visit localhost at the port you specify
-(see parameters).
+		fmt.Println(`cowyo (version ` + VersionNum + `)
+
+Usage: cowyo [options] [address]
+
+If address is not provided then cowyo
+will determine the best internal IP address.
+
+Example: 'cowyo'
 Example: 'cowyo yourserver.com'
 Example: 'cowyo -p :8080 localhost:8080'
-Example: 'cowyo -db /var/lib/cowyo/db.bolt localhost:8003'
 Example: 'cowyo -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
+
 Options:`)
 		flag.CommandLine.PrintDefaults()
 	}
@@ -73,6 +82,9 @@ Options:`)
 	}
 	RuntimeArgs.SourcePath = cwd
 
+	if len(RuntimeArgs.AdminKey) == 0 {
+		RuntimeArgs.AdminKey = RandStringBytesMaskImprSrc(50)
+	}
 	// create programdata bucket
 	Open(RuntimeArgs.DatabaseLocation)
 
