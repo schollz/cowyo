@@ -2,7 +2,7 @@
 
 # CowYo
 ## Collections of Organized Words You Open
-![Version 0.94](https://img.shields.io/badge/version-0.94-brightgreen.svg)
+![Version 0.95](https://img.shields.io/badge/version-0.95-brightgreen.svg)
 
 This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features. **CowYo** is also [Open Source](https://github.com/schollz/cowyo).
 
@@ -42,6 +42,24 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. The 
 **Security**. HTTPS support is provided and everything is sanitized to prevent XSS attacks. Though all URLs are publicly accessible, you are free to obfuscate your website by using an obscure/random address (read: the site is still publicly accessible, just hard to find!). In addition to TLS support, you can PGP-encrypt your messages using a passphrase (_Note: This will delete the version tree_).
 
 ![Security and encryption baked in.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help6.gif)
+
+<br>
+
+**CLI support**. Want to upload/download from a server? Its super easy. Upload/download files like this:
+```bash
+$ echo "Hello, world!" > hi.txt
+$ curl --upload-file hi.txt cowyo.com
+  File uploaded to http://cowyo.com/hi.txt
+$ curl cowyo.com/test.txt
+  Hello, world!
+```
+or just skip the file-creation step,
+```bash
+$ echo "Wow, so easy" | curl --upload-file "-" cowyo.com
+  File uploaded to http://cowyo.com/CautiousCommonLoon
+$ curl cowyo.com/CautiousCommonLoon
+  Wow, so easy
+```
 
 <br>
 

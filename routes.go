@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -17,6 +20,65 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
 )
+
+const _24K = (1 << 20) * 24
+
+func putFile(c *gin.Context) {
+	if isIPBanned(c.ClientIP()) {
+		c.Data(200, "text/plain", []byte("You are rate limited to 20 requests/hour."))
+		return
+	}
+	filename := c.Param("title")
+	if len(filename) == 0 {
+		filename = randomAlliterateCombo()
+	}
+	contentLength := c.Request.ContentLength
+	var reader io.Reader
+	reader = c.Request.Body
+	if contentLength == -1 {
+		// queue file to disk, because s3 needs content length
+		var err error
+		var f io.Reader
+
+		f = reader
+
+		var b bytes.Buffer
+
+		n, err := io.CopyN(&b, f, _24K+1)
+		if err != nil && err != io.EOF {
+			log.Printf("%s", err.Error())
+		}
+
+		if n > _24K {
+			file, err := ioutil.TempFile("./", "transfer-")
+			if err != nil {
+				log.Printf("%s", err.Error())
+			}
+
+			defer file.Close()
+
+			n, err = io.Copy(file, io.MultiReader(&b, f))
+			if err != nil {
+				os.Remove(file.Name())
+				log.Printf("%s", err.Error())
+			}
+
+			reader, err = os.Open(file.Name())
+		} else {
+			reader = bytes.NewReader(b.Bytes())
+		}
+
+		contentLength = n
+	}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(reader)
+	// p := WikiData{filename, "", []string{}, []string{}, false, ""}
+	// p.save(buf.String())
+	var p WikiData
+	p.load(strings.ToLower(filename))
+	p.save(buf.String())
+	c.Data(200, "text/plain", []byte("File uploaded to http://"+RuntimeArgs.ExternalIP+"/"+filename))
+}
 
 type EncryptionPost struct {
 	Text     string `form:"text" json:"text" binding:"required"`
@@ -158,37 +220,37 @@ func editNote(c *gin.Context) {
 	} else if strings.ToLower(title) == "help" { //}&& strings.Contains(AllowedIPs, c.ClientIP()) != true {
 		c.Redirect(302, "/Help/view")
 	} else {
-		locked, _ := hasPassword(title)
-		if locked {
-			c.Redirect(302, "/"+title+"/view")
-		} else {
-			version := c.DefaultQuery("version", "-1")
-			versionNum, _ := strconv.Atoi(version)
-			currentText, versions, currentVersion, totalTime, encrypted, locked := getCurrentText(title, versionNum)
-			if encrypted || len(locked) > 0 {
-				c.Redirect(302, "/"+title+"/view")
-			}
-			if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
-				c.Redirect(302, "/"+title+"/view")
-			}
-			numRows := len(strings.Split(currentText, "\n")) + 10
-			totalTimeString := totalTime.String()
-			if totalTime.Seconds() < 1 {
-				totalTimeString = "< 1 s"
-			}
-			c.HTML(http.StatusOK, "index.tmpl", gin.H{
-				"Title":       title,
-				"WikiName":    RuntimeArgs.WikiName,
-				"ExternalIP":  RuntimeArgs.ExternalIP,
-				"CurrentText": currentText,
-				"NumRows":     numRows,
-				"Versions":    versions,
-				"TotalTime":   totalTimeString,
-				"SocketType":  RuntimeArgs.Socket,
-				"NoEdit":      !currentVersion,
-			})
-
+		version := c.DefaultQuery("version", "-1")
+		versionNum, _ := strconv.Atoi(version)
+		currentText, versions, currentVersion, totalTime, encrypted, locked := getCurrentText(title, versionNum)
+		if strings.Contains(c.Request.Header.Get("User-Agent"), "curl/") {
+			c.Data(200, "text/plain", []byte(currentText))
+			return
 		}
+		if encrypted || len(locked) > 0 {
+			c.Redirect(302, "/"+title+"/view")
+			return
+		}
+		if strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct") {
+			c.Redirect(302, "/"+title+"/view")
+			return
+		}
+		numRows := len(strings.Split(currentText, "\n")) + 10
+		totalTimeString := totalTime.String()
+		if totalTime.Seconds() < 1 {
+			totalTimeString = "< 1 s"
+		}
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"Title":       title,
+			"WikiName":    RuntimeArgs.WikiName,
+			"ExternalIP":  RuntimeArgs.ExternalIP,
+			"CurrentText": currentText,
+			"NumRows":     numRows,
+			"Versions":    versions,
+			"TotalTime":   totalTimeString,
+			"SocketType":  RuntimeArgs.Socket,
+			"NoEdit":      !currentVersion,
+		})
 	}
 }
 
