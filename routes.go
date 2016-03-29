@@ -21,8 +21,17 @@ import (
 	"github.com/russross/blackfriday"
 )
 
+const _24K = (1 << 20) * 24
+
 func putFile(c *gin.Context) {
+	if isIPBanned(c.ClientIP()) {
+		c.Data(200, "text/plain", []byte("You are rate limited to 20 requests/hour."))
+		return
+	}
 	filename := c.Param("title")
+	if len(filename) == 0 {
+		filename = randomAlliterateCombo()
+	}
 	contentLength := c.Request.ContentLength
 	var reader io.Reader
 	reader = c.Request.Body
@@ -68,7 +77,6 @@ func putFile(c *gin.Context) {
 	var p WikiData
 	p.load(strings.ToLower(filename))
 	p.save(buf.String())
-	fmt.Println(c.ClientIP())
 	c.Data(200, "text/plain", []byte("File uploaded to http://"+RuntimeArgs.ExternalIP+"/"+filename))
 }
 
