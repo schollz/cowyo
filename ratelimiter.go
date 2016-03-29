@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+import "time"
 
 var bannedIPs []string
 
@@ -13,7 +10,6 @@ func init() {
 
 func clearBannedIPs() {
 	for {
-		fmt.Println("CLEARING IPS!!")
 		bannedIPs = []string{}
 		time.Sleep(3 * time.Minute)
 	}
