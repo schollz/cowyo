@@ -4,7 +4,7 @@
 
 [![Version 0.95](https://img.shields.io/badge/version-0.95-brightgreen.svg)]() [![Go Report Card](https://goreportcard.com/badge/github.com/schollz/cowyo)](https://goreportcard.com/report/github.com/schollz/cowyo) [![Join the chat at https://gitter.im/schollz/cowyo](https://badges.gitter.im/schollz/cowyo.svg)](https://gitter.im/schollz/cowyo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This is a self-contained notepad webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features.
+This is a self-contained notepad webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, syntax highlighting, command line support, content-delivery, and listifying. Read on to learn more about the features.
 
 # Features
 **Simplicity**. The philosophy here is to *just type*. To jot a note, simply load the page at [`/`](http://cowyo.com/) and just start typing. No need to press edit, the browser will already be focused on the text. No need to press save - it will automatically save when you stop writing. The URL at [`/`](http://cowyo.com/) will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. But, you can also use any URL you want, e.g. [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant). All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](http://cowyo.com/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](http://cowyo.com/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. To quickly link to `/view` pages, just use `[[AnythingYouWant]]`.
@@ -98,9 +98,33 @@ Now open your browser to `http://SOMEADDRESS:8003` to see your cowyo! For more i
 # Contact
 If you'd like help or you find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues).  Any other comments, questions or anything at all, just <a href="https://twitter.com/intent/tweet?screen_name=zack_118" class="twitter-mention-button" data-related="zack_118">tweet me @zack_118</a>
 
-# Contributors
+# Acknowledgements
 Thanks to [tscholl2](https://github.com/tscholl2) and [sjsafranek](https://github.com/sjsafranek).
 
-Icons made by [Freepik](http://www.freepik.com) from [www.flaticon.com](http://www.flaticon.com) is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
+Icons made by [Freepik](http://www.freepik.com) from [www.flaticon.com](http://www.flaticon.com), licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>.
 
-File uploading from [transfer.sh](https://github.com/dutchcoders/transfer.sh/blob/98399c91dd86682077cf9542badbf1658fd9a8c1/transfersh-server/handlers.go#L293-L369) (licensed by MIT).
+File uploading from [transfer.sh](https://github.com/dutchcoders/transfer.sh/blob/98399c91dd86682077cf9542badbf1658fd9a8c1/transfersh-server/handlers.go#L293-L369), licensed by <a href="https://github.com/dutchcoders/transfer.sh/blob/40c9bf7675fb84e78d9a011052b9d0900ec7dde1/LICENSE">MIT license</a>.
+
+# License
+
+The MIT License (MIT)
+
+Copyright (c) 2016 Zack
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
