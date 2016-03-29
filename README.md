@@ -44,13 +44,13 @@ This is a self-contained notepad webserver that makes sharing easy and _fast_. T
 
 <br>
 
-**Coding**. There is CodeMirror support for many languages. Just use an extension for your document and then you'll be able to edit/view your code in a simple and easy way.
+**Syntax highlighting**. There is CodeMirror support for many languages. Just use an extension (e.g. .py, .md, .txt, .js, ...) for your document and then you'll be able to edit/view your code in a simple and easy way.
 
-![Security and encryption baked in.](NEED GIF)
+![Coding syntax is provided if you use an extension](NEED GIF)
 
 <br>
 
-**CLI tools**. Want to upload/download from the command line? Its super easy. Upload/download files like this:
+**CLI tools**. Want to upload/download from the command line? Its super easy. Upload/download files using `curl` with a simple command:
 ```bash
 $ echo "Hello, world!" > hi.txt
 $ curl -L --upload-file hi.txt cowyo.com
@@ -58,7 +58,7 @@ $ curl -L --upload-file hi.txt cowyo.com
 $ curl -L cowyo.com/test.txt
   Hello, world!
 ```
-or just skip the file-creation step and let cowyo figure out a name for you:
+or just skip the file-creation step and let `cowyo` figure out a name for you:
 ```bash
 $ echo "Wow, so easy" | curl -L --upload-file "-" cowyo.com
   File uploaded to http://cowyo.com/CautiousCommonLoon
@@ -67,13 +67,7 @@ $ curl -L cowyo.com/CautiousCommonLoon
 ```
 <br>
 
-**Content Delivery**. Want to write some CSS/JS that you want to load somewhere? No problem. Just use the extension `/raw` with optional versioning (e.g. `/raw?version=1`). So you if you make a javascript file, `cowyo.com/myscript.js`, then you can include your script using:
-```html
-<script src="https://cowyo.com/myscript.js/raw"></script>
-<link rel="stylesheet" href="https://cowyo.com/mystyle.css/raw">
-```
-
-<br>
+**Content Delivery**. Want use a script on your own domain? Just use the extension `/raw` with optional versioning (e.g. `/raw?version=1`). `cowyo` will serve these files with a wildcard Access-Control-Allow-Origin so they will work anywhere. Check out a live example [on this JSFiddle](https://jsfiddle.net/g87w7kt0/).
 
 **Keyboard Shortcuts**. Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
@@ -85,80 +79,24 @@ $ curl -L cowyo.com/CautiousCommonLoon
 
 # Install
 
-First [install Go](https://golang.org/doc/install). Then continue.
-
-## To access locally...
-
-Then, if you want to host on your local network just do:
+If you haven't done so, first [install Go](https://golang.org/doc/install).
 
 ```
-git clone https://github.com/schollz/cowyo.git
-cd cowyo
-make
-./cowyo -p :8001 LOCALIPADDRESS
+$ git clone https://github.com/schollz/cowyo.git
+$ cd cowyo
+$ go get ./...
+$ go build
+$ ./cowyo
+--------------------------
+cowyo (version Y) is up and running on http://SOMEADDRESS:8003
+Admin key: VRSgtuVpkrwtWrfphsooOYeErzdbVHHqecMcqcbkLFNFNPwakH
+--------------------------
 ```
 
-and then goto the address `http://LOCALIPADDRESS:8001/`
-
-## To access from anywhere...
-
-For this you need to forward port 80 and [get a DNS for your external address](https://www.duckdns.org/). I recommend using `NGINX` as middleware, as it will do caching of the static files for you.
-
-```bash
-sudo apt-get install nginx
-```
-
-There is an example `NGINX` block in `install/`. If you want to use SSL instead, follow the instructions in `letsencrypt/README.md`. To automatically install, on Raspberry Pi / Ubuntu / Debian system use:
-
-```
-git clone https://github.com/schollz/cowyo.git
-cd cowyo
-nano Makefile <--- EDIT this Makefile to include YOUR EXTERNAL ADDRESS
-make && sudo make install
-```
-
-Now the program starts and stops with
-
-```
-sudo /etc/init.d/cowyo start|stop|restart
-```
-
-Edit your crontab (`sudo crontab -e`) to start on boot:
-
-```
-@reboot /etc/init.d/cowyo start
-```
-
-# Usage
-
-```
-$ cowyo --help
-cowyo: A Websocket Wiki and Kind Of A List Application
-run this to start the server and then visit localhost at the port you specify
-(see parameters).
-Example: 'cowyo localhost'
-Example: 'cowyo -p :8080 localhost:8080'
-Example: 'cowyo -db /var/lib/cowyo/db.bolt localhost:8003'
-Example: 'cowyo -p :8080 -crt ssl/server.crt -key ssl/server.key localhost:8080'
-Options:
-  -a string
-        key to access admin priveleges (default no admin priveleges)
-  -crt string
-        location of ssl crt
-  -db string
-        location of database file (default "/home/mu/cowyo/data.db")
-  -httptest.serve string
-        if non-empty, httptest.NewServer serves on this address and blocks
-  -key string
-        location of ssl key
-  -p string
-        port to bind (default ":8003")
-```
-
-If you set the admin flag, `-a` you can access a list of all the current files by going to `/ls/WhateverYouSetTheFlagTo`.
+Now open your browser to `http://SOMEADDRESS:8003` to see your cowyo! For more information type `./cowyo --help`.
 
 # Contact
-If you'd like help, go ahead and clone and send a pull request. If you find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues). Any other comments, questions or anything at all, just <a href="https://twitter.com/intent/tweet?screen_name=zack_118" class="twitter-mention-button" data-related="zack_118">tweet me @zack_118</a>
+If you'd like help or you find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues).  Any other comments, questions or anything at all, just <a href="https://twitter.com/intent/tweet?screen_name=zack_118" class="twitter-mention-button" data-related="zack_118">tweet me @zack_118</a>
 
 # Contributors
 Thanks to [tscholl2](https://github.com/tscholl2) and [sjsafranek](https://github.com/sjsafranek).
