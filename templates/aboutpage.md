@@ -2,9 +2,9 @@
 
 # CowYo
 ## Collections of Organized Words You Open
-![Version 0.95](https://img.shields.io/badge/version-0.95-brightgreen.svg)
+![Version 1.0](https://img.shields.io/badge/version-1.0-brightgreen.svg)
 
-This is a self-contained wiki webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, and listifying. Read on to learn more about the features. **CowYo** is also [Open Source](https://github.com/schollz/cowyo).
+This is a self-contained notepad webserver that makes sharing easy and _fast_. The most important feature here is *simplicity*. There are many other features as well including versioning, page locking, self-destructing messages, encryption, math support, syntax highlighting, command line support, content-delivery, and listifying. Read on to learn more about the features. **CowYo** is also [Open Source](https://github.com/schollz/cowyo).
 
 ## Features
 **Simplicity**. The philosophy here is to *just type*. To jot a note, simply load the page at [`/`](/) and just start typing. No need to press edit, the browser will already be focused on the text. No need to press save - it will automatically save when you stop writing. The URL at [`/`](/) will redirect to an easy-to-remember name that you can use to reload the page at anytime, anywhere. But, you can also use any URL you want, e.g. [`/AnythingYouWant`](/AnythingYouWant). All pages can be rendered into HTML by adding `/view`. For example, the page [`/AnythingYouWant`](/AnythingYouWant) is rendered at [`/AnythingYouWant/view`](/AnythingYouWant/view). You can write in HTML or [Markdown](https://daringfireball.net/projects/markdown/) for page rendering. To quickly link to `/view` pages, just use `[[AnythingYouWant]]`.
@@ -45,23 +45,29 @@ This is a self-contained wiki webserver that makes sharing easy and _fast_. The 
 
 <br>
 
-**CLI support**. Want to upload/download from a server? Its super easy. Upload/download files like this:
-```bash
-$ echo "Hello, world!" > hi.txt
-$ curl --upload-file hi.txt cowyo.com
-  File uploaded to http://cowyo.com/hi.txt
-$ curl cowyo.com/test.txt
-  Hello, world!
-```
-or just skip the file-creation step,
-```bash
-$ echo "Wow, so easy" | curl --upload-file "-" cowyo.com
-  File uploaded to http://cowyo.com/CautiousCommonLoon
-$ curl cowyo.com/CautiousCommonLoon
-  Wow, so easy
-```
+**Syntax highlighting**. If you use a coding extension (e.g. .py, .md, .txt, .js, ...) then you'll automatically see syntax highlighting and line numbers.
+
+![Coding syntax is provided if you use an extension](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help7.gif)
 
 <br>
+
+**CLI tools**. Want to upload/download from the command line? Its super easy. Upload/download files using `curl` with a simple command:
+```bash
+$ echo "Hello, world!" > hi.txt
+$ curl -L --upload-file hi.txt cowyo.com
+  File uploaded to http://cowyo.com/hi.txt
+$ curl -L cowyo.com/test.txt
+  Hello, world!
+```
+or just skip the file-creation step and let `cowyo` figure out a name for you:
+```bash
+$ echo "Wow, so easy" | curl -L --upload-file "-" cowyo.com
+  File uploaded to http://cowyo.com/CautiousCommonLoon
+$ curl -L cowyo.com/CautiousCommonLoon
+  Wow, so easy
+```
+<br>
+
 
 **Keyboard Shortcuts**. Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
