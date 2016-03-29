@@ -35,10 +35,8 @@ var RuntimeArgs struct {
 }
 var VersionNum string
 
-const _24K = (1 << 20) * 24
-
 func main() {
-	VersionNum = "0.94"
+	VersionNum = "0.95"
 	// _, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	cwd, _ := os.Getwd()
 	databaseFile := path.Join(cwd, "data.db")
@@ -105,6 +103,7 @@ Options:`)
 	r.HEAD("/", func(c *gin.Context) { c.Status(200) })
 	r.GET("/:title", editNote)
 	r.PUT("/:title", putFile)
+	r.PUT("/", putFile)
 	r.GET("/:title/*option", everythingElse)
 	r.POST("/:title/*option", encryptionRoute)
 	r.DELETE("/listitem", deleteListItem)
