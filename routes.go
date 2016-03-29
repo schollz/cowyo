@@ -93,7 +93,7 @@ func encryptionRoute(c *gin.Context) {
 	if option == "/decrypt" {
 		if c.BindJSON(&jsonLoad) == nil {
 			var err error
-			currentText, _, _, _, encrypted, _ := getCurrentText(title, -1)
+			currentText, _, _, _, encrypted, _, _ := getCurrentText(title, -1)
 			if encrypted == true {
 				currentText, err = decryptString(currentText, jsonLoad.Password)
 				if err != nil {
@@ -241,7 +241,7 @@ func editNote(c *gin.Context) {
 	} else {
 		version := c.DefaultQuery("version", "-1")
 		versionNum, _ := strconv.Atoi(version)
-		currentText, versions, currentVersion, totalTime, encrypted, locked := getCurrentText(title, versionNum)
+		currentText, versions, currentVersion, totalTime, encrypted, locked, currentVersionNum := getCurrentText(title, versionNum)
 		if strings.Contains(c.Request.Header.Get("User-Agent"), "curl/") {
 			c.Data(200, "text/plain", []byte(currentText))
 			return
@@ -262,17 +262,18 @@ func editNote(c *gin.Context) {
 
 		CodeType := getCodeType(title)
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"Title":       title,
-			"WikiName":    RuntimeArgs.WikiName,
-			"ExternalIP":  RuntimeArgs.ExternalIP,
-			"CurrentText": currentText,
-			"NumRows":     numRows,
-			"Versions":    versions,
-			"TotalTime":   totalTimeString,
-			"SocketType":  RuntimeArgs.Socket,
-			"NoEdit":      !currentVersion,
-			"Coding":      len(CodeType) > 0,
-			"CodeType":    CodeType,
+			"Title":             title,
+			"WikiName":          RuntimeArgs.WikiName,
+			"ExternalIP":        RuntimeArgs.ExternalIP,
+			"CurrentText":       currentText,
+			"CurrentVersionNum": currentVersionNum,
+			"NumRows":           numRows,
+			"Versions":          versions,
+			"TotalTime":         totalTimeString,
+			"SocketType":        RuntimeArgs.Socket,
+			"NoEdit":            !currentVersion,
+			"Coding":            len(CodeType) > 0,
+			"CodeType":          CodeType,
 		})
 	}
 }
@@ -287,7 +288,7 @@ func everythingElse(c *gin.Context) {
 		if strings.ToLower(title) == "help" {
 			versionNum = -1
 		}
-		currentText, versions, _, totalTime, encrypted, locked := getCurrentText(title, versionNum)
+		currentText, versions, _, totalTime, encrypted, locked, _ := getCurrentText(title, versionNum)
 		if (strings.Contains(currentText, "self-destruct\n") || strings.Contains(currentText, "\nself-destruct")) && strings.ToLower(title) != "help" {
 			currentText = strings.Replace(currentText, "self-destruct\n", `> *This page has been deleted, you cannot return after closing.*`+"\n", 1)
 			currentText = strings.Replace(currentText, "\nself-destruct", "\n"+`> *This page has been deleted, you cannot return after closing.*`, 1)
@@ -301,7 +302,7 @@ func everythingElse(c *gin.Context) {
 		if strings.ToLower(title) == "help" {
 			versionNum = -1
 		}
-		currentText, _, _, _, _, _ := getCurrentText(title, versionNum)
+		currentText, _, _, _, _, _, _ := getCurrentText(title, versionNum)
 		c.Writer.Header().Set("Content-Type", contentType(title))
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
