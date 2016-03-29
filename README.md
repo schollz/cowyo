@@ -44,7 +44,13 @@ This is a self-contained notepad webserver that makes sharing easy and _fast_. T
 
 <br>
 
-**CLI support**. Want to upload/download from a server? Its super easy. Upload/download files like this:
+**Coding**. There is CodeMirror support for many languages. Just use an extension for your document and then you'll be able to edit/view your code in a simple and easy way.
+
+![Security and encryption baked in.](NEED GIF)
+
+<br>
+
+**CLI tools**. Want to upload/download from the command line? Its super easy. Upload/download files like this:
 ```bash
 $ echo "Hello, world!" > hi.txt
 $ curl -L --upload-file hi.txt cowyo.com
@@ -52,12 +58,19 @@ $ curl -L --upload-file hi.txt cowyo.com
 $ curl -L cowyo.com/test.txt
   Hello, world!
 ```
-or just skip the file-creation step,
+or just skip the file-creation step and let cowyo figure out a name for you:
 ```bash
 $ echo "Wow, so easy" | curl -L --upload-file "-" cowyo.com
   File uploaded to http://cowyo.com/CautiousCommonLoon
 $ curl -L cowyo.com/CautiousCommonLoon
   Wow, so easy
+```
+<br>
+
+**Content Delivery**. Want to write some CSS/JS that you want to load somewhere? No problem. Just use the extension `/raw` with optional versioning (e.g. `/raw?version=1`). So you if you make a javascript file, `cowyo.com/myscript.js`, then you can include your script using:
+```html
+<script src="https://cowyo.com/myscript.js/raw"></script>
+<link rel="stylesheet" href="https://cowyo.com/mystyle.css/raw">
 ```
 
 <br>
@@ -148,6 +161,8 @@ If you set the admin flag, `-a` you can access a list of all the current files b
 If you'd like help, go ahead and clone and send a pull request. If you find a bug, please submit [an issue](https://github.com/schollz/cowyo/issues). Any other comments, questions or anything at all, just <a href="https://twitter.com/intent/tweet?screen_name=zack_118" class="twitter-mention-button" data-related="zack_118">tweet me @zack_118</a>
 
 # Contributors
-Thanks to [tscholl2](https://github.com/tscholl2).
+Thanks to [tscholl2](https://github.com/tscholl2) and [sjsafranek](https://github.com/sjsafranek).
 
 Icons made by [Freepik](http://www.freepik.com) from [www.flaticon.com](http://www.flaticon.com) is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
+
+File uploading from [transfer.sh](https://github.com/dutchcoders/transfer.sh/blob/98399c91dd86682077cf9542badbf1658fd9a8c1/transfersh-server/handlers.go#L293-L369) (licensed by MIT).
