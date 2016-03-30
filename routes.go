@@ -503,7 +503,6 @@ func deleteListItem(c *gin.Context) {
 
 func deletePage(c *gin.Context) {
 	deleteName := c.DefaultQuery("DeleteName", "None")
-	adminKey := c.DefaultQuery("AdminKey", "None")
 	// if adminKey == RuntimeArgs.AdminKey || true == true {
 	if strings.ToLower(deleteName) != "help" {
 		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}, false, ""}
