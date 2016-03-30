@@ -14,6 +14,11 @@
 a.deleteable {
     cursor: pointer;
 }
+@media (min-width: 1200px) {
+  .container {
+    max-width: 960px;
+  }
+}
 </style>
 {{ if .Coding }}
 <style>
@@ -45,11 +50,7 @@ a.deleteable {
     padding-bottom: 65px;
   }
 
-  @media (min-width: 1200px) {
-    .container {
-      max-width: 960px;
-    }
-  }
+
   </style>
 {{ end }}
 <script src="/static/js/sweetalert-dev.js"></script>
