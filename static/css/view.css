@@ -304,13 +304,13 @@ padding: 0.4em 1em 6em;
 background: #fdfdfd;
 }
 .yue {
-max-width: 700px;
+max-width: 960px;
 margin: 0 auto;
 }
 
 
 @media (min-width: 1200px) {
 .container{
-    max-width: 700px;
+    max-width: 960px;
 }
 }
