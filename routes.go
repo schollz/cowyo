@@ -88,7 +88,6 @@ type EncryptionPost struct {
 func encryptionRoute(c *gin.Context) {
 	title := c.Param("title")
 	option := c.Param("option")
-	fmt.Println(option, title)
 	var jsonLoad EncryptionPost
 	if option == "/decrypt" {
 		if c.BindJSON(&jsonLoad) == nil {
@@ -458,7 +457,6 @@ func renderList(c *gin.Context, title string) {
 	pClean.AllowDataURIImages()
 	text := pClean.SanitizeBytes([]byte(p.CurrentText))
 	listItems, _ := reorderList(string(text))
-	fmt.Println(string(text))
 	c.HTML(http.StatusOK, "list.tmpl", gin.H{
 		"Title":     title,
 		"WikiName":  RuntimeArgs.WikiName,
@@ -506,8 +504,6 @@ func deleteListItem(c *gin.Context) {
 func deletePage(c *gin.Context) {
 	deleteName := c.DefaultQuery("DeleteName", "None")
 	adminKey := c.DefaultQuery("AdminKey", "None")
-	fmt.Println(adminKey)
-	fmt.Println(deleteName)
 	// if adminKey == RuntimeArgs.AdminKey || true == true {
 	if strings.ToLower(deleteName) != "help" {
 		p := WikiData{strings.ToLower(deleteName), "", []string{}, []string{}, false, ""}
