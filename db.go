@@ -83,7 +83,6 @@ func getCurrentText(title string, version int) (string, []versionsInfo, bool, ti
 			isCurrent = false
 		}
 		vi, totalTime = getImportantVersions(p)
-		log.Println(totalTime)
 		return nil
 	})
 	if err != nil {
