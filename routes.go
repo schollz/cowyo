@@ -215,7 +215,7 @@ func getCodeType(title string) string {
 		return "go"
 	} else if strings.Contains(title, ".html") {
 		return "htmlmixed"
-	} else if strings.Contains(title, ".txt") || strings.Contains(title, ".md") {
+	} else if strings.Contains(title, ".md") {
 		return "markdown"
 	} else if strings.Contains(title, ".sh") {
 		return "shell"
@@ -258,7 +258,8 @@ func editNote(c *gin.Context) {
 		if totalTime.Seconds() < 1 {
 			totalTimeString = "< 1 s"
 		}
-
+		splitStrings := strings.Split(title, ".")
+		suffix := splitStrings[len(splitStrings)-1]
 		CodeType := getCodeType(title)
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"Title":             title,
@@ -273,6 +274,7 @@ func editNote(c *gin.Context) {
 			"NoEdit":            !currentVersion,
 			"Coding":            len(CodeType) > 0,
 			"CodeType":          CodeType,
+			"Suffix":            suffix,
 		})
 	}
 }
