@@ -28,7 +28,6 @@
         height: auto;
   }
 
-
     textarea {
       width: 100%;
       margin: 5px 0;
@@ -69,6 +68,18 @@
   <script src="/static/js/xml.js"></script>
   {{ end }}
   {{ end }}
+
+  {{ if eq .Suffix "txt" }}
+  <tag autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+  <link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+  <style type="text/css">
+  textarea  {
+    font: 400 18px/1.62 'Ubuntu Mono','Droid Sans Mono';
+  }
+  </style>
+  {{ end }}
+
+
 </head>
 
 <body>
