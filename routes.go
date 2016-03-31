@@ -459,6 +459,15 @@ func renderList(c *gin.Context, title string) {
 	pClean.AllowDataURIImages()
 	text := pClean.SanitizeBytes([]byte(p.CurrentText))
 	listItems, _ := reorderList(string(text))
+	for i := range listItems {
+		newHTML := strings.Replace(string(listItems[i]), "</a>", "</a>"+`<span id="`+strconv.Itoa(i)+`" class="deletable">`, -1)
+		newHTML = strings.Replace(newHTML, "<a href=", "</span><a href=", -1)
+		newHTML = strings.Replace(newHTML, "<li>", "<li>"+`<span id="`+strconv.Itoa(i)+`" class="deletable">`, -1)
+		newHTML = strings.Replace(newHTML, "</li>", "</span></li>", -1)
+		newHTML = strings.Replace(newHTML, "<li>"+`<span id="`+strconv.Itoa(i)+`" class="deletable"><del>`, "<li><del>"+`<span id="`+strconv.Itoa(i)+`" class="deletable">`, -1)
+		newHTML = strings.Replace(newHTML, "</del></span></li>", "</span></del></li>", -1)
+		listItems[i] = template.HTML([]byte(newHTML))
+	}
 	c.HTML(http.StatusOK, "list.tmpl", gin.H{
 		"Title":     title,
 		"WikiName":  RuntimeArgs.WikiName,
