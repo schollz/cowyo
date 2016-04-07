@@ -107,9 +107,12 @@ Options:`)
 	Close()
 
 	// Default page
-	aboutFile, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
+	defaultPage, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/aboutpage.md"))
 	p := WikiData{"help", "", []string{}, []string{}, false, "zzz"}
-	p.save(string(aboutFile))
+	p.save(string(defaultPage))
+	defaultPage, _ = ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "templates/privacypolicy.md"))
+	p = WikiData{"privacypolicy", "", []string{}, []string{}, false, "zzz"}
+	p.save(string(defaultPage))
 
 	if len(RuntimeArgs.RestoreDataset) > 0 {
 		fmt.Println("Restoring data from '" + RuntimeArgs.RestoreDataset + "' folder...")
