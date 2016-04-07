@@ -1,3 +1,6 @@
+![Logo](/static/img/cowyo.png)
+
+
 # Privacy Policy
 
 This Privacy Policy governs the manner in which Cowyo collects, uses, maintains and discloses information collected from users (each, a "User") of the https://cowyo.com website ("Site"). This privacy policy applies to the Site and all products and services offered by Cowyo.
