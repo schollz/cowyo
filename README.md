@@ -67,7 +67,7 @@ $ curl -L cowyo.com/CautiousCommonLoon
 ```
 <br>
 
-**Content Delivery**. Want use a script on your own domain? Just use the extension `/raw` with optional versioning (e.g. `/raw?version=1`). `cowyo` will serve these files with a wildcard Access-Control-Allow-Origin so they will work anywhere. Check out a live example [on this JSFiddle](https://jsfiddle.net/g87w7kt0/).
+**Content Delivery**. Want use a script on your own domain? Just use the extension `/raw` with optional versioning (e.g. `/raw?version=1`). `cowyo` will serve these files with a wildcard Access-Control-Allow-Origin so they will work anywhere. Check out a live example [on this JSFiddle](https://jsfiddle.net/9mm3afao/).
 
 **Keyboard Shortcuts**. Quickly transition between Edit/View/List by using `Ctl+Shift+E` to Edit, `Ctl+Shift+Z` to View, and `Ctl+Shift+L` to Listify.
 
