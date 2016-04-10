@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
@@ -225,6 +226,29 @@ func getCodeType(title string) string {
 	return ""
 }
 
+func getRecentlyEdited(title string, c *gin.Context) []string {
+	session := sessions.Default(c)
+	var recentlyEdited string
+	v := session.Get("recentlyEdited")
+	editedThings := []string{}
+	if v == nil {
+		recentlyEdited = title
+	} else {
+		editedThings = strings.Split(v.(string), "|||")
+		fmt.Println(editedThings)
+		fmt.Println(v.(string))
+		fmt.Println(title)
+		if !stringInSlice(title, editedThings) {
+			recentlyEdited = v.(string) + "|||" + title
+		} else {
+			recentlyEdited = v.(string)
+		}
+	}
+	session.Set("recentlyEdited", recentlyEdited)
+	session.Save()
+	return editedThings
+}
+
 func editNote(c *gin.Context) {
 	title := c.Param("title")
 	if title == "ws" {
@@ -261,6 +285,7 @@ func editNote(c *gin.Context) {
 		splitStrings := strings.Split(title, ".")
 		suffix := splitStrings[len(splitStrings)-1]
 		CodeType := getCodeType(title)
+
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
 			"Title":             title,
 			"WikiName":          RuntimeArgs.WikiName,
@@ -275,6 +300,7 @@ func editNote(c *gin.Context) {
 			"Coding":            len(CodeType) > 0,
 			"CodeType":          CodeType,
 			"Suffix":            suffix,
+			"RecentlyEdited":    getRecentlyEdited(title, c),
 		})
 	}
 }
@@ -296,7 +322,8 @@ func everythingElse(c *gin.Context) {
 			p := WikiData{strings.ToLower(title), "", []string{}, []string{}, false, ""}
 			p.save("")
 		}
-		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted, noprompt == "-1", len(locked) > 0)
+
+		renderMarkdown(c, currentText, title, versions, "", totalTime, encrypted, noprompt == "-1", len(locked) > 0, getRecentlyEdited(title, c))
 	} else if option == "/raw" {
 		version := c.DefaultQuery("version", "-1")
 		versionNum, _ := strconv.Atoi(version)
@@ -312,7 +339,7 @@ func everythingElse(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Data(200, contentType(title), []byte(currentText))
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
-		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false, false, false)
+		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false, false, false, []string{})
 	} else if option == "/list" {
 		renderList(c, title)
 	} else if title == "static" {
@@ -331,7 +358,7 @@ func serveStaticFile(c *gin.Context, option string) {
 	}
 }
 
-func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool, noprompt bool, locked bool) {
+func renderMarkdown(c *gin.Context, currentText string, title string, versions []versionsInfo, AdminKey string, totalTime time.Duration, encrypted bool, noprompt bool, locked bool, recentlyEdited []string) {
 	originalText := currentText
 	CodeType := getCodeType(title)
 	if CodeType == "markdown" {
@@ -386,6 +413,7 @@ func renderMarkdown(c *gin.Context, currentText string, title string, versions [
 		"LockedOrEncrypted": locked || encrypted,
 		"Coding":            len(CodeType) > 0,
 		"CodeType":          CodeType,
+		"RecentlyEdited":    recentlyEdited,
 	})
 
 }
@@ -469,9 +497,10 @@ func renderList(c *gin.Context, title string) {
 		listItems[i] = template.HTML([]byte(newHTML))
 	}
 	c.HTML(http.StatusOK, "list.tmpl", gin.H{
-		"Title":     title,
-		"WikiName":  RuntimeArgs.WikiName,
-		"ListItems": listItems,
+		"Title":          title,
+		"WikiName":       RuntimeArgs.WikiName,
+		"ListItems":      listItems,
+		"RecentlyEdited": getRecentlyEdited(title, c),
 	})
 }
 

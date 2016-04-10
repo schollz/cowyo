@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/boltdb/bolt"
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -125,6 +126,8 @@ Options:`)
 
 	r := gin.Default()
 	r.LoadHTMLGlob(path.Join(RuntimeArgs.SourcePath, "templates/*"))
+	store := sessions.NewCookieStore([]byte("secret"))
+	r.Use(sessions.Sessions("mysession", store))
 	r.GET("/", newNote)
 	r.HEAD("/", func(c *gin.Context) { c.Status(200) })
 	r.GET("/:title", editNote)
