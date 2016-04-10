@@ -14,6 +14,14 @@
 a.deleteable {
     cursor: pointer;
 }
+body {
+  margin: 0;
+  background: #fff;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 65px;
+}
+
 </style>
 {{ if .Coding }}
 <style>
@@ -37,13 +45,6 @@ a.deleteable {
     font-family: Tahoma, sans-serif;
   }
 
-  body {
-    margin: 0;
-    background: #fff;
-    max-width: 800px;
-    margin: 0 auto;
-    padding-bottom: 65px;
-  }
 
 
   </style>
@@ -68,7 +69,7 @@ a.deleteable {
   <!-- Fixed navbar -->
   <nav class="navbar navbar-default navbar-fixed-bottom">
     <div class="container">
-      <div class="navbar-header">
+      <!-- <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>
@@ -76,7 +77,7 @@ a.deleteable {
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="/">{{ .Title }}</a>
-      </div>
+      </div> -->
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           <li>{{ if .Locked }}<a href="#" class="postunlock"><span class="glyphicon glyphicon-lock" aria-hidden="true"></span>{{else}}<a href="/{{ .Title }}"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>{{end}} Edit</a></li>
