@@ -26,66 +26,64 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha256-KXn5puMvxCw+dAYznun+drMdG1IFl3agK0p/pqT9KAo= sha512-2e8qq0ETcfWRI4HJBzQiA3UoyFk6tbNyG+qSaIBZLyW9Xf3sWZHN/lxe9fTh1U45DpPf07yj94KsUHHWe4Yk1A==" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script> -->
 <style>
-
-.navbar-header-menu {
-    float: left;
+.dropdown-menu>li
+{	position:relative;
+	-webkit-user-select: none; /* Chrome/Safari */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+ */
+	/* Rules below not implemented in browsers yet */
+	-o-user-select: none;
+	user-select: none;
+	cursor:pointer;
 }
-
-    .navbar-header-menu > .navbar-nav {
-        float: left;
-        margin: 0;
-    }
-
-        .navbar-header-menu > .navbar-nav > li {
-            float: left;
-        }
-
-            .navbar-header-menu > .navbar-nav > li > a {
-                padding-top: 15px;
-                padding-bottom: 15px;
-            }
-
-        .navbar-header-menu > .navbar-nav .open .dropdown-menu {
-            position: absolute;
-            float: left;
-            width: auto;
-            margin-top: 0;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border: 1px solid rgba(0,0,0,.15);
-            -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
-            box-shadow: 0 6px 12px rgba(0,0,0,.175);
-        }
-
-    .navbar-header-menu > .navbar-form {
-        float: left;
-        width: auto;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-right: 0;
-        margin-left: 0;
-        border: 0;
-        -webkit-box-shadow: none;
-        box-shadow: none;
-    }
-
-        .navbar-header-menu > .navbar-form > .form-group {
-            display: inline-block;
-            margin-bottom: 0;
-            vertical-align: middle;
-        }
-
-    .navbar-header-menu > .navbar-left {
-        float: left;
-    }
-
-    .navbar-header-menu > .navbar-right {
-        float: right !important;
-    }
-
-    .navbar-header-menu > *.navbar-right:last-child {
-        margin-right: -15px !important;
-    }
+.dropdown-menu .sub-menu {
+    left: 100%;
+    position: absolute;
+    top: 0;
+    display:none;
+    margin-top: -1px;
+	border-top-left-radius:0;
+	border-bottom-left-radius:0;
+	border-left-color:#fff;
+	box-shadow:none;
+}
+.right-caret:after,.left-caret:after
+ {	content:"";
+    border-bottom: 5px solid transparent;
+    border-top: 5px solid transparent;
+    display: inline-block;
+    height: 0;
+    vertical-align: middle;
+    width: 0;
+	margin-left:5px;
+}
+.right-caret:after
+{	border-left: 5px solid #000000;
+}
+.left-caret:after
+{	border-right: 5px solid #000000;
+}
 </style>
+
+<script>
+
+$(function(){
+	$(".dropdown-menu > li > a.trigger").on("click",function(e){
+		var current=$(this).next();
+		var grandparent=$(this).parent().parent();
+		if($(this).hasClass('left-caret')||$(this).hasClass('right-caret'))
+			$(this).toggleClass('right-caret left-caret');
+		grandparent.find('.left-caret').not(this).toggleClass('right-caret left-caret');
+		grandparent.find(".sub-menu:visible").not(current).hide();
+		current.toggle();
+		e.stopPropagation();
+	});
+	$(".dropdown-menu > li > a:not(.trigger)").on("click",function(){
+		var root=$(this).closest('.dropdown');
+		root.find('.left-caret').toggleClass('right-caret left-caret');
+		root.find('.sub-menu:visible').hide();
+	});
+});
+</script>
 
 {{end}}
