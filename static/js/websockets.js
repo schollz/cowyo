@@ -6,7 +6,7 @@ $(document).ready(function() {
   var updateInterval;
   var uhohTimer;
   var doneTypingInterval = 500; //time in ms, 5 second for example
-  var pollToGetNewestCopyInterval = 10000;
+  var pollToGetNewestCopyInterval = 20000;
   //on keyup, start the countdown
   $('#emit').keyup(function() {
     clearTimeout(typingTimer);
@@ -20,7 +20,7 @@ $(document).ready(function() {
     clearTimeout(typingTimer);
     clearInterval(updateInterval);
     $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-remove");
-    document.title = "[UNSAVED] " + title_name;
+    document.title = '✗ ' + title_name;
   });
 
   //user is "finished typing," do something
@@ -31,7 +31,7 @@ $(document).ready(function() {
     $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-open");
     console.log("Done typing")
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
-    document.title = "[SAVED] " + title_name;
+    document.title = "✓ " + title_name;
     if (currentText().indexOf("self-destruct\n") > -1 || currentText().indexOf("\nself-destruct") > -1) {
       if (selfDestruct == false) {
         selfDestruct = true;
@@ -72,7 +72,7 @@ $(document).ready(function() {
     if (data.UpdateClient == true) {
       console.log("Updating...")
       $('#emit_data').val(data.TextData)
-      document.title = "[LOADED] " + title_name;
+      document.title = " " + title_name;
     }
     console.log((data.TextData == "saved"))
     console.log(data.TextData)
