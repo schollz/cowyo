@@ -628,7 +628,9 @@ func dumpEverything(folderpath string) {
 			var p WikiData
 			p.load(string(k))
 			fmt.Println(string(k), len(p.CurrentText))
-			ioutil.WriteFile(path.Join(folderpath, string(k)), []byte(p.CurrentText), 0644)
+			if len(p.CurrentText) > 0 {
+				ioutil.WriteFile(path.Join(folderpath, string(k)), []byte(p.CurrentText), 0644)
+			}
 		}
 		return nil
 	})
