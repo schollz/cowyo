@@ -308,7 +308,7 @@ func editNote(c *gin.Context) {
 func everythingElse(c *gin.Context) {
 	option := c.Param("option")
 	title := c.Param("title")
-	if option == "/view" {
+	if option == "/view" || option == "/v" {
 		version := c.DefaultQuery("version", "-1")
 		noprompt := c.DefaultQuery("noprompt", "-1")
 		versionNum, _ := strconv.Atoi(version)
@@ -340,7 +340,7 @@ func everythingElse(c *gin.Context) {
 		c.Data(200, contentType(title), []byte(currentText))
 	} else if title == "ls" && option == "/"+RuntimeArgs.AdminKey && len(RuntimeArgs.AdminKey) > 1 {
 		renderMarkdown(c, listEverything(), "ls", nil, RuntimeArgs.AdminKey, time.Now().Sub(time.Now()), false, false, false, []string{})
-	} else if option == "/list" {
+	} else if option == "/list" || option == "/l" {
 		renderList(c, title)
 	} else if title == "static" {
 		serveStaticFile(c, option)
