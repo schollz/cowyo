@@ -87,4 +87,12 @@ $(document).ready(function() {
     // updateText();
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
   }
+
+
+  $('.postselfdestruct').click(function(event) {
+    event.preventDefault();
+    $('#emit_data').val("self-destruct\n\n"+currentText());
+    doneTyping();
+  });
+
 });
