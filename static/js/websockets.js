@@ -6,7 +6,7 @@ $(document).ready(function() {
   var updateInterval;
   var uhohTimer;
   var doneTypingInterval = 500; //time in ms, 5 second for example
-  var pollToGetNewestCopyInterval = 20000;
+  var pollToGetNewestCopyInterval = 30000;
   //on keyup, start the countdown
   $('#emit').keyup(function() {
     clearTimeout(typingTimer);
@@ -27,7 +27,7 @@ $(document).ready(function() {
   function doneTyping() {
     payload = JSON.stringify({ TextData: currentText(), Title: title_name, UpdateServer: true, UpdateClient: false })
     send(payload)
-    uhohTimer = setTimeout(uhoh, 3000);
+    uhohTimer = setTimeout(uhoh, 30000);
     $('#saveInfo').removeClass().addClass("glyphicon glyphicon-floppy-open");
     console.log("Done typing")
     updateInterval = setInterval(updateText, pollToGetNewestCopyInterval);
@@ -54,6 +54,7 @@ $(document).ready(function() {
     console.log("Getting server's latest copy")
     payload = JSON.stringify({ TextData: currentText(), Title: title_name, UpdateServer: false, UpdateClient: true })
     send(payload)
+    clearTimeout(uhohTimer);
   }
 
   // websockets
