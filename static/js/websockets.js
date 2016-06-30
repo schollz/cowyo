@@ -91,7 +91,7 @@ $(document).ready(function() {
 
   $('.postselfdestruct').click(function(event) {
     event.preventDefault();
-    $('#emit_data').val("self-destruct\n\n"+currentText());
+    $('#emit_data').val("self-destruct\n\n"+currentText() + "\n\n");
     doneTyping();
   });
 
