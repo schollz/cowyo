@@ -46,13 +46,13 @@ func init() {
 }
 
 func main() {
-	VersionNum = "1.0"
+	VersionNum = "1.1"
 	// _, executableFile, _, _ := runtime.Caller(0) // get full path of this file
 	cwd, _ := os.Getwd()
 	databaseFile := path.Join(cwd, "data.db")
 	flag.StringVar(&RuntimeArgs.Port, "p", ":8003", "port to bind")
 	flag.StringVar(&RuntimeArgs.DatabaseLocation, "db", databaseFile, "location of database file")
-	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to access admin priveleges")
+	flag.StringVar(&RuntimeArgs.AdminKey, "a", "", "key to access admin privaleges")
 	flag.StringVar(&RuntimeArgs.ServerCRT, "crt", "", "location of SSL certificate")
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of SSL key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "cowyo", "custom name for wiki")
