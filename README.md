@@ -81,21 +81,27 @@ $ curl -L cowyo.com/CautiousCommonLoon
 
 # Install
 
-If you haven't done so, first [install Go](https://golang.org/doc/install).
+## From release
+
+Just [download the latest release](https://github.com/schollz/cowyo/releases/tag/1.1.0), unzip and run.
+
+## From source
+
+First [install Go 1.6+](https://golang.org/doc/install).
 
 ```
 $ git clone https://github.com/schollz/cowyo.git
 $ cd cowyo
-$ go get ./...
-$ go build
+$ make
 $ ./cowyo
---------------------------
-cowyo (version Y) is up and running on http://SOMEADDRESS:8003
-Admin key: VRSgtuVpkrwtWrfphsooOYeErzdbVHHqecMcqcbkLFNFNPwakH
---------------------------
 ```
 
-Now open your browser to `http://SOMEADDRESS:8003` to see your cowyo! For more information type `./cowyo --help`.
+## From Docker
+
+```
+$ docker pull schollz/cowyo
+$ docker run -it -p 8003:8003 -v /local/dir/to/store/data:/data schollz/cowyo
+```
 
 # Contact
 
