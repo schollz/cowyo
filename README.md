@@ -83,7 +83,7 @@ $ curl -L cowyo.com/CautiousCommonLoon
 
 ## From release
 
-Just [download the latest release](https://github.com/schollz/cowyo/releases/tag/1.1.0), unzip and run.
+Just [download the latest release](https://github.com/schollz/cowyo/releases/tag/1.1.0), unzip and run. Then open your browser to the specified address.
 
 ## From source
 
@@ -96,12 +96,18 @@ $ make
 $ ./cowyo
 ```
 
+Then open your browser to the specified address.
+
+
 ## From Docker
 
 ```
 $ docker pull schollz/cowyo
 $ docker run -it -p 8003:8003 -v /local/dir/to/store/data:/data schollz/cowyo
 ```
+
+Then open your browser to 127.0.0.1:8003.
+
 
 # Contact
 
