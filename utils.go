@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jcelliott/lumber"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -23,12 +24,15 @@ type versionsInfo struct {
 	VersionNum  int
 }
 
+var logger *lumber.ConsoleLogger
+
 func init() {
 	rand.Seed(time.Now().Unix())
 	animalsText, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/animals"))
 	animals = strings.Split(string(animalsText), ",")
 	adjectivesText, _ := ioutil.ReadFile(path.Join(RuntimeArgs.SourcePath, "static/text/adjectives"))
 	adjectives = strings.Split(string(adjectivesText), "\n")
+	logger = lumber.NewConsoleLogger(lumber.INFO)
 }
 
 func randomAnimal() string {
@@ -225,7 +229,7 @@ func GetLocalIP() string {
 	for _, address := range addrs {
 		// check the address type and if it is not a loopback the display it
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil && (strings.Contains(ipnet.IP.String(), "192.168.1") || strings.Contains(ipnet.IP.String(), "192.168")) {
+			if ipnet.IP.To4() != nil {
 				return ipnet.IP.String()
 			}
 		}

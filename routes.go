@@ -235,9 +235,6 @@ func getRecentlyEdited(title string, c *gin.Context) []string {
 		recentlyEdited = title
 	} else {
 		editedThings = strings.Split(v.(string), "|||")
-		fmt.Println(editedThings)
-		fmt.Println(v.(string))
-		fmt.Println(title)
 		if !stringInSlice(title, editedThings) {
 			recentlyEdited = v.(string) + "|||" + title
 		} else {
@@ -618,7 +615,7 @@ func dumpEverything(folderpath string) {
 	defer Close()
 	err := os.MkdirAll(folderpath, 0777)
 	if err != nil {
-		fmt.Println("Already exists")
+		fmt.Printf("%s folder already exists.", folderpath)
 	}
 	db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
@@ -627,7 +624,6 @@ func dumpEverything(folderpath string) {
 		for k, _ := c.First(); k != nil; k, _ = c.Next() {
 			var p WikiData
 			p.load(string(k))
-			fmt.Println(string(k), len(p.CurrentText))
 			if len(p.CurrentText) > 0 {
 				ioutil.WriteFile(path.Join(folderpath, string(k)), []byte(p.CurrentText), 0644)
 			}

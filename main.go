@@ -38,6 +38,7 @@ var RuntimeArgs struct {
 	ForceWss         bool
 	DumpDataset      string
 	RestoreDataset   string
+	Debug            bool
 }
 var VersionNum string
 
@@ -56,6 +57,7 @@ func main() {
 	flag.StringVar(&RuntimeArgs.ServerKey, "key", "", "location of SSL key")
 	flag.StringVar(&RuntimeArgs.WikiName, "w", "cowyo", "custom name for wiki")
 	flag.BoolVar(&RuntimeArgs.ForceWss, "e", false, "force encrypted sockets (use if using Caddy auto HTTPS)")
+	flag.BoolVar(&RuntimeArgs.Debug, "d", false, "debugging mode")
 	flag.StringVar(&RuntimeArgs.DumpDataset, "dump", "", "directory to dump all data to")
 	flag.StringVar(&RuntimeArgs.RestoreDataset, "restore", "", "directory to restore all data from")
 	flag.CommandLine.Usage = func() {
@@ -76,6 +78,13 @@ Options:`)
 	}
 	flag.Parse()
 
+	// Set the log level
+	if RuntimeArgs.Debug == false {
+		logger.Level(2)
+	} else {
+		logger.Level(0)
+	}
+
 	if len(RuntimeArgs.DumpDataset) > 0 {
 		fmt.Println("Dumping data to '" + RuntimeArgs.DumpDataset + "' folder...")
 		dumpEverything(RuntimeArgs.DumpDataset)
@@ -84,7 +93,9 @@ Options:`)
 
 	RuntimeArgs.ExternalIP = flag.Arg(0)
 	if RuntimeArgs.ExternalIP == "" {
+		logger.Debug("Getting external ip...")
 		RuntimeArgs.ExternalIP = GetLocalIP() + RuntimeArgs.Port
+		logger.Debug("Using ip: %s and port %s", GetLocalIP(), RuntimeArgs.Port)
 	}
 	RuntimeArgs.SourcePath = cwd
 
