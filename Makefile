@@ -3,7 +3,7 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 
 BINARY=cowyo
 
-VERSION=1.1
+VERSION=1.1.0
 BUILD_TIME=`date +%FT%T%z`
 BUILD=`git rev-parse HEAD`
 
@@ -19,6 +19,7 @@ $(BINARY): $(SOURCES)
 	go get github.com/microcosm-cc/bluemonday
 	go get github.com/russross/blackfriday
 	go get github.com/sergi/go-diff/diffmatchpatch
+	go get github.com/jcelliott/lumber
 	go build ${LDFLAGS} -o ${BINARY} ${SOURCES}
 
 .PHONY: clean
@@ -34,7 +35,7 @@ binaries:
 	env GOOS=linux GOARCH=amd64 go build ${LDFLAGS} -o ${BINARY} ${SOURCES}
 	zip -9 -r cowyo-linux-64bit.zip cowyo static/* templates/*
 	rm -f cowyo
-	env GOOS=windows GOARCH=amd64 go build ${LDFLAGS} -o ${BINARY} ${SOURCES}
+	env GOOS=windows GOARCH=amd64 go build ${LDFLAGS} -o ${BINARY}.exe ${SOURCES}
 	zip -9 -r cowyo-windows-64bit.zip cowyo.exe static/* templates/*
 	rm -f cowyo.exe
 	env GOOS=linux GOARCH=arm go build ${LDFLAGS} -o ${BINARY} ${SOURCES}
