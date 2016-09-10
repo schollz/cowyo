@@ -32,7 +32,7 @@ This is a self-contained notepad webserver that makes sharing easy and _fast_. T
 
 <br>
 
-**Self-destructing messages**. You can write a message that will delete itself when a user loads it (in any view). Useful for transmitting sensitive information. To use, simply add a line somewhere that says only "`self-destruct`".
+**Self-destructing messages**. You can write a message [that will delete itself](https://github.com/schollz/cowyo/blob/master/routes.go#L550-L553) when a user loads it (in any view). Useful for transmitting sensitive information. To use, simply add a line somewhere that says only "`self-destruct`".
 
 ![Mission impossible style self-destruction.](https://raw.githubusercontent.com/schollz/cowyo/master/static/img/help5.gif)
 
