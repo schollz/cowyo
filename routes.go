@@ -474,6 +474,12 @@ func renderList(c *gin.Context, title string) {
 		c.Redirect(302, "/"+title+"/view")
 	}
 
+	// Convert [[page]] to [page](/page/view)
+	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
+	for _, s := range r.FindAllString(p.CurrentText, -1) {
+		p.CurrentText = strings.Replace(p.CurrentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
+	}
+
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
 	pClean.AllowAttrs("alt").OnElements("img")
