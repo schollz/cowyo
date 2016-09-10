@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/jcelliott/lumber"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
@@ -235,4 +237,17 @@ func GetLocalIP() string {
 		}
 	}
 	return bestIP
+}
+
+// HashPassword generates a bcrypt hash of the password using work factor 14.
+// https://github.com/gtank/cryptopasta/blob/master/hash.go
+func HashPassword(password []byte) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(password, 14)
+}
+
+// CheckPassword securely compares a bcrypt hashed password with its possible
+// plaintext equivalent.  Returns nil on success, or an error on failure.
+// https://github.com/gtank/cryptopasta/blob/master/hash.go
+func CheckPasswordHash(hash, password []byte) error {
+	return bcrypt.CompareHashAndPassword(hash, password)
 }

@@ -149,7 +149,8 @@ func encryptionRoute(c *gin.Context) {
 			if err != nil {
 				panic(err)
 			}
-			p.Locked = jsonLoad.Password
+			hashedPassword, _ := HashPassword([]byte(jsonLoad.Password))
+			p.Locked = string(hashedPassword)
 			p.save(p.CurrentText)
 			c.JSON(200, gin.H{
 				"status":  "posted",
@@ -173,7 +174,9 @@ func encryptionRoute(c *gin.Context) {
 			if err != nil {
 				panic(err)
 			}
-			if len(p.Locked) > 0 && p.Locked == jsonLoad.Password {
+			if len(p.Locked) > 0 &&
+				(p.Locked == jsonLoad.Password ||
+					CheckPasswordHash([]byte(p.Locked), []byte(jsonLoad.Password)) == nil) {
 				p.Locked = ""
 				p.save(p.CurrentText)
 				c.JSON(200, gin.H{
