@@ -90,9 +90,9 @@ Just [download the latest release](https://github.com/schollz/cowyo/releases/tag
 First [install Go 1.6+](https://golang.org/doc/install).
 
 ```
-$ git clone https://github.com/schollz/cowyo.git
-$ cd cowyo
-$ make
+$ go get github.com/schollz/cowyo
+$ cd $GOPATH/src/github.com/schollz/cowyo
+$ go build
 $ ./cowyo
 ```
 
