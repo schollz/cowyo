@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/schollz/cowyo",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v78",
+	"GodepVersion": "v79",
 	"Deps": [
 		{
 			"ImportPath": "github.com/boj/redistore",
@@ -10,8 +10,8 @@
 		},
 		{
 			"ImportPath": "github.com/boltdb/bolt",
-			"Comment": "v1.2.0",
-			"Rev": "c6ba97b89e0454fec9aa92e1d33a4e2c5fc1f631"
+			"Comment": "v1.3.0-58-ge9cf4fa",
+			"Rev": "e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd"
 		},
 		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
@@ -29,18 +29,18 @@
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin",
-			"Comment": "v1.1.4",
-			"Rev": "e2212d40c62a98b388a5eb48ecbdcf88534688ba"
+			"Comment": "v1.1-65-g049da60",
+			"Rev": "049da60f5114a479f04a668f3d8a6f3b44fe6658"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin/binding",
-			"Comment": "v1.1.4",
-			"Rev": "e2212d40c62a98b388a5eb48ecbdcf88534688ba"
+			"Comment": "v1.1-65-g049da60",
+			"Rev": "049da60f5114a479f04a668f3d8a6f3b44fe6658"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin/render",
-			"Comment": "v1.1.4",
-			"Rev": "e2212d40c62a98b388a5eb48ecbdcf88534688ba"
+			"Comment": "v1.1-65-g049da60",
+			"Rev": "049da60f5114a479f04a668f3d8a6f3b44fe6658"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
@@ -63,16 +63,12 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Comment": "v1.1.0-19-gc36f2fe",
-			"Rev": "c36f2fe5c330f0ac404b616b96c438b8616b1aaf"
+			"Comment": "v1.1.0-6-gadf16b3",
+			"Rev": "adf16b31781325cbd41085c5be901d95b4d1f33d"
 		},
 		{
 			"ImportPath": "github.com/jcelliott/lumber",
 			"Rev": "dd349441af25132d146d7095c6693a15431fc9b1"
-		},
-		{
-			"ImportPath": "github.com/manucorporat/sse",
-			"Rev": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-isatty",
@@ -97,55 +93,55 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/bcrypt",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/blowfish",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/armor",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/elgamal",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/errors",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/packet",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp/s2k",
-			"Rev": "2f8be38b9a7533b8763d48273737ff6e90428a96"
-		},
-		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "f2499483f923065a842d38eb4c7f1927e6fc6e6d"
+			"Rev": "2e74c773682f59dc50a56475f7918dd8fa6dcaf8"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
-			"Rev": "f2499483f923065a842d38eb4c7f1927e6fc6e6d"
+			"Rev": "007e530097ad7f954752df63046b4036f98ba6a6"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html/atom",
-			"Rev": "f2499483f923065a842d38eb4c7f1927e6fc6e6d"
+			"Rev": "007e530097ad7f954752df63046b4036f98ba6a6"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
 			"Rev": "d75a52659825e75fff6158388dddc6a5b04f9ba5"
+		},
+		{
+			"ImportPath": "gopkg.in/gin-contrib/sse.v0",
+			"Rev": "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
 		},
 		{
 			"ImportPath": "gopkg.in/go-playground/validator.v8",
