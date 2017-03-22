@@ -5,10 +5,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"regexp"
+	"strings"
 
 	"github.com/schollz/versionedtext"
 )
 
+// Page is the basic struct
 type Page struct {
 	Name                    string
 	Text                    versionedtext.VersionedText
@@ -46,6 +49,14 @@ func (p *Page) Render() {
 		p.RenderedPage = "<code>" + p.Text.GetCurrent() + "</code>"
 		return
 	}
+
+	// Convert [[page]] to [page](/page/view)
+	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
+	currentText := p.Text.GetCurrent()
+	for _, s := range r.FindAllString(currentText, -1) {
+		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
+	}
+	p.Text.Update(currentText)
 	p.RenderedPage = MarkdownToHtml(p.Text.GetCurrent())
 }
 
