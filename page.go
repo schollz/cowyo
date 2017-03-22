@@ -1,14 +1,11 @@
 package main
 
 import (
-	"encoding/base32"
 	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path"
 
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday"
 	"github.com/schollz/versionedtext"
 )
 
@@ -52,20 +49,6 @@ func (p *Page) Render() {
 	p.RenderedPage = MarkdownToHtml(p.Text.GetCurrent())
 }
 
-func MarkdownToHtml(s string) string {
-	unsafe := blackfriday.MarkdownCommon([]byte(s))
-	pClean := bluemonday.UGCPolicy()
-	pClean.AllowElements("img")
-	pClean.AllowAttrs("alt").OnElements("img")
-	pClean.AllowAttrs("src").OnElements("img")
-	pClean.AllowAttrs("class").OnElements("a")
-	pClean.AllowAttrs("href").OnElements("a")
-	pClean.AllowAttrs("id").OnElements("a")
-	pClean.AllowDataURIImages()
-	html := pClean.SanitizeBytes(unsafe)
-	return string(html)
-}
-
 func (p *Page) Save() error {
 	bJSON, err := json.MarshalIndent(p, "", " ")
 	if err != nil {
@@ -76,14 +59,4 @@ func (p *Page) Save() error {
 
 func (p *Page) Erase() error {
 	return os.Remove(path.Join(pathToData, encodeToBase32(p.Name)+".json"))
-}
-
-func encodeToBase32(s string) string {
-	return base32.StdEncoding.EncodeToString([]byte(s))
-}
-
-func decodeFromBase32(s string) (s2 string, err error) {
-	bString, err := base32.StdEncoding.DecodeString(s)
-	s2 = string(bString)
-	return
 }

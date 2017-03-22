@@ -9,6 +9,9 @@
         <link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
         <link rel="stylesheet" type="text/css" href="/static/css/menus-min.css">
         <link rel="stylesheet" type="text/css" href="/static/css/base-min.css">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/styles/default.min.css">
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+        <script type="text/javascript" src="/static/js/highlight.pack.js"></script>
 
         <style type="text/css">
             body {
@@ -216,10 +219,32 @@
                     }
                 });
 
+                $("textarea").keydown(function(e) {
+                    if(e.keyCode === 9) { // tab was pressed
+                        // get caret position/selection
+                        var start = this.selectionStart;
+                        var end = this.selectionEnd;
+
+                        var $this = $(this);
+                        var value = $this.val();
+
+                        // set textarea value to: text before caret + tab + text after caret
+                        $this.val(value.substring(0, start)
+                                    + "\t"
+                                    + value.substring(end));
+
+                        // put caret at right position again (add one for the tab)
+                        this.selectionStart = this.selectionEnd = start + 1;
+
+                        // prevent the focus lose
+                        e.preventDefault();
+                    }
+                });
+
             }); //]]>
 
         </script>
-
+        <script>hljs.initHighlightingOnLoad();</script>
 
     </head>
 
@@ -263,16 +288,7 @@
 
 
 
-        <script>
-            // tell the embed parent frame the height of the content
-            if (window.parent && window.parent.parent) {
-                window.parent.parent.postMessage(["resultsFrame", {
-                    height: document.body.getBoundingClientRect().height,
-                    slug: "s805xL01"
-                }], "*")
-            }
 
-        </script>
 
     </body>
 
