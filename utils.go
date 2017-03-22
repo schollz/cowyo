@@ -5,7 +5,6 @@ import (
 	"encoding/base32"
 	"encoding/binary"
 	"encoding/hex"
-	"io/ioutil"
 	"math/rand"
 	"net"
 	"os"
@@ -29,9 +28,9 @@ var log *lumber.ConsoleLogger
 
 func init() {
 	rand.Seed(time.Now().Unix())
-	animalsText, _ := ioutil.ReadFile("./static/text/animals")
+	animalsText, _ := Asset("static/text/animals")
 	animals = strings.Split(string(animalsText), ",")
-	adjectivesText, _ := ioutil.ReadFile("./static/text/adjectives")
+	adjectivesText, _ := Asset("static/text/adjectives")
 	adjectives = strings.Split(string(adjectivesText), "\n")
 	log = lumber.NewConsoleLogger(lumber.TRACE)
 }
