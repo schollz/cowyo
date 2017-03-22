@@ -25,9 +25,9 @@
             #wrap {
                 position: absolute;
                 top: 50px;
-                left: 48px;
-                right: 30px;
-                bottom: 20px;
+                left: 2%;
+                right: 2%;
+                bottom: 2%;
                 /*   border: 3px double #f99;
    */
             }
@@ -254,14 +254,15 @@
                 <ul class="pure-menu-list">
                     <li></li>
                     <!-- Required to keep them level? -->
+                    <li class="pure-menu-item"><a href="/" class="pure-menu-link">Cowyo</a></li>
                     <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
                     <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
                     <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
-                    <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
                     <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
                         <a href="#" id="menuLink1" class="pure-menu-link">Other</a>
                         <ul class="pure-menu-children">
+                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
+                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
                             <li class="pure-menu-item"><a href="/{{ .Page }}/raw" class="pure-menu-link">Raw</a></li>
                             <li class="pure-menu-item"><a href="/{{ .Page }}/history" class="pure-menu-link">History</a></li>
                             <hr>
