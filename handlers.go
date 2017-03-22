@@ -13,6 +13,7 @@ import (
 )
 
 func serve(port string) {
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.HTMLRender = loadTemplates("index.tmpl")
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))

@@ -35,6 +35,10 @@ func init() {
 	log = lumber.NewConsoleLogger(lumber.TRACE)
 }
 
+func turnOffDebugger() {
+	log = lumber.NewConsoleLogger(lumber.WARN)
+}
+
 func randomAnimal() string {
 	return strings.Replace(strings.Title(animals[rand.Intn(len(animals)-1)]), " ", "", -1)
 }

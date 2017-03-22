@@ -48,8 +48,12 @@ func main() {
 			Aliases: []string{"s"},
 			Usage:   "start a cowyo server",
 			Action: func(c *cli.Context) error {
+				if !c.GlobalBool("debug") {
+					turnOffDebugger()
+				}
 				pathToData = c.GlobalString("data")
 				os.MkdirAll(pathToData, 0755)
+				fmt.Printf("\nRunning CowYo at http://%s:%s\n\n", GetLocalIP(), c.GlobalString("port"))
 				serve(c.GlobalString("port"))
 				return nil
 			},
@@ -59,6 +63,9 @@ func main() {
 			Aliases: []string{"m"},
 			Usage:   "migrate from the old cowyo",
 			Action: func(c *cli.Context) error {
+				if !c.GlobalBool("debug") {
+					turnOffDebugger()
+				}
 				pathToData = c.GlobalString("data")
 				pathToOldData := c.GlobalString("olddata")
 				if len(pathToOldData) == 0 {
