@@ -7,15 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-contrib/static"
+	// "github.com/gin-contrib/static"
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
 )
 
 func serve(port string) {
 	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
-	router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
-
+	router.HTMLRender = loadTemplates("index.tmpl")
+	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
 		c.Redirect(302, "/"+randomAlliterateCombo())
 	})
@@ -23,7 +23,7 @@ func serve(port string) {
 		page := c.Param("page")
 		c.Redirect(302, "/"+page+"/edit")
 	})
-	router.GET("/:page/:command", handlePageRequest)
+	router.GET("/:page/*command", handlePageRequest)
 	router.POST("/update", handlePageUpdate)
 	router.POST("/prime", handlePrime)
 	router.POST("/lock", handleLock)
@@ -33,18 +33,51 @@ func serve(port string) {
 	router.Run(":" + port)
 }
 
+func loadTemplates(list ...string) multitemplate.Render {
+	r := multitemplate.New()
+
+	for _, x := range list {
+		templateString, err := Asset("templates/" + x)
+		if err != nil {
+			panic(err)
+		}
+
+		tmplMessage, err := template.New(x).Parse(string(templateString))
+		if err != nil {
+			panic(err)
+		}
+
+		r.Add(x, tmplMessage)
+	}
+
+	return r
+}
+
 func handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
+
+	// Serve static content from memory
+	if page == "static" {
+		filename := page + command
+		data, err := Asset(filename)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Could not find data")
+		}
+		c.Data(http.StatusOK, contentType(filename), data)
+		return
+	}
+
 	version := c.DefaultQuery("version", "ajksldfjl")
 	p := Open(page)
 	if p.IsPrimedForSelfDestruct && !p.IsLocked && !p.IsEncrypted {
 		p.Update("*This page has now self-destructed.*\n\n" + p.Text.GetCurrent())
 		p.Erase()
 	}
-	if command == "erase" && !p.IsLocked {
+	if command == "/erase" && !p.IsLocked {
 		p.Erase()
 		c.Redirect(302, "/"+page+"/edit")
+		return
 	}
 	rawText := p.Text.GetCurrent()
 	rawHTML := p.RenderedPage
@@ -64,7 +97,7 @@ func handlePageRequest(c *gin.Context) {
 		versionsText[i] = time.Unix(v/1000000000, 0).String()
 	}
 
-	if command == "raw" {
+	if command == "/raw" {
 		c.Writer.Header().Set("Content-Type", contentType(p.Name))
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
@@ -74,12 +107,12 @@ func handlePageRequest(c *gin.Context) {
 		c.Data(200, contentType(p.Name), []byte(rawText))
 		return
 	}
-
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"EditPage":     command == "edit",
-		"ViewPage":     command == "view",
-		"ListPage":     command == "list",
-		"HistoryPage":  command == "history",
+	log.Debug(command)
+	c.HTML(http.StatusOK, "index.tmpl", gin.H{
+		"EditPage":     command == "/edit",
+		"ViewPage":     command == "/view",
+		"ListPage":     command == "/list",
+		"HistoryPage":  command == "/history",
 		"Page":         p.Name,
 		"RenderedPage": template.HTML([]byte(rawHTML)),
 		"RawPage":      rawText,
