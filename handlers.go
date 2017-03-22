@@ -61,6 +61,18 @@ func handlePageRequest(c *gin.Context) {
 	for i, v := range versionsInt64 {
 		versionsText[i] = time.Unix(v/1000000000, 0).String()
 	}
+
+	if command == "raw" {
+		c.Writer.Header().Set("Content-Type", contentType(p.Name))
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Data(200, contentType(p.Name), []byte(rawText))
+		return
+	}
+
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"EditPage":     command == "edit",
 		"ViewPage":     command == "view",
@@ -83,7 +95,11 @@ func handlePageUpdate(c *gin.Context) {
 	}
 	var json QueryJSON
 	if c.BindJSON(&json) != nil {
-		c.String(http.StatusBadRequest, "Problem binding keys")
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
+		return
+	}
+	if len(json.NewText) > 100000 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Too much"})
 		return
 	}
 	log.Trace("Update: %v", json)
