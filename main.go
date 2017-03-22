@@ -18,7 +18,13 @@ func main() {
 	app.Version = version
 	app.Compiled = time.Now()
 	app.Action = func(c *cli.Context) error {
-		cli.ShowSubcommandHelp(c)
+		if !c.GlobalBool("debug") {
+			turnOffDebugger()
+		}
+		pathToData = c.GlobalString("data")
+		os.MkdirAll(pathToData, 0755)
+		fmt.Printf("\nRunning CowYo at http://%s:%s\n\n", GetLocalIP(), c.GlobalString("port"))
+		serve(c.GlobalString("port"))
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -43,21 +49,6 @@ func main() {
 		},
 	}
 	app.Commands = []cli.Command{
-		{
-			Name:    "serve",
-			Aliases: []string{"s"},
-			Usage:   "start a cowyo server",
-			Action: func(c *cli.Context) error {
-				if !c.GlobalBool("debug") {
-					turnOffDebugger()
-				}
-				pathToData = c.GlobalString("data")
-				os.MkdirAll(pathToData, 0755)
-				fmt.Printf("\nRunning CowYo at http://%s:%s\n\n", GetLocalIP(), c.GlobalString("port"))
-				serve(c.GlobalString("port"))
-				return nil
-			},
-		},
 		{
 			Name:    "migrate",
 			Aliases: []string{"m"},
