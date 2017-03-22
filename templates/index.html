@@ -162,7 +162,9 @@
                         }),
                         success: function(data) {
                             $('#saveEditButton').text(data.message);
-                            window.location = "/{{ .Page }}/view";
+                            if (data.success == true) {                                
+                                window.location = "/{{ .Page }}/view";
+                            }
                         },
                         error: function(xhr, error) {
                             $('#saveEditButton').text(error);

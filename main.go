@@ -159,16 +159,17 @@ func handleEncrypt(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong password"})
 			return
 		}
-		p.IsEncrypted = false
 		p.Erase()
 		p = Open(json.Page)
 		p.Update(decrypted)
+		p.IsEncrypted = false
 		message = "Decrypted"
 	} else {
-		p.IsEncrypted = true
+		currentText := p.Text.GetCurrent()
 		p.Erase()
 		p = Open(json.Page)
-		encrypted, _ := EncryptString(p.Text.GetCurrent(), json.Passphrase)
+		p.IsEncrypted = true
+		encrypted, _ := EncryptString(currentText, json.Passphrase)
 		p.Update(encrypted)
 		message = "Encrypted"
 	}
