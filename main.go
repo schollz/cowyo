@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
+	router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 
 	router.GET("/", func(c *gin.Context) {
 		c.Redirect(302, "/"+randomAlliterateCombo())
@@ -23,6 +25,7 @@ func main() {
 	router.POST("/update", handlePageUpdate)
 	router.POST("/prime", handlePrime)
 	router.POST("/lock", handleLock)
+	router.POST("/encrypt", handleEncrypt)
 
 	router.Run(":8050")
 }
@@ -78,13 +81,17 @@ func handlePageUpdate(c *gin.Context) {
 	}
 	log.Trace("Update: %v", json)
 	p := Open(json.Page)
-	if !p.IsLocked {
+	var message string
+	if p.IsLocked {
+		message = "Locked"
+	} else if p.IsEncrypted {
+		message = "Encrypted"
+	} else {
 		p.Update(json.NewText)
 		p.Save()
-		c.JSON(http.StatusOK, gin.H{"success": true, "message": "Saved"})
-	} else {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
+		message = "Saved"
 	}
+	c.JSON(http.StatusOK, gin.H{"success": false, "message": message})
 }
 
 func handlePrime(c *gin.Context) {
@@ -128,6 +135,42 @@ func handleLock(c *gin.Context) {
 		p.IsLocked = true
 		p.PassphraseToUnlock = HashPassword(json.Passphrase)
 		message = "Locked"
+	}
+	p.Save()
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
+}
+
+func handleEncrypt(c *gin.Context) {
+	type QueryJSON struct {
+		Page       string `json:"page"`
+		Passphrase string `json:"passphrase"`
+	}
+
+	var json QueryJSON
+	if c.BindJSON(&json) != nil {
+		c.String(http.StatusBadRequest, "Problem binding keys")
+		return
+	}
+	p := Open(json.Page)
+	var message string
+	if p.IsEncrypted {
+		decrypted, err2 := DecryptString(p.Text.GetCurrent(), json.Passphrase)
+		if err2 != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong password"})
+			return
+		}
+		p.IsEncrypted = false
+		p.Erase()
+		p = Open(json.Page)
+		p.Update(decrypted)
+		message = "Decrypted"
+	} else {
+		p.IsEncrypted = true
+		p.Erase()
+		p = Open(json.Page)
+		encrypted, _ := EncryptString(p.Text.GetCurrent(), json.Passphrase)
+		p.Update(encrypted)
+		message = "Encrypted"
 	}
 	p.Save()
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})

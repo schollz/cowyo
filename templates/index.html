@@ -5,10 +5,10 @@
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <script type="text/javascript" src="//code.jquery.com/jquery-1.8.3.js"></script>
-        <link rel="stylesheet" type="text/css" href="https://sindresorhus.com/github-markdown-css/github-markdown.css">
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/purecss@0.6.2/build/menus-min.css">
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/purecss@0.6.2/build/base-min.css">
+        <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
+        <link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/menus-min.css">
+        <link rel="stylesheet" type="text/css" href="/static/css/base-min.css">
 
         <style type="text/css">
             body {
@@ -162,6 +162,7 @@
                         }),
                         success: function(data) {
                             $('#saveEditButton').text(data.message);
+                            window.location = "/{{ .Page }}/view";
                         },
                         error: function(xhr, error) {
                             $('#saveEditButton').text(error);
@@ -229,11 +230,11 @@
                     <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
                     <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
                     <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
+                    <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
+                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
                     <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
                         <a href="#" id="menuLink1" class="pure-menu-link">Other</a>
                         <ul class="pure-menu-children">
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">Encrypt</a></li>
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
                             <li class="pure-menu-item"><a href="/{{ .Page }}/history" class="pure-menu-link">History</a></li>
                             <hr>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="selfDestructPage">Self-destruct</a></li>
@@ -246,7 +247,7 @@
 
             <div id="wrap">
                 {{ if .ViewPage }} {{ .RenderedPage }} {{ end }}
-                {{ if .EditPage }} <textarea id="userInput">{{ .RawPage }}</textarea>{{ end }}
+                {{ if .EditPage }} <textarea autofocus placeholder="Start typing, it will save automatically." id="userInput">{{ .RawPage }}</textarea>{{ end }}
             {{ if .HistoryPage }}
                 <ul>
                 {{range .Versions}}
