@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func serve() {
+func serve(port string) {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
@@ -28,7 +28,7 @@ func serve() {
 	router.POST("/lock", handleLock)
 	router.POST("/encrypt", handleEncrypt)
 
-	router.Run(":8050")
+	router.Run(":" + port)
 }
 
 func handlePageRequest(c *gin.Context) {
