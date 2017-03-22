@@ -32,6 +32,11 @@ func main() {
 			Value: "",
 			Usage: "data folder for migrating",
 		},
+		cli.StringFlag{
+			Name:  "port,p",
+			Value: "8050",
+			Usage: "port to use",
+		},
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "turn on debugging",
@@ -45,7 +50,7 @@ func main() {
 			Action: func(c *cli.Context) error {
 				pathToData = c.GlobalString("data")
 				os.MkdirAll(pathToData, 0755)
-				serve()
+				serve(c.GlobalString("port"))
 				return nil
 			},
 		},
