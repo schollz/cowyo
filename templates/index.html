@@ -277,8 +277,8 @@
                 {{ if .EditPage }} <textarea autofocus placeholder="Start typing, it will save automatically." id="userInput">{{ .RawPage }}</textarea>{{ end }}
             {{ if .HistoryPage }}
                 <ul>
-                {{range .Versions}}
-                    <li><a href="/{{ $.Page }}/view?version={{.}}">Version #{{ . }}
+                {{range $i, $e := .Versions}}
+                    <li><a href="/{{ $.Page }}/view?version={{$e}}">Version {{index $.VersionsText $i}}</a></li>
                 {{end}}
                 </ul>
             {{ end }}

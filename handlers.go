@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
@@ -55,6 +56,11 @@ func handlePageRequest(c *gin.Context) {
 			rawHTML = GithubMarkdownToHTML(rawText)
 		}
 	}
+	versionsInt64 := p.Text.GetSnapshots()
+	versionsText := make([]string, len(versionsInt64))
+	for i, v := range versionsInt64 {
+		versionsText[i] = time.Unix(v/1000000000, 0).String()
+	}
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"EditPage":     command == "edit",
 		"ViewPage":     command == "view",
@@ -63,7 +69,8 @@ func handlePageRequest(c *gin.Context) {
 		"Page":         p.Name,
 		"RenderedPage": template.HTML([]byte(rawHTML)),
 		"RawPage":      rawText,
-		"Versions":     p.Text.GetSnapshots(),
+		"Versions":     versionsInt64,
+		"VersionsText": versionsText,
 		"IsLocked":     p.IsLocked,
 		"IsEncrypted":  p.IsEncrypted,
 	})
