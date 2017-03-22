@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/base32"
 	"encoding/binary"
 	"encoding/hex"
 	"io/ioutil"
@@ -11,11 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/jcelliott/lumber"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/russross/blackfriday"
 	"github.com/schollz/cryptopasta"
 	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/shurcooL/github_flavored_markdown"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var animals []string
@@ -213,4 +216,31 @@ func exists(path string) bool {
 		return false
 	}
 	return true
+}
+
+func MarkdownToHtml(s string) string {
+	unsafe := blackfriday.MarkdownCommon([]byte(s))
+	pClean := bluemonday.UGCPolicy()
+	pClean.AllowElements("img")
+	pClean.AllowAttrs("alt").OnElements("img")
+	pClean.AllowAttrs("src").OnElements("img")
+	pClean.AllowAttrs("class").OnElements("a")
+	pClean.AllowAttrs("href").OnElements("a")
+	pClean.AllowAttrs("id").OnElements("a")
+	pClean.AllowDataURIImages()
+	html := pClean.SanitizeBytes(unsafe)
+	return string(html)
+}
+
+func GithubMarkdownToHTML(s string) string {
+	return string(github_flavored_markdown.Markdown([]byte(s)))
+}
+func encodeToBase32(s string) string {
+	return base32.StdEncoding.EncodeToString([]byte(s))
+}
+
+func decodeFromBase32(s string) (s2 string, err error) {
+	bString, err := base32.StdEncoding.DecodeString(s)
+	s2 = string(bString)
+	return
 }

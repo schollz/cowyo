@@ -35,7 +35,7 @@ func handlePageRequest(c *gin.Context) {
 	command := c.Param("command")
 	version := c.DefaultQuery("version", "ajksldfjl")
 	p := Open(page)
-	if p.IsPrimedForSelfDestruct && !p.IsLocked {
+	if p.IsPrimedForSelfDestruct && !p.IsLocked && !p.IsEncrypted {
 		p.Update("*This page has now self-destructed.*\n\n" + p.Text.GetCurrent())
 		p.Erase()
 	}
@@ -52,7 +52,7 @@ func handlePageRequest(c *gin.Context) {
 		versionText, err := p.Text.GetPreviousByTimestamp(int64(versionInt))
 		if err == nil {
 			rawText = versionText
-			rawHTML = MarkdownToHtml(rawText)
+			rawHTML = GithubMarkdownToHTML(rawText)
 		}
 	}
 	c.HTML(http.StatusOK, "index.html", gin.H{
@@ -105,9 +105,16 @@ func handlePrime(c *gin.Context) {
 	}
 	log.Trace("Update: %v", json)
 	p := Open(json.Page)
+	if p.IsLocked {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
+		return
+	} else if p.IsEncrypted {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
+		return
+	}
 	p.IsPrimedForSelfDestruct = true
 	p.Save()
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Primed"})
 }
 
 func handleLock(c *gin.Context) {
@@ -152,6 +159,7 @@ func handleEncrypt(c *gin.Context) {
 		return
 	}
 	p := Open(json.Page)
+	q := Open(json.Page)
 	var message string
 	if p.IsEncrypted {
 		decrypted, err2 := DecryptString(p.Text.GetCurrent(), json.Passphrase)
@@ -159,20 +167,24 @@ func handleEncrypt(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong password"})
 			return
 		}
-		p.Erase()
-		p = Open(json.Page)
-		p.Update(decrypted)
-		p.IsEncrypted = false
+		q.Erase()
+		q = Open(json.Page)
+		q.Update(decrypted)
+		q.IsEncrypted = false
+		q.IsLocked = p.IsLocked
+		q.IsPrimedForSelfDestruct = p.IsPrimedForSelfDestruct
 		message = "Decrypted"
 	} else {
 		currentText := p.Text.GetCurrent()
-		p.Erase()
-		p = Open(json.Page)
-		p.IsEncrypted = true
 		encrypted, _ := EncryptString(currentText, json.Passphrase)
-		p.Update(encrypted)
+		q.Erase()
+		q = Open(json.Page)
+		q.Update(encrypted)
+		q.IsEncrypted = true
+		q.IsLocked = p.IsLocked
+		q.IsPrimedForSelfDestruct = p.IsPrimedForSelfDestruct
 		message = "Encrypted"
 	}
-	p.Save()
+	q.Save()
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
