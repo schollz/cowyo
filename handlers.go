@@ -75,10 +75,15 @@ func handlePageRequest(c *gin.Context) {
 		p.Update("*This page has now self-destructed.*\n\n" + p.Text.GetCurrent())
 		p.Erase()
 	}
-	if command == "/erase" && !p.IsLocked && !p.IsEncrypted {
-		p.Erase()
-		c.Redirect(302, "/"+page+"/edit")
-		return
+	if command == "/erase" {
+		if !p.IsLocked && !p.IsEncrypted {
+			p.Erase()
+			c.Redirect(302, "/"+page+"/edit")
+			return
+		} else {
+			c.Redirect(302, "/"+page+"/view")
+			return
+		}
 	}
 	rawText := p.Text.GetCurrent()
 	rawHTML := p.RenderedPage
@@ -189,6 +194,10 @@ func handleLock(c *gin.Context) {
 		return
 	}
 	p := Open(json.Page)
+	if p.IsEncrypted {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
+		return
+	}
 	var message string
 	if p.IsLocked {
 		err2 := CheckPasswordHash(json.Passphrase, p.PassphraseToUnlock)
