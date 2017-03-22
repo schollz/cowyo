@@ -75,7 +75,7 @@ func handlePageRequest(c *gin.Context) {
 		p.Update("*This page has now self-destructed.*\n\n" + p.Text.GetCurrent())
 		p.Erase()
 	}
-	if command == "/erase" && !p.IsLocked {
+	if command == "/erase" && !p.IsLocked && !p.IsEncrypted {
 		p.Erase()
 		c.Redirect(302, "/"+page+"/edit")
 		return
@@ -219,6 +219,10 @@ func handleEncrypt(c *gin.Context) {
 		return
 	}
 	p := Open(json.Page)
+	if p.IsLocked {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
+		return
+	}
 	q := Open(json.Page)
 	var message string
 	if p.IsEncrypted {
