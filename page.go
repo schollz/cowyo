@@ -23,6 +23,7 @@ type Page struct {
 }
 
 func Open(name string) (p *Page) {
+	name = strings.ToLower(name) // no case
 	p = new(Page)
 	p.Name = name
 	p.Text = versionedtext.NewVersionedText("")
