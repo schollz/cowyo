@@ -4,6 +4,23 @@
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="apple-touch-icon" sizes="57x57" href=/static/img/cowyo/apple-icon-57x57.png>
+        <link rel="apple-touch-icon" sizes="60x60" href=/static/img/cowyo/img/cowyo/apple-icon-60x60.png>
+        <link rel="apple-touch-icon" sizes="72x72" href=/static/img/cowyo/apple-icon-72x72.png>
+        <link rel="apple-touch-icon" sizes="76x76" href=/static/img/cowyo/apple-icon-76x76.png>
+        <link rel="apple-touch-icon" sizes="114x114" href=/static/img/cowyo/apple-icon-114x114.png>
+        <link rel="apple-touch-icon" sizes="120x120" href=/static/img/cowyo/apple-icon-120x120.png>
+        <link rel="apple-touch-icon" sizes="144x144" href=/static/img/cowyo/apple-icon-144x144.png>
+        <link rel="apple-touch-icon" sizes="152x152" href=/static/img/cowyo/apple-icon-152x152.png>
+        <link rel="apple-touch-icon" sizes="180x180" href=/static/img/cowyo/apple-icon-180x180.png>
+        <link rel="icon" type="image/png" sizes="192x192" href=/static/img/cowyo/android-icon-192x192.png>
+        <link rel="icon" type="image/png" sizes="32x32" href=/static/img/cowyo/favicon-32x32.png>
+        <link rel="icon" type="image/png" sizes="96x96" href=/static/img/cowyo/favicon-96x96.png>
+        <link rel="icon" type="image/png" sizes="16x16" href=/static/img/cowyo/favicon-16x16.png>
+        <link rel="manifest" href=/static/img/cowyo/manifest.json>
+        <meta name="msapplication-TileColor" content="#fff">
+        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+        <meta name="theme-color" content="#fff">
 
         <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
         <link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
@@ -14,6 +31,12 @@
         <script type="text/javascript" src="/static/js/highlight.pack.js"></script>
 
         <style type="text/css">
+            {{ if .ListPage }}
+            /* Required for lists */
+            span { cursor: pointer; }
+            {{ end }}
+
+
             body {
                 background: #fff;
             }
@@ -270,22 +293,24 @@
                 <ul class="pure-menu-list">
                     <li></li>
                     <!-- Required to keep them level? -->
-                    <li class="pure-menu-item"><a href="/" class="pure-menu-link">Cowyo</a></li>
-                    <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
-                    <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
                     <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
-                        <a href="#" id="menuLink1" class="pure-menu-link">Other</a>
+                        <a href="#" id="menuLink1" class="pure-menu-link">CowYo</a>
                         <ul class="pure-menu-children">
-                            <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
+                            <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
+                            <hr>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
-                            <li class="pure-menu-item"><a href="/{{ .Page }}/raw" class="pure-menu-link">Raw</a></li>
                             <li class="pure-menu-item"><a href="/{{ .Page }}/history" class="pure-menu-link">History</a></li>
                             <hr>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="selfDestructPage">Self-destruct</a></li>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="erasePage">Erase</a></li>
                         </ul>
                     </li>
+                    <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
+                    <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
+                    <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
+
+                    
                 </ul>
             </div>
 
