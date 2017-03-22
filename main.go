@@ -13,8 +13,8 @@ var pathToData string
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "linkcrawler"
-	app.Usage = "crawl a site for links, or download a list of sites"
+	app.Name = "cowyo"
+	app.Usage = "a simple wiki"
 	app.Version = version
 	app.Compiled = time.Now()
 	app.Action = func(c *cli.Context) error {
