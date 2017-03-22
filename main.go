@@ -1,178 +1,76 @@
 package main
 
 import (
-	"html/template"
-	"net/http"
-	"strconv"
+	"fmt"
+	"os"
+	"time"
 
-	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/gin"
+	"gopkg.in/urfave/cli.v1"
 )
 
+var version string
+var pathToData string
+
 func main() {
-	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
-	router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
-
-	router.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/"+randomAlliterateCombo())
-	})
-	router.GET("/:page", func(c *gin.Context) {
-		page := c.Param("page")
-		c.Redirect(302, "/"+page+"/edit")
-	})
-	router.GET("/:page/:command", handlePageRequest)
-	router.POST("/update", handlePageUpdate)
-	router.POST("/prime", handlePrime)
-	router.POST("/lock", handleLock)
-	router.POST("/encrypt", handleEncrypt)
-
-	router.Run(":8050")
-}
-
-func handlePageRequest(c *gin.Context) {
-	page := c.Param("page")
-	command := c.Param("command")
-	version := c.DefaultQuery("version", "ajksldfjl")
-	p := Open(page)
-	if p.IsPrimedForSelfDestruct && !p.IsLocked {
-		p.Update("*This page has now self-destructed.*\n\n" + p.Text.GetCurrent())
-		p.Erase()
+	app := cli.NewApp()
+	app.Name = "linkcrawler"
+	app.Usage = "crawl a site for links, or download a list of sites"
+	app.Version = version
+	app.Compiled = time.Now()
+	app.Action = func(c *cli.Context) error {
+		cli.ShowSubcommandHelp(c)
+		return nil
 	}
-	if command == "erase" && !p.IsLocked {
-		p.Erase()
-		c.Redirect(302, "/"+page+"/edit")
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "data",
+			Value: "data",
+			Usage: "data folder to use",
+		},
+		cli.StringFlag{
+			Name:  "olddata",
+			Value: "",
+			Usage: "data folder for migrating",
+		},
+		cli.BoolFlag{
+			Name:  "debug, d",
+			Usage: "turn on debugging",
+		},
 	}
-	rawText := p.Text.GetCurrent()
-	rawHTML := p.RenderedPage
-
-	// Check to see if an old version is requested
-	versionInt, versionErr := strconv.Atoi(version)
-	if versionErr == nil && versionInt > 0 {
-		versionText, err := p.Text.GetPreviousByTimestamp(int64(versionInt))
-		if err == nil {
-			rawText = versionText
-			rawHTML = MarkdownToHtml(rawText)
-		}
-	}
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"EditPage":     command == "edit",
-		"ViewPage":     command == "view",
-		"ListPage":     command == "list",
-		"HistoryPage":  command == "history",
-		"Page":         p.Name,
-		"RenderedPage": template.HTML([]byte(rawHTML)),
-		"RawPage":      rawText,
-		"Versions":     p.Text.GetSnapshots(),
-		"IsLocked":     p.IsLocked,
-		"IsEncrypted":  p.IsEncrypted,
-	})
-}
-
-func handlePageUpdate(c *gin.Context) {
-	type QueryJSON struct {
-		Page    string `json:"page"`
-		NewText string `json:"new_text"`
-	}
-	var json QueryJSON
-	if c.BindJSON(&json) != nil {
-		c.String(http.StatusBadRequest, "Problem binding keys")
-		return
-	}
-	log.Trace("Update: %v", json)
-	p := Open(json.Page)
-	var message string
-	if p.IsLocked {
-		message = "Locked"
-	} else if p.IsEncrypted {
-		message = "Encrypted"
-	} else {
-		p.Update(json.NewText)
-		p.Save()
-		message = "Saved"
-	}
-	c.JSON(http.StatusOK, gin.H{"success": false, "message": message})
-}
-
-func handlePrime(c *gin.Context) {
-	type QueryJSON struct {
-		Page string `json:"page"`
-	}
-	var json QueryJSON
-	if c.BindJSON(&json) != nil {
-		c.String(http.StatusBadRequest, "Problem binding keys")
-		return
-	}
-	log.Trace("Update: %v", json)
-	p := Open(json.Page)
-	p.IsPrimedForSelfDestruct = true
-	p.Save()
-	c.JSON(http.StatusOK, gin.H{"success": true})
-}
-
-func handleLock(c *gin.Context) {
-	type QueryJSON struct {
-		Page       string `json:"page"`
-		Passphrase string `json:"passphrase"`
+	app.Commands = []cli.Command{
+		{
+			Name:    "serve",
+			Aliases: []string{"s"},
+			Usage:   "start a cowyo server",
+			Action: func(c *cli.Context) error {
+				pathToData = c.GlobalString("data")
+				os.MkdirAll(pathToData, 0755)
+				serve()
+				return nil
+			},
+		},
+		{
+			Name:    "migrate",
+			Aliases: []string{"m"},
+			Usage:   "migrate from the old cowyo",
+			Action: func(c *cli.Context) error {
+				pathToData = c.GlobalString("data")
+				pathToOldData := c.GlobalString("olddata")
+				if len(pathToOldData) == 0 {
+					fmt.Printf("You need to specify folder with -olddata")
+					return nil
+				}
+				os.MkdirAll(pathToData, 0755)
+				if !exists(pathToOldData) {
+					fmt.Printf("Can not find '%s', does it exist?", pathToOldData)
+					return nil
+				}
+				migrate(pathToOldData, pathToData)
+				return nil
+			},
+		},
 	}
 
-	var json QueryJSON
-	if c.BindJSON(&json) != nil {
-		c.String(http.StatusBadRequest, "Problem binding keys")
-		return
-	}
-	p := Open(json.Page)
-	var message string
-	if p.IsLocked {
-		err2 := CheckPasswordHash(json.Passphrase, p.PassphraseToUnlock)
-		if err2 != nil {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "Can't unlock"})
-			return
-		}
-		p.IsLocked = false
-		message = "Unlocked"
-	} else {
-		p.IsLocked = true
-		p.PassphraseToUnlock = HashPassword(json.Passphrase)
-		message = "Locked"
-	}
-	p.Save()
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
-}
+	app.Run(os.Args)
 
-func handleEncrypt(c *gin.Context) {
-	type QueryJSON struct {
-		Page       string `json:"page"`
-		Passphrase string `json:"passphrase"`
-	}
-
-	var json QueryJSON
-	if c.BindJSON(&json) != nil {
-		c.String(http.StatusBadRequest, "Problem binding keys")
-		return
-	}
-	p := Open(json.Page)
-	var message string
-	if p.IsEncrypted {
-		decrypted, err2 := DecryptString(p.Text.GetCurrent(), json.Passphrase)
-		if err2 != nil {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong password"})
-			return
-		}
-		p.Erase()
-		p = Open(json.Page)
-		p.Update(decrypted)
-		p.IsEncrypted = false
-		message = "Decrypted"
-	} else {
-		currentText := p.Text.GetCurrent()
-		p.Erase()
-		p = Open(json.Page)
-		p.IsEncrypted = true
-		encrypted, _ := EncryptString(currentText, json.Passphrase)
-		p.Update(encrypted)
-		message = "Encrypted"
-	}
-	p.Save()
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }

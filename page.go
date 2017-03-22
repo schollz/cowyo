@@ -12,12 +12,6 @@ import (
 	"github.com/schollz/versionedtext"
 )
 
-var pathToData = "data"
-
-func init() {
-	os.MkdirAll(pathToData, 0755)
-}
-
 type Page struct {
 	Name                    string
 	Text                    versionedtext.VersionedText

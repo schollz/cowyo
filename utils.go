@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -200,4 +201,16 @@ func DecryptString(toDecrypt string, password string) (string, error) {
 	}
 	bDecrypted, err := cryptopasta.Decrypt(contentData, &key)
 	return string(bDecrypted), err
+}
+
+// exists returns whether the given file or directory exists or not
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
