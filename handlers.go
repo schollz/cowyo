@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/static"
@@ -27,6 +28,7 @@ func serve(port string) {
 	router.POST("/prime", handlePrime)
 	router.POST("/lock", handleLock)
 	router.POST("/encrypt", handleEncrypt)
+	router.DELETE("/listitem", deleteListItem)
 
 	router.Run(":" + port)
 }
@@ -85,6 +87,7 @@ func handlePageRequest(c *gin.Context) {
 		"VersionsText": versionsText,
 		"IsLocked":     p.IsLocked,
 		"IsEncrypted":  p.IsEncrypted,
+		"ListItems":    renderList(rawText),
 	})
 }
 
@@ -210,4 +213,39 @@ func handleEncrypt(c *gin.Context) {
 	}
 	q.Save()
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
+}
+
+func deleteListItem(c *gin.Context) {
+	lineNum, err := strconv.Atoi(c.DefaultQuery("lineNum", "None"))
+	page := c.Query("page") // shortcut for c.Request.URL.Query().Get("lastname")
+	if err == nil {
+		p := Open(page)
+
+		_, listItems := reorderList(p.Text.GetCurrent())
+		newText := p.Text.GetCurrent()
+		for i, lineString := range listItems {
+			// fmt.Println(i, lineString, lineNum)
+			if i+1 == lineNum {
+				// fmt.Println("MATCHED")
+				if strings.Contains(lineString, "~~") == false {
+					// fmt.Println(p.Text, "("+lineString[2:]+"\n"+")", "~~"+lineString[2:]+"~~"+"\n")
+					newText = strings.Replace(newText+"\n", lineString[2:]+"\n", "~~"+strings.TrimSpace(lineString[2:])+"~~"+"\n", 1)
+				} else {
+					newText = strings.Replace(newText+"\n", lineString[2:]+"\n", lineString[4:len(lineString)-2]+"\n", 1)
+				}
+				p.Update(newText)
+				break
+			}
+		}
+
+		c.JSON(200, gin.H{
+			"success": true,
+			"message": "Done.",
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+	}
 }

@@ -241,6 +241,22 @@
                     }
                 });
 
+                $('.deletable').click(function(event) {
+                  event.preventDefault();
+                  var lineNum = $(this).attr('id')
+                    $.ajax({
+                      url: "/listitem" + '?' + $.param({
+                        "lineNum": lineNum,
+                        "page": "{{ .Page }}"
+                      }),
+                      type: 'DELETE',
+                      success: function() {
+                        window.location.reload(true);
+                      }
+                    });
+                });
+
+
             }); //]]>
 
         </script>
@@ -283,6 +299,11 @@
                     <li><a href="/{{ $.Page }}/view?version={{$e}}">Version {{index $.VersionsText $i}}</a></li>
                 {{end}}
                 </ul>
+            {{ end }}
+            {{ if .ListPage }}
+                  {{ range $index, $element := .ListItems }}
+                    {{ $element }}
+                  {{ end }}
             {{ end }}
 
             </div>
