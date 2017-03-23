@@ -277,6 +277,11 @@
                     e.preventDefault();
                     var passphrase = prompt("Please enter a passphrase to lock", "");
                     if (passphrase != null) {
+                        if ($('#lockPage').text() == "Lock") {
+                            $("#saveEditButton").text("Locking");                           
+                        } else {
+                            $("#saveEditButton").text("Unlocking");
+                        }
                         lockPage(passphrase);
                         // POST encrypt page
                         // reload page
@@ -358,9 +363,9 @@
                     <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
                     {{ if (or (.IsLocked) (.IsEncrypted) )}}
                     {{ if .IsLocked }}
-                    <li class="pure-menu-item">Locked</li>
+                    <li class="pure-menu-item"><span id="saveEditButton">Locked</span></li>
                     {{ else }}
-                    <li class="pure-menu-item">Encrypted</li>
+                    <li class="pure-menu-item"><span id="saveEditButton">Encrypted</span></li>
                     {{ end }}
                     {{else}}<li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
                     <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
