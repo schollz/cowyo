@@ -1,4 +1,4 @@
-VERSION=2.0.0
+VERSION=2.0.1
 LDFLAGS=-ldflags "-s -w -X main.version=${VERSION}"
 
 .PHONY: build
