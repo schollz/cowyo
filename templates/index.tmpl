@@ -383,7 +383,7 @@
             {{ if .HistoryPage }}
                 <ul>
                 {{range $i, $e := .Versions}}
-                    <li><a href="/{{ $.Page }}/view?version={{$e}}">Version {{index $.VersionsText $i}}</a></li>
+                    <li>Version {{index $.VersionsText $i}}&nbsp;&nbsp;<a href="/{{ $.Page }}/view?version={{$e}}">View</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/list?version={{$e}}">List</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/raw?version={{$e}}">Raw</a></li>
                 {{end}}
                 </ul>
             {{ end }}
