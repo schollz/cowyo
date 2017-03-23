@@ -193,11 +193,12 @@
                                 $('#saveEditButton').addClass("failure");
                             }
                             $('#saveEditButton').text(data.message);
-                            if ($('#lockPage').val() == "Lock") {
-                                $('#lockPage').text("Unlock");
-                            } else {
-                                $('#lockPage').text("Lock");
-                            }
+                            if (data.success == true && $('#lockPage').text() == "Lock") {               
+                                window.location = "/{{ .Page }}/view";
+                            } 
+                            if (data.success == true && $('#lockPage').text() == "Unlock") {               
+                                window.location = "/{{ .Page }}/edit";
+                            } 
                         },
                         error: function(xhr, error) {
                             $('#saveEditButton').removeClass()
@@ -218,10 +219,19 @@
                             passphrase: passphrase
                         }),
                         success: function(data) {
-                            $('#saveEditButton').text(data.message);
-                            if (data.success == true) {                                
-                                window.location = "/{{ .Page }}/view";
+                            $('#saveEditButton').removeClass()
+                            if (data.success == true) {
+                                $('#saveEditButton').addClass("success");
+                            } else {
+                                $('#saveEditButton').addClass("failure");
                             }
+                            $('#saveEditButton').text(data.message);
+                            if (data.success == true && $('#encryptPage').text() == "Encrypt") {               
+                                window.location = "/{{ .Page }}/view";
+                            } 
+                            if (data.success == true && $('#encryptPage').text() == "Decrypt") {               
+                                window.location = "/{{ .Page }}/edit";
+                            } 
                         },
                         error: function(xhr, error) {
                             $('#saveEditButton').text(error);
@@ -329,17 +339,32 @@
                         <ul class="pure-menu-children">
                             <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
                             <hr>
+                            {{ if (or (.IsLocked) (.IsEncrypted) )}}
+                                {{ if .IsLocked }}
+                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
+                                {{ else }}
+                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
+                                {{ end }}
+                            {{ else }}
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
                             <li class="pure-menu-item"><a href="/{{ .Page }}/history" class="pure-menu-link">History</a></li>
                             <hr>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="selfDestructPage">Self-destruct</a></li>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="erasePage">Erase</a></li>
+                            {{ end }}
                         </ul>
                     </li>
                     <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
-                    <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
+                    {{ if (or (.IsLocked) (.IsEncrypted) )}}
+                    {{ if .IsLocked }}
+                    <li class="pure-menu-item">Locked</li>
+                    {{ else }}
+                    <li class="pure-menu-item">Encrypted</li>
+                    {{ end }}
+                    {{else}}<li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
                     <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
+                    {{end}}
 
                     
                 </ul>
