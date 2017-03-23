@@ -83,7 +83,7 @@ func handlePageRequest(c *gin.Context) {
 
 	// Destroy page if it is opened and primed
 	if p.IsPrimedForSelfDestruct && !p.IsLocked && !p.IsEncrypted {
-		p.Update("*This page has now self-destructed.*\n\n" + p.Text.GetCurrent())
+		p.Update("*This page has self-destructed. You can not return to it.*\n\n" + p.Text.GetCurrent())
 		p.Erase()
 	}
 	if command == "/erase" {
@@ -176,7 +176,7 @@ func handlePageUpdate(c *gin.Context) {
 		p.Save()
 		message = "Saved"
 	}
-	c.JSON(http.StatusOK, gin.H{"success": false, "message": message})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
 func handlePrime(c *gin.Context) {
