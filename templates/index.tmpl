@@ -41,6 +41,10 @@
                 background: #fff;
             }
 
+            .success {
+                color: #5cb85c;
+            }
+
             .pure-menu a {
                 color: #777;
             }
@@ -100,6 +104,7 @@
                 function debounce(func, wait, immediate) {
                     var timeout;
                     return function() {
+                        $('#saveEditButton').removeClass()
                         $('#saveEditButton').text("Editing");
                         var context = this,
                             args = arguments;
@@ -118,6 +123,7 @@
                 // And it only fires 500ms or half a second after the user stopped typing
                 $('#userInput').on('keyup', debounce(function() {
                     console.log('typing occurred');
+                    $('#saveEditButton').removeClass()
                     $('#saveEditButton').text("Saving")
                     upload();
                 }, 500));
@@ -131,6 +137,12 @@
                             page: "{{ .Page }}"
                         }),
                         success: function(data) {
+                            $('#saveEditButton').removeClass()
+                            if (data.success == true) {
+                                $('#saveEditButton').addClass("success");
+                            } else {
+                                $('#saveEditButton').addClass("failure");
+                            }
                             $('#saveEditButton').text(data.message);
                         },
                         error: function(xhr, error) {
@@ -149,6 +161,12 @@
                             page: "{{ .Page }}"
                         }),
                         success: function(data) {
+                            $('#saveEditButton').removeClass()
+                            if (data.success == true) {
+                                $('#saveEditButton').addClass("success");
+                            } else {
+                                $('#saveEditButton').addClass("failure");
+                            }
                             $('#saveEditButton').text(data.message);
                         },
                         error: function(xhr, error) {
@@ -168,9 +186,22 @@
                             passphrase: passphrase
                         }),
                         success: function(data) {
+                            $('#saveEditButton').removeClass()
+                            if (data.success == true) {
+                                $('#saveEditButton').addClass("success");
+                            } else {
+                                $('#saveEditButton').addClass("failure");
+                            }
                             $('#saveEditButton').text(data.message);
+                            if ($('#lockPage').val() == "Lock") {
+                                $('#lockPage').text("Unlock");
+                            } else {
+                                $('#lockPage').text("Lock");
+                            }
                         },
                         error: function(xhr, error) {
+                            $('#saveEditButton').removeClass()
+                            $('#saveEditButton').addClass("failure");
                             $('#saveEditButton').text(error);
                         },
                         contentType: "application/json",
