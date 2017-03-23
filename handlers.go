@@ -73,6 +73,14 @@ func handlePageRequest(c *gin.Context) {
 
 	version := c.DefaultQuery("version", "ajksldfjl")
 	p := Open(page)
+
+	// Disallow anything but viewing locked/encrypted pages
+	if (p.IsEncrypted || p.IsLocked) && command[0:2] != "/v" {
+		c.Redirect(302, "/"+page+"/view")
+		return
+	}
+
+	// Destroy page if it is opened and primed
 	if p.IsPrimedForSelfDestruct && !p.IsLocked && !p.IsEncrypted {
 		p.Update("*This page has now self-destructed.*\n\n" + p.Text.GetCurrent())
 		p.Erase()
