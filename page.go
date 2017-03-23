@@ -23,12 +23,11 @@ type Page struct {
 }
 
 func Open(name string) (p *Page) {
-	name = strings.ToLower(name) // no case
 	p = new(Page)
 	p.Name = name
 	p.Text = versionedtext.NewVersionedText("")
 	p.Render()
-	bJSON, err := ioutil.ReadFile(path.Join(pathToData, encodeToBase32(name)+".json"))
+	bJSON, err := ioutil.ReadFile(path.Join(pathToData, encodeToBase32(strings.ToLower(name))+".json"))
 	if err != nil {
 		return
 	}
@@ -66,7 +65,7 @@ func (p *Page) Save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(p.Name)+".json"), bJSON, 0755)
+	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0755)
 }
 
 func (p *Page) Erase() error {
