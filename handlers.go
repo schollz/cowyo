@@ -57,7 +57,9 @@ func loadTemplates(list ...string) multitemplate.Render {
 func handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
-
+	if len(command) < 2 {
+		command = "/ "
+	}
 	// Serve static content from memory
 	if page == "static" {
 		filename := page + command
@@ -103,7 +105,7 @@ func handlePageRequest(c *gin.Context) {
 		versionsText[i] = time.Unix(v/1000000000, 0).String()
 	}
 
-	if command == "/raw" {
+	if command[0:2] == "/r" {
 		c.Writer.Header().Set("Content-Type", contentType(p.Name))
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
@@ -114,11 +116,19 @@ func handlePageRequest(c *gin.Context) {
 		return
 	}
 	log.Debug(command)
+	log.Debug("%v", command[0:2] != "/e" &&
+		command[0:2] != "/v" &&
+		command[0:2] != "/l" &&
+		command[0:2] != "/h")
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
-		"EditPage":     command == "/edit",
-		"ViewPage":     command == "/view",
-		"ListPage":     command == "/list",
-		"HistoryPage":  command == "/history",
+		"EditPage":    command[0:2] == "/e", // /edit
+		"ViewPage":    command[0:2] == "/v", // /view
+		"ListPage":    command[0:2] == "/l", // /list
+		"HistoryPage": command[0:2] == "/h", // /history
+		"DontKnowPage": command[0:2] != "/e" &&
+			command[0:2] != "/v" &&
+			command[0:2] != "/l" &&
+			command[0:2] != "/h",
 		"Page":         p.Name,
 		"RenderedPage": template.HTML([]byte(rawHTML)),
 		"RawPage":      rawText,
@@ -127,6 +137,7 @@ func handlePageRequest(c *gin.Context) {
 		"IsLocked":     p.IsLocked,
 		"IsEncrypted":  p.IsEncrypted,
 		"ListItems":    renderList(rawText),
+		"Route":        "/" + page + command,
 	})
 }
 
