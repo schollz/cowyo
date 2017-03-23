@@ -29,6 +29,7 @@ func serve(port string) {
 	router.POST("/prime", handlePrime)
 	router.POST("/lock", handleLock)
 	router.POST("/encrypt", handleEncrypt)
+	router.DELETE("/oldlist", handleClearOldListItems)
 	router.DELETE("/listitem", deleteListItem)
 
 	router.Run(":" + port)
@@ -314,4 +315,37 @@ func deleteListItem(c *gin.Context) {
 			"message": err.Error(),
 		})
 	}
+}
+
+func handleClearOldListItems(c *gin.Context) {
+	type QueryJSON struct {
+		Page string `json:"page"`
+	}
+
+	var json QueryJSON
+	if c.BindJSON(&json) != nil {
+		c.String(http.StatusBadRequest, "Problem binding keys")
+		return
+	}
+	p := Open(json.Page)
+	if p.IsEncrypted {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
+		return
+	}
+	if p.IsLocked {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
+		return
+	}
+	lines := strings.Split(p.Text.GetCurrent(), "\n")
+	newLines := make([]string, len(lines))
+	newLinesI := 0
+	for _, line := range lines {
+		if strings.Count(line, "~~") != 2 {
+			newLines[newLinesI] = line
+			newLinesI++
+		}
+	}
+	p.Update(strings.Join(newLines[0:newLinesI], "\n"))
+	p.Save()
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Cleared"})
 }
