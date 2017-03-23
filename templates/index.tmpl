@@ -43,6 +43,12 @@
 
             .success {
                 color: #5cb85c;
+                font-weight: bold;
+            }
+
+            .failure {
+                color: #d9534f;
+                font-weight: bold;
             }
 
             .pure-menu a {
@@ -147,6 +153,8 @@
                             $('#saveEditButton').text(data.message);
                         },
                         error: function(xhr, error) {
+                            $('#saveEditButton').removeClass()
+                            $('#saveEditButton').addClass("failure");
                             $('#saveEditButton').text(error);
                         },
                         contentType: "application/json",
@@ -171,6 +179,8 @@
                             $('#saveEditButton').text(data.message);
                         },
                         error: function(xhr, error) {
+                            $('#saveEditButton').removeClass()
+                            $('#saveEditButton').addClass("failure");
                             $('#saveEditButton').text(error);
                         },
                         contentType: "application/json",
@@ -235,6 +245,8 @@
                             } 
                         },
                         error: function(xhr, error) {
+                            $('#saveEditButton').removeClass()
+                            $('#saveEditButton').addClass("failure");
                             $('#saveEditButton').text(error);
                         },
                         contentType: "application/json",
@@ -262,6 +274,8 @@
                             } 
                         },
                         error: function(xhr, error) {
+                            $('#saveEditButton').removeClass();
+                            $('#saveEditButton').addClass("failure");
                             $('#saveEditButton').text(error);
                         },
                         contentType: "application/json",
@@ -272,7 +286,7 @@
 
                 $("#encryptPage").click(function(e) {
                     e.preventDefault();
-                    var passphrase = prompt("Please enter a passphrase", "");
+                    var passphrase = prompt("Please enter a passphrase. Note: Encrypting will remove all previous history.", "");
                     if (passphrase != null) {
                         encryptPage(passphrase);
                     }
@@ -306,8 +320,10 @@
                     var passphrase = prompt("Please enter a passphrase to lock", "");
                     if (passphrase != null) {
                         if ($('#lockPage').text() == "Lock") {
+                            $('#saveEditButton').removeClass();
                             $("#saveEditButton").text("Locking");                           
                         } else {
+                            $('#saveEditButton').removeClass();
                             $("#saveEditButton").text("Unlocking");
                         }
                         lockPage(passphrase);
@@ -318,7 +334,7 @@
 
                 $("#clearOld").click(function(e) {
                     e.preventDefault();
-                    var r = confirm("This will erase all cleared list items, are you sure you want to do that?");
+                    var r = confirm("This will erase all cleared list items, are you sure you want to do that? (Versions will stay in history).");
                     if (r == true) {
                         clearOld()
                     } else {
@@ -383,11 +399,6 @@
                             <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
                             <hr>
                             {{ if (or (.IsLocked) (.IsEncrypted) )}}
-                                {{ if .IsLocked }}
-                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
-                                {{ else }}
-                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
-                                {{ end }}
                             {{ else }}
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
                             <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
@@ -401,9 +412,11 @@
                     <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
                     {{ if (or (.IsLocked) (.IsEncrypted) )}}
                     {{ if .IsLocked }}
-                    <li class="pure-menu-item"><span id="saveEditButton">Locked</span></li>
+                    <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
+                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton">Locked</span></a></li>
                     {{ else }}
-                    <li class="pure-menu-item"><span id="saveEditButton">Encrypted</span></li>
+                    <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
+                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton">Encrypted</span></a></li>
                     {{ end }}
                     {{else}}
                     {{ if .ListPage }}
