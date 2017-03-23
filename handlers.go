@@ -128,6 +128,7 @@ func handlePageRequest(c *gin.Context) {
 		command[0:2] != "/v" &&
 		command[0:2] != "/l" &&
 		command[0:2] != "/h")
+
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"EditPage":    command[0:2] == "/e", // /edit
 		"ViewPage":    command[0:2] == "/v", // /view

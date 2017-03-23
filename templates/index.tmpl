@@ -397,6 +397,7 @@
                         <a href="#" id="menuLink1" class="pure-menu-link">CowYo</a>
                         <ul class="pure-menu-children">
                             <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
+                            <li class="pure-menu-item"><a href="https://github.com/schollz/cowyo" class="pure-menu-link">Source</a></li>
                             <hr>
                             {{ if (or (.IsLocked) (.IsEncrypted) )}}
                             {{ else }}
@@ -413,10 +414,10 @@
                     {{ if (or (.IsLocked) (.IsEncrypted) )}}
                     {{ if .IsLocked }}
                     <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
-                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton">Locked</span></a></li>
+                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton"></span></a></li>
                     {{ else }}
                     <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
-                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton">Encrypted</span></a></li>
+                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton"></span></a></li>
                     {{ end }}
                     {{else}}
                     {{ if .ListPage }}
