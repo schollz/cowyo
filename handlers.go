@@ -76,7 +76,8 @@ func handlePageRequest(c *gin.Context) {
 	p := Open(page)
 
 	// Disallow anything but viewing locked/encrypted pages
-	if (p.IsEncrypted || p.IsLocked) && command[0:2] != "/v" {
+	if (p.IsEncrypted || p.IsLocked) &&
+		(command[0:2] != "/v" && command[0:2] != "/r") {
 		c.Redirect(302, "/"+page+"/view")
 		return
 	}
