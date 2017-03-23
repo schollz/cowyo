@@ -97,7 +97,7 @@ func handlePageRequest(c *gin.Context) {
 			rawHTML = GithubMarkdownToHTML(rawText)
 		}
 	}
-	versionsInt64 := p.Text.GetMajorSnapshots()
+	versionsInt64 := p.Text.GetMajorSnapshots(60) // get snapshots 60 seconds apart
 	versionsText := make([]string, len(versionsInt64))
 	for i, v := range versionsInt64 {
 		versionsText[i] = time.Unix(v/1000000000, 0).String()
