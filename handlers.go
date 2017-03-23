@@ -89,11 +89,10 @@ func handlePageRequest(c *gin.Context) {
 		if !p.IsLocked && !p.IsEncrypted {
 			p.Erase()
 			c.Redirect(302, "/"+page+"/edit")
-			return
 		} else {
 			c.Redirect(302, "/"+page+"/view")
-			return
 		}
+		return
 	}
 	rawText := p.Text.GetCurrent()
 	rawHTML := p.RenderedPage
@@ -146,6 +145,7 @@ func handlePageRequest(c *gin.Context) {
 		"IsEncrypted":  p.IsEncrypted,
 		"ListItems":    renderList(rawText),
 		"Route":        "/" + page + command,
+		"HasDotInName": strings.Contains(page, "."),
 	})
 }
 
