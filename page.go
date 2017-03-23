@@ -69,5 +69,6 @@ func (p *Page) Save() error {
 }
 
 func (p *Page) Erase() error {
-	return os.Remove(path.Join(pathToData, encodeToBase32(p.Name)+".json"))
+	log.Trace("Erasing " + p.Name)
+	return os.Remove(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
 }
