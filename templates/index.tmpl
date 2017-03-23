@@ -316,6 +316,7 @@
 
 
             <div id="wrap">
+                {{ if .DontKnowPage }} <strong><center>{{ .Route }} not understood!</center></strong>{{ end }}
                 {{ if .ViewPage }} {{ .RenderedPage }} {{ end }}
                 {{ if .EditPage }} <textarea autofocus placeholder="Start typing, it will save automatically." id="userInput">{{ .RawPage }}</textarea>{{ end }}
             {{ if .HistoryPage }}
