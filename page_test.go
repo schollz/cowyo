@@ -8,7 +8,9 @@ import (
 )
 
 func TestGeneral(t *testing.T) {
-	defer os.RemoveAll("data")
+	pathToData = "testdata"
+	os.MkdirAll(pathToData, 0755)
+	defer os.RemoveAll(pathToData)
 	p := Open("testpage")
 	err := p.Update("**bold**")
 	if err != nil {
