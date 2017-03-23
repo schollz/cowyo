@@ -1,0 +1,16 @@
+# goreleaser.yml
+build:
+  binary: cowyo
+
+  ldflags: -s -w
+
+  goos:
+    - linux
+    - windows
+
+  goarch:
+    - amd64
+
+  hooks:
+    pre: go-bindata static/... templates/...
+    post: /bin/sh script.sh
