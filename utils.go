@@ -68,7 +68,7 @@ func randomAlliterateCombo() (combo string) {
 	for {
 		animal := randomAnimal()
 		adjective := randomAdjective()
-		if animal[0] == adjective[0] { //&& stringInSlice(strings.ToLower(adjective+animal), takenNames) == false {
+		if animal[0] == adjective[0] && len(animal)+len(adjective) < 18 { //&& stringInSlice(strings.ToLower(adjective+animal), takenNames) == false {
 			combo = adjective + animal
 			break
 		}
