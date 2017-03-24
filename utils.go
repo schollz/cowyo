@@ -15,7 +15,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
 	"github.com/schollz/cryptopasta"
-	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/shurcooL/github_flavored_markdown"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -49,21 +48,6 @@ func randomAdjective() string {
 
 func randomAlliterateCombo() (combo string) {
 	combo = ""
-	// // first determine which names are taken from program data
-	// takenNames := []string{}
-	// err := db.View(func(tx *bolt.Tx) error {
-	// 	// Assume bucket exists and has keys
-	// 	b := tx.Bucket([]byte("programdata"))
-	// 	c := b.Cursor()
-	// 	for k, v := c.First(); k != nil; k, v = c.Next() {
-	// 		takenNames = append(takenNames, strings.ToLower(string(v)))
-	// 	}
-	// 	return nil
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(takenNames)
 	// generate random alliteration thats not been used
 	for {
 		animal := randomAnimal()
@@ -105,19 +89,6 @@ func contentType(filename string) string {
 		return "application/javascript"
 	}
 	return "text/html"
-}
-
-func diffRebuildtexts(diffs []diffmatchpatch.Diff) []string {
-	text := []string{"", ""}
-	for _, myDiff := range diffs {
-		if myDiff.Type != diffmatchpatch.DiffInsert {
-			text[0] += myDiff.Text
-		}
-		if myDiff.Type != diffmatchpatch.DiffDelete {
-			text[1] += myDiff.Text
-		}
-	}
-	return text
 }
 
 func timeTrack(start time.Time, name string) {
