@@ -139,7 +139,7 @@ func handlePageRequest(c *gin.Context) {
 			command[0:2] != "/v" &&
 			command[0:2] != "/l" &&
 			command[0:2] != "/h",
-		"Page":         p.Name,
+		"Page":         page,
 		"RenderedPage": template.HTML([]byte(rawHTML)),
 		"RawPage":      rawText,
 		"Versions":     versionsInt64,
