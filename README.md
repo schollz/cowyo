@@ -33,13 +33,15 @@ To run just double click or from the command line:
 cowyo
 ```
 
+and it will start a server listening  on `0.0.0.0:8050`. To view it, just go to http://localhost:8050 (the server prints out the local IP for your info if you want to do LAN networking). You can change the port with `-port X`.
+
 ## Usage
 
 *cowyo* is straightforward to use. Here are some of the basic features:
 
 ### Editing
 
-When you open a document you'll be directed to an alliterative animal (which is supposed to be easy to remember). You can write in Markdown. Saving is performed as soon as you stop writing.
+When you open a document you'll be directed to an alliterative animal (which is supposed to be easy to remember). You can write in Markdown. Saving is performed as soon as you stop writing. You can easily link pages using [[PageName]] as you edit.
 
 ![Editing](http://i.imgur.com/vEs2U8z.gif)
 
