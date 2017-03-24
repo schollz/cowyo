@@ -438,9 +438,12 @@
                 {{ if .ViewPage }} {{ .RenderedPage }} {{ end }}
                 {{ if .EditPage }} <textarea autofocus placeholder="Start typing, it will save automatically." id="userInput">{{ .RawPage }}</textarea>{{ end }}
             {{ if .HistoryPage }}
+                <h1>History</h1>
                 <ul>
                 {{range $i, $e := .Versions}}
-                    <li>Version {{index $.VersionsText $i}}&nbsp;&nbsp;<a href="/{{ $.Page }}/view?version={{$e}}">View</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/list?version={{$e}}">List</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/raw?version={{$e}}">Raw</a></li>
+                    <li style="list-style: none;">
+                    <a href="/{{ $.Page }}/view?version={{$e}}">View</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/list?version={{$e}}">List</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/raw?version={{$e}}">Raw</a>&nbsp;&nbsp;
+                    {{index $.VersionsText $i}}&nbsp;({{if lt (index $.VersionsChangeSums $i) 0}}<span style="color:red">{{else}}<span style="color:green">+{{end}}{{index $.VersionsChangeSums $i}}</span>)</li>
                 {{end}}
                 </ul>
             {{ end }}
