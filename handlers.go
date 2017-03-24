@@ -108,10 +108,20 @@ func handlePageRequest(c *gin.Context) {
 			rawHTML = GithubMarkdownToHTML(rawText)
 		}
 	}
-	versionsInt64 := p.Text.GetMajorSnapshots(60) // get snapshots 60 seconds apart
-	versionsText := make([]string, len(versionsInt64))
-	for i, v := range versionsInt64 {
-		versionsText[i] = time.Unix(v/1000000000, 0).String()
+
+	// Get history
+	var versionsInt64 []int64
+	var versionsChangeSums []int
+	var versionsText []string
+	if command[0:2] == "/h" {
+		versionsInt64, versionsChangeSums = p.Text.GetMajorSnapshotsAndChangeSums(1) // get snapshots 60 seconds apart
+		versionsText = make([]string, len(versionsInt64))
+		for i, v := range versionsInt64 {
+			versionsText[i] = time.Unix(v/1000000000, 0).Format("Mon Jan 2 15:04:05 MST 2006")
+		}
+		versionsText = reverseSliceString(versionsText)
+		versionsInt64 = reverseSliceInt64(versionsInt64)
+		versionsChangeSums = reverseSliceInt(versionsChangeSums)
 	}
 
 	if command[0:2] == "/r" {
@@ -139,16 +149,17 @@ func handlePageRequest(c *gin.Context) {
 			command[0:2] != "/v" &&
 			command[0:2] != "/l" &&
 			command[0:2] != "/h",
-		"Page":         page,
-		"RenderedPage": template.HTML([]byte(rawHTML)),
-		"RawPage":      rawText,
-		"Versions":     versionsInt64,
-		"VersionsText": versionsText,
-		"IsLocked":     p.IsLocked,
-		"IsEncrypted":  p.IsEncrypted,
-		"ListItems":    renderList(rawText),
-		"Route":        "/" + page + command,
-		"HasDotInName": strings.Contains(page, "."),
+		"Page":               page,
+		"RenderedPage":       template.HTML([]byte(rawHTML)),
+		"RawPage":            rawText,
+		"Versions":           versionsInt64,
+		"VersionsText":       versionsText,
+		"VersionsChangeSums": versionsChangeSums,
+		"IsLocked":           p.IsLocked,
+		"IsEncrypted":        p.IsEncrypted,
+		"ListItems":          renderList(rawText),
+		"Route":              "/" + page + command,
+		"HasDotInName":       strings.Contains(page, "."),
 	})
 }
 
