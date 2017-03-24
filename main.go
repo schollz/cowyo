@@ -23,7 +23,7 @@ func main() {
 		}
 		pathToData = c.GlobalString("data")
 		os.MkdirAll(pathToData, 0755)
-		fmt.Printf("\nRunning CowYo at http://%s:%s\n\n", GetLocalIP(), c.GlobalString("port"))
+		fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, GetLocalIP(), c.GlobalString("port"))
 		serve(c.GlobalString("port"))
 		return nil
 	}
