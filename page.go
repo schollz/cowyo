@@ -7,6 +7,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/schollz/versionedtext"
 )
@@ -36,6 +37,27 @@ func Open(name string) (p *Page) {
 		p = new(Page)
 	}
 	return p
+}
+
+func DirectoryList() (names []string, lengths []int, numchanges []int, lastEdited []string) {
+	files, _ := ioutil.ReadDir(pathToData)
+	names = make([]string, len(files))
+	lengths = make([]int, len(files))
+	numchanges = make([]int, len(files))
+	lastEdited = make([]string, len(files))
+	for i, f := range files {
+		names[i] = DecodeFileName(f.Name())
+		p := Open(names[i])
+		lengths[i] = len(p.Text.GetCurrent())
+		numchanges[i] = p.Text.NumEdits()
+		lastEdited[i] = time.Unix(p.Text.LastEditTime()/1000000000, 0).Format("Mon Jan 2 15:04:05 MST 2006")
+	}
+	return
+}
+
+func DecodeFileName(s string) string {
+	s2, _ := decodeFromBase32(strings.Split(s, ".")[0])
+	return s2
 }
 
 func (p *Page) Update(newText string) error {

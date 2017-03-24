@@ -453,6 +453,25 @@
                   {{ end }}
             {{ end }}
 
+            {{ if .DirectoryPage }}
+                <table style="width:100%">
+                  <tr>
+                    <th>Document</th>
+                    <th>Current size</th> 
+                    <th>Num Edits</th> 
+                    <th>Last Edited</th> 
+                  </tr>
+                  {{range $i, $e := .FileNames}}
+                  <tr>
+                    <td><a href="/{{ $e }}/view">{{ $e }}</a></td>
+                    <td>{{index $.FileSizes $i}}</td> 
+                    <td>{{index $.FileNumChanges $i}}</td> 
+                    <td>{{index $.FileLastEdited $i}}</td> 
+                  </tr>
+                  {{ end }}
+                </table>
+            {{end}}
+
             </div>
         </article>
 
