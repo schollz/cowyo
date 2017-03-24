@@ -114,7 +114,7 @@ func handlePageRequest(c *gin.Context) {
 	var versionsChangeSums []int
 	var versionsText []string
 	if command[0:2] == "/h" {
-		versionsInt64, versionsChangeSums = p.Text.GetMajorSnapshotsAndChangeSums(1) // get snapshots 60 seconds apart
+		versionsInt64, versionsChangeSums = p.Text.GetMajorSnapshotsAndChangeSums(60) // get snapshots 60 seconds apart
 		versionsText = make([]string, len(versionsInt64))
 		for i, v := range versionsInt64 {
 			versionsText[i] = time.Unix(v/1000000000, 0).Format("Mon Jan 2 15:04:05 MST 2006")
