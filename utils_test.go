@@ -4,6 +4,12 @@ import (
 	"testing"
 )
 
+func BenchmarkAlliterativeAnimal(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		randomAlliterateCombo()
+	}
+}
+
 func TestReverseList(t *testing.T) {
 	s := []int64{1, 10, 2, 20}
 	if reverseSliceInt64(s)[0] != 20 {
