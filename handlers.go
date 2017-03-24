@@ -140,6 +140,13 @@ func handlePageRequest(c *gin.Context) {
 		command[0:2] != "/l" &&
 		command[0:2] != "/h")
 
+	var FileNames, FileLastEdited []string
+	var FileSizes, FileNumChanges []int
+	if page == "ls" {
+		command = "/view"
+		FileNames, FileSizes, FileNumChanges, FileLastEdited = DirectoryList()
+	}
+
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"EditPage":    command[0:2] == "/e", // /edit
 		"ViewPage":    command[0:2] == "/v", // /view
@@ -149,6 +156,11 @@ func handlePageRequest(c *gin.Context) {
 			command[0:2] != "/v" &&
 			command[0:2] != "/l" &&
 			command[0:2] != "/h",
+		"DirectoryPage":      page == "ls",
+		"FileNames":          FileNames,
+		"FileSizes":          FileSizes,
+		"FileNumChanges":     FileNumChanges,
+		"FileLastEdited":     FileLastEdited,
 		"Page":               page,
 		"RenderedPage":       template.HTML([]byte(rawHTML)),
 		"RawPage":            rawText,

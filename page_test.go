@@ -7,6 +7,22 @@ import (
 	"testing"
 )
 
+func TestListFiles(t *testing.T) {
+	pathToData = "testdata"
+	os.MkdirAll(pathToData, 0755)
+	defer os.RemoveAll(pathToData)
+	p := Open("testpage")
+	p.Update("Some data")
+	p = Open("testpage2")
+	p.Update("A different bunch of data")
+	p = Open("testpage3")
+	p.Update("Not much else")
+	n, l := DirectoryList()
+	if strings.Join(n, " ") != "testpage testpage2 testpage3" {
+		t.Errorf("Names: %s, Lengths: %d", n, l)
+	}
+}
+
 func TestGeneral(t *testing.T) {
 	pathToData = "testdata"
 	os.MkdirAll(pathToData, 0755)
