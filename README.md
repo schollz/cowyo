@@ -4,13 +4,13 @@
     src="/static/img/logo.png"
     width="260" height="80" border="0" alt="linkcrawler">
 <br>
-<a href="https://travis-ci.org/schollz/boltdb-server"><img src="https://img.shields.io/travis/schollz/boltdb-server.svg?style=flat-square" alt="Build Status"></a>
+<a href="https://travis-ci.org/schollz/cowyo"><img src="https://img.shields.io/travis/schollz/cowyo.svg?style=flat-square" alt="Build Status"></a>
 <img src="https://img.shields.io/badge/version-2.0.6-brightgreen.svg?style=flat-square" alt="Version">
 </p>
 
 <p align="center">A feature-rich wiki for minimalists</a></p>
 
-*cowyo* is a self-contained wiki server that makes jotting notes easy and _fast_. The most important feature here is _simplicity_. Other features include versioning, page locking, self-destructing messages, encryption, and listifying. You can [download *cowyo* as a single executable](https://github.com/schollz/cowyo/releases/latest) or install it with Go.
+*cowyo* is a self-contained wiki server that makes jotting notes easy and _fast_. The most important feature here is _simplicity_. Other features include versioning, page locking, self-destructing messages, encryption, and listifying. You can [download *cowyo* as a single executable](https://github.com/schollz/cowyo/releases/latest) or install it with Go. Try it out at https://cowyo.com.
 
 Getting Started
 ===============
