@@ -87,7 +87,7 @@ func (p *Page) Save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0755)
+	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0644)
 }
 
 func (p *Page) Erase() error {
