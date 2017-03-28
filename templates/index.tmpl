@@ -436,7 +436,9 @@
             <div id="wrap">
                 {{ if .DontKnowPage }} <strong><center>{{ .Route }} not understood!</center></strong>{{ end }}
                 {{ if .ViewPage }} {{ .RenderedPage }} {{ end }}
-                {{ if .EditPage }} <textarea autofocus placeholder="Start typing, it will save automatically." id="userInput">{{ .RawPage }}</textarea>{{ end }}
+                {{ if .EditPage }} <textarea autofocus placeholder="Start typing, it will save automatically.
+
+Use Markdown for formatting and links (also make links like [[this]])." id="userInput">{{ .RawPage }}</textarea>{{ end }}
             {{ if .HistoryPage }}
                 <h1>History</h1>
                 <ul>
