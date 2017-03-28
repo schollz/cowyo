@@ -7,7 +7,7 @@ LDFLAGS=-ldflags "-s -w -X main.version=${VERSION}"
 .PHONY: build
 build:
 	go-bindata static/... templates/... 
-	go build
+	go build ${LDFLAGS}
 
 .PHONY: linuxarm
 linuxarm:
