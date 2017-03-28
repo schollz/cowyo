@@ -23,8 +23,12 @@ func main() {
 		}
 		pathToData = c.GlobalString("data")
 		os.MkdirAll(pathToData, 0755)
-		fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, GetLocalIP(), c.GlobalString("port"))
-		serve(c.GlobalString("port"))
+		host := c.GlobalString("host")
+		if host == "" {
+			host = GetLocalIP()
+		}
+		fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
+		serve(c.GlobalString("host"), c.GlobalString("port"))
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -37,6 +41,11 @@ func main() {
 			Name:  "olddata",
 			Value: "",
 			Usage: "data folder for migrating",
+		},
+		cli.StringFlag{
+			Name:  "host",
+			Value: "",
+			Usage: "host to use",
 		},
 		cli.StringFlag{
 			Name:  "port,p",

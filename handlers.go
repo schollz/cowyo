@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func serve(port string) {
+func serve(host, port string) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.HTMLRender = loadTemplates("index.tmpl")
@@ -32,7 +32,7 @@ func serve(port string) {
 	router.DELETE("/oldlist", handleClearOldListItems)
 	router.DELETE("/listitem", deleteListItem)
 
-	router.Run(":" + port)
+	router.Run(host + ":" + port)
 }
 
 func loadTemplates(list ...string) multitemplate.Render {
