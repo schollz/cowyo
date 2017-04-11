@@ -60,9 +60,18 @@ func DecodeFileName(s string) string {
 	return s2
 }
 
+// Update cleans the text and updates the versioned text
+// and generates a new render
 func (p *Page) Update(newText string) error {
+	// Trim space from end
+	newText = strings.TrimRight(newText, "\n\t ")
+
+	// Update the versioned text
 	p.Text.Update(newText)
+
+	// Render the new page
 	p.Render()
+
 	return p.Save()
 }
 
