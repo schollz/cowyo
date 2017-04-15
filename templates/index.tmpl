@@ -102,6 +102,7 @@
 
 
         <script type='text/javascript'>
+	    oulipo = false; 
             //<![CDATA[
             $(window).load(function() {
                 // Returns a function, that, as long as it continues to be invoked, will not
@@ -130,6 +131,7 @@
                 // And it only fires 500ms or half a second after the user stopped typing
                 $('#userInput').on('keyup', debounce(function() {
                     console.log('typing occurred');
+		    if (oulipo == true) { $('#userInput').val($('#userInput').val().replace(/e/g,"")); }
                     $('#saveEditButton').removeClass()
                     $('#saveEditButton').text("Saving")
                     upload();
