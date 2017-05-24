@@ -59,7 +59,8 @@ func handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
 	if len(command) < 2 {
-		command = "/ "
+		c.Redirect(302, "/"+page+"/view")
+		return
 	}
 	// Serve static content from memory
 	if page == "static" {
