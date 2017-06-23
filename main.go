@@ -24,11 +24,21 @@ func main() {
 		pathToData = c.GlobalString("data")
 		os.MkdirAll(pathToData, 0755)
 		host := c.GlobalString("host")
+		crt_f := c.GlobalString("cert") // crt flag
+		key_f := c.GlobalString("key")  // key flag
 		if host == "" {
 			host = GetLocalIP()
 		}
-		fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
-		serve(c.GlobalString("host"), c.GlobalString("port"))
+		TLS := false
+		if crt_f != "" && key_f != "" {
+			TLS = true
+		}
+		if TLS {
+			fmt.Printf("\nRunning cowyo server (version %s) at https://%s:%s\n\n", version, host, c.GlobalString("port"))
+		} else {
+			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
+		}
+		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS)
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -51,6 +61,16 @@ func main() {
 			Name:  "port,p",
 			Value: "8050",
 			Usage: "port to use",
+		},
+		cli.StringFlag{
+			Name:  "cert",
+			Value: "",
+			Usage: "Absolute Path to SSL Public Cert",
+		},
+		cli.StringFlag{
+			Name:  "key",
+			Value: "",
+			Usage: "Aboslute Path to corresponding private key",
 		},
 		cli.BoolFlag{
 			Name:  "debug, d",

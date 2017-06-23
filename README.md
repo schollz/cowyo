@@ -35,6 +35,16 @@ cowyo
 
 and it will start a server listening  on `0.0.0.0:8050`. To view it, just go to http://localhost:8050 (the server prints out the local IP for your info if you want to do LAN networking). You can change the port with `-port X`, and you can listen *only* on localhost using `-host localhost`.
 
+### Running with TLS
+
+Specify a matching pair of SSL Certificate and Key to run cowyo using https. Cowyo will now run in a secure session. 
+
+*N.B. Let's Encrypt is a CA that signs free and signed certificates.*
+
+```
+cowyo --cert "/path/to/server.crt" --key "/p/t/server.key"
+```
+
 ## Usage
 
 *cowyo* is straightforward to use. Here are some of the basic features:
