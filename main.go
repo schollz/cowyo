@@ -65,12 +65,12 @@ func main() {
 		cli.StringFlag{
 			Name:  "cert",
 			Value: "",
-			Usage: "Absolute Path to SSL Public Cert",
+			Usage: "absolute path to SSL public sertificate",
 		},
 		cli.StringFlag{
 			Name:  "key",
 			Value: "",
-			Usage: "Aboslute Path to corresponding private key",
+			Usage: "absolute path to SSL private key",
 		},
 		cli.BoolFlag{
 			Name:  "debug, d",
