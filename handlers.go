@@ -26,6 +26,7 @@ func serve(host, port, crt_path, key_path string, TLS bool) {
 	})
 	router.GET("/:page/*command", handlePageRequest)
 	router.POST("/update", handlePageUpdate)
+	router.POST("/relinquish", handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
 	router.POST("/prime", handlePrime)
 	router.POST("/lock", handleLock)
 	router.POST("/encrypt", handleEncrypt)
@@ -57,6 +58,31 @@ func loadTemplates(list ...string) multitemplate.Render {
 	}
 
 	return r
+}
+
+func handlePageRelinquish(c *gin.Context) {
+	type QueryJSON struct {
+		Page string `json:"page"`
+	}
+	var json QueryJSON
+	err := c.BindJSON(&json)
+	if err != nil {
+		log.Trace(err.Error())
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
+		return
+	}
+	if len(json.Page) == 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Must specify `page`"})
+		return
+	}
+	message := "Relinquished"
+	p := Open(json.Page)
+	text := p.Text.GetCurrent()
+	if !p.IsLocked && p.IsPrimedForSelfDestruct {
+		p.Erase()
+		message = "Relinquished and erased"
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": message, "text": text})
 }
 
 func handlePageRequest(c *gin.Context) {
@@ -182,27 +208,41 @@ func handlePageRequest(c *gin.Context) {
 
 func handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
-		Page    string `json:"page"`
-		NewText string `json:"new_text"`
+		Page        string `json:"page"`
+		NewText     string `json:"new_text"`
+		IsEncrypted bool   `json:"is_encrypted"`
+		IsPrimed    bool   `json:"is_primed"`
 	}
 	var json QueryJSON
-	if c.BindJSON(&json) != nil {
+	err := c.BindJSON(&json)
+	if err != nil {
+		log.Trace(err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
 		return
 	}
-	if len(json.NewText) > 100000 {
+	if len(json.NewText) > 10000000 {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Too much"})
+		return
+	}
+	if len(json.Page) == 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Must specify `page`"})
 		return
 	}
 	log.Trace("Update: %v", json)
 	p := Open(json.Page)
 	var message string
 	if p.IsLocked {
-		message = "Locked"
+		message = "Locked, must unlock first"
 	} else if p.IsEncrypted {
-		message = "Encrypted"
+		message = "Encrypted, must decrypt first"
 	} else {
 		p.Update(json.NewText)
+		if json.IsEncrypted {
+			p.IsEncrypted = true
+		}
+		if json.IsPrimed {
+			p.IsPrimedForSelfDestruct = true
+		}
 		p.Save()
 		message = "Saved"
 	}
