@@ -78,11 +78,14 @@ func handlePageRelinquish(c *gin.Context) {
 	message := "Relinquished"
 	p := Open(json.Page)
 	text := p.Text.GetCurrent()
+	isLocked := p.IsEncrypted
+	isEncrypted := p.IsEncrypted
+	destroyed := p.IsPrimedForSelfDestruct
 	if !p.IsLocked && p.IsPrimedForSelfDestruct {
 		p.Erase()
 		message = "Relinquished and erased"
 	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": message, "text": text})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": message, "text": text, "locked": isLocked, "encrypted": isEncrypted, "destroyed": destroyed})
 }
 
 func handlePageRequest(c *gin.Context) {
