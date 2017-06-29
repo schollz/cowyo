@@ -20,7 +20,7 @@ Getting Started
 If you have go
 
 ```
-go get -u -v github.com/schollz/cowyo
+go get -u github.com/schollz/cowyo/...
 ```
 
 or just download from the [latest releases](https://github.com/schollz/cowyo/releases/latest).
