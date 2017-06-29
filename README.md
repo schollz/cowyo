@@ -5,7 +5,7 @@
     width="260" height="80" border="0" alt="linkcrawler">
 <br>
 <a href="https://travis-ci.org/schollz/cowyo"><img src="https://img.shields.io/travis/schollz/cowyo.svg?style=flat-square" alt="Build Status"></a>
-<a href="https://github.com/schollz/cowyo/releases/latest"><img src="https://img.shields.io/badge/version-2.2.0-brightgreen.svg?style=flat-square" alt="Version"></a>
+<a href="https://github.com/schollz/cowyo/releases/latest"><img src="https://img.shields.io/badge/version-2.3.0-brightgreen.svg?style=flat-square" alt="Version"></a>
 </p>
 
 <p align="center">A feature-rich wiki for minimalists</a></p>
@@ -23,7 +23,7 @@ If you have go
 go get -u github.com/schollz/cowyo/...
 ```
 
-or just download from the [latest releases](https://github.com/schollz/cowyo/releases/latest).
+or just [download the latest release](https://github.com/schollz/cowyo/releases/latest).
 
 ## Run
 
@@ -37,7 +37,7 @@ and it will start a server listening  on `0.0.0.0:8050`. To view it, just go to 
 
 ### Running with TLS
 
-Specify a matching pair of SSL Certificate and Key to run cowyo using https. Cowyo will now run in a secure session. 
+Specify a matching pair of SSL Certificate and Key to run cowyo using https. *cowyo* will now run in a secure session. 
 
 *N.B. Let's Encrypt is a CA that signs free and signed certificates.*
 
@@ -84,6 +84,17 @@ Encryption is performed using AES-256.
 Just like in mission impossible.
 
 ![Self-destructing](http://i.imgur.com/upMxFQh.gif)
+
+## Development
+
+You can run the tests using
+
+```
+$ cd $GOPATH/src/github.com/schollz/cowyo
+$ go test ./...
+```
+
+Any contributions are welcome.
 
 ## License
 
