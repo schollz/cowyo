@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
 	"encoding/base32"
 	"encoding/binary"
 	"encoding/hex"
@@ -14,7 +13,6 @@ import (
 	"github.com/jcelliott/lumber"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
-	"github.com/schollz/cryptopasta"
 	"github.com/shurcooL/github_flavored_markdown"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -158,26 +156,6 @@ func CheckPasswordHash(password, hashedString string) error {
 		return err
 	}
 	return bcrypt.CompareHashAndPassword(hash, []byte(password))
-}
-
-func EncryptString(toEncrypt string, password string) (string, error) {
-	key := sha256.Sum256([]byte(password))
-	encrypted, err := cryptopasta.Encrypt([]byte(toEncrypt), &key)
-	if err != nil {
-		return "", err
-	}
-
-	return hex.EncodeToString(encrypted), nil
-}
-
-func DecryptString(toDecrypt string, password string) (string, error) {
-	key := sha256.Sum256([]byte(password))
-	contentData, err := hex.DecodeString(toDecrypt)
-	if err != nil {
-		return "", err
-	}
-	bDecrypted, err := cryptopasta.Decrypt(contentData, &key)
-	return string(bDecrypted), err
 }
 
 // exists returns whether the given file or directory exists or not

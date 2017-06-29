@@ -10,6 +10,7 @@ import (
 	// "github.com/gin-contrib/static"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-gonic/gin"
+	"github.com/schollz/cowyo/encrypt"
 )
 
 func serve(host, port, crt_path, key_path string, TLS bool) {
@@ -328,7 +329,7 @@ func handleEncrypt(c *gin.Context) {
 	q := Open(json.Page)
 	var message string
 	if p.IsEncrypted {
-		decrypted, err2 := DecryptString(p.Text.GetCurrent(), json.Passphrase)
+		decrypted, err2 := encrypt.DecryptString(p.Text.GetCurrent(), json.Passphrase)
 		if err2 != nil {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong password"})
 			return
@@ -342,7 +343,7 @@ func handleEncrypt(c *gin.Context) {
 		message = "Decrypted"
 	} else {
 		currentText := p.Text.GetCurrent()
-		encrypted, _ := EncryptString(currentText, json.Passphrase)
+		encrypted, _ := encrypt.EncryptString(currentText, json.Passphrase)
 		q.Erase()
 		q = Open(json.Page)
 		q.Update(encrypted)

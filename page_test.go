@@ -17,7 +17,7 @@ func TestListFiles(t *testing.T) {
 	p.Update("A different bunch of data")
 	p = Open("testpage3")
 	p.Update("Not much else")
-	n, l := DirectoryList()
+	n, l, _, _ := DirectoryList()
 	if strings.Join(n, " ") != "testpage testpage2 testpage3" {
 		t.Errorf("Names: %s, Lengths: %d", n, l)
 	}
