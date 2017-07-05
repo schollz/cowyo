@@ -28,6 +28,7 @@ func serve(host, port, crt_path, key_path string, TLS bool) {
 	router.GET("/:page/*command", handlePageRequest)
 	router.POST("/update", handlePageUpdate)
 	router.POST("/relinquish", handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
+	router.POST("/exists", handlePageExists)
 	router.POST("/prime", handlePrime)
 	router.POST("/lock", handleLock)
 	router.POST("/encrypt", handleEncrypt)
@@ -210,6 +211,26 @@ func handlePageRequest(c *gin.Context) {
 	})
 }
 
+func handlePageExists(c *gin.Context) {
+	type QueryJSON struct {
+		Page string `json:"page"`
+	}
+	var json QueryJSON
+	err := c.BindJSON(&json)
+	if err != nil {
+		log.Trace(err.Error())
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON", "exists": false})
+		return
+	}
+	p := Open(json.Page)
+	if len(p.Text.GetCurrent()) > 0 {
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": json.Page + " found", "exists": true})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": json.Page + " not found", "exists": false})
+	}
+
+}
+
 func handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
 		Page        string `json:"page"`
@@ -235,6 +256,7 @@ func handlePageUpdate(c *gin.Context) {
 	log.Trace("Update: %v", json)
 	p := Open(json.Page)
 	var message string
+	success := false
 	if p.IsLocked {
 		message = "Locked, must unlock first"
 	} else if p.IsEncrypted {
@@ -249,8 +271,9 @@ func handlePageUpdate(c *gin.Context) {
 		}
 		p.Save()
 		message = "Saved"
+		success = true
 	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
+	c.JSON(http.StatusOK, gin.H{"success": success, "message": message})
 }
 
 func handlePrime(c *gin.Context) {
