@@ -79,6 +79,7 @@ func handlePageRelinquish(c *gin.Context) {
 	}
 	message := "Relinquished"
 	p := Open(json.Page)
+	name, _ := p.Text.GetPreviousByIndex(0)
 	text := p.Text.GetCurrent()
 	isLocked := p.IsEncrypted
 	isEncrypted := p.IsEncrypted
@@ -87,7 +88,13 @@ func handlePageRelinquish(c *gin.Context) {
 		p.Erase()
 		message = "Relinquished and erased"
 	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": message, "text": text, "locked": isLocked, "encrypted": isEncrypted, "destroyed": destroyed})
+	c.JSON(http.StatusOK, gin.H{"success": true,
+		"name":      name,
+		"message":   message,
+		"text":      text,
+		"locked":    isLocked,
+		"encrypted": isEncrypted,
+		"destroyed": destroyed})
 }
 
 func handlePageRequest(c *gin.Context) {
@@ -234,6 +241,7 @@ func handlePageExists(c *gin.Context) {
 func handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
 		Page        string `json:"page"`
+		FileName    string `json:"file_name"`
 		NewText     string `json:"new_text"`
 		IsEncrypted bool   `json:"is_encrypted"`
 		IsPrimed    bool   `json:"is_primed"`
@@ -262,6 +270,10 @@ func handlePageUpdate(c *gin.Context) {
 	} else if p.IsEncrypted {
 		message = "Encrypted, must decrypt first"
 	} else {
+		// Add the page name into the history so it can be retrieved
+		p.Update(json.FileName)
+		// time.Sleep(1 * time.Second)
+		// Add the page text so it can be retried as the latest part of the history
 		p.Update(json.NewText)
 		if json.IsEncrypted {
 			p.IsEncrypted = true
