@@ -272,7 +272,6 @@ func handlePageUpdate(c *gin.Context) {
 	} else {
 		// Add the page name into the history so it can be retrieved
 		p.Update(json.FileName)
-		// time.Sleep(1 * time.Second)
 		// Add the page text so it can be retried as the latest part of the history
 		p.Update(json.NewText)
 		if json.IsEncrypted {
@@ -281,7 +280,6 @@ func handlePageUpdate(c *gin.Context) {
 		if json.IsPrimed {
 			p.IsPrimedForSelfDestruct = true
 		}
-		p.Save()
 		message = "Saved"
 		success = true
 	}
