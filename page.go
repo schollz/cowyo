@@ -16,6 +16,7 @@ import (
 type Page struct {
 	Name                    string
 	Text                    versionedtext.VersionedText
+	Meta                    string
 	RenderedPage            string
 	IsLocked                bool
 	PassphraseToUnlock      string

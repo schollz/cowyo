@@ -79,7 +79,10 @@ func handlePageRelinquish(c *gin.Context) {
 	}
 	message := "Relinquished"
 	p := Open(json.Page)
-	name, _ := p.Text.GetPreviousByIndex(0)
+	name := p.Meta
+	if name == "" {
+		name = json.Page
+	}
 	text := p.Text.GetCurrent()
 	isLocked := p.IsEncrypted
 	isEncrypted := p.IsEncrypted
@@ -241,10 +244,10 @@ func handlePageExists(c *gin.Context) {
 func handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
 		Page        string `json:"page"`
-		FileName    string `json:"file_name"`
 		NewText     string `json:"new_text"`
 		IsEncrypted bool   `json:"is_encrypted"`
 		IsPrimed    bool   `json:"is_primed"`
+		Meta        string `json:"meta"`
 	}
 	var json QueryJSON
 	err := c.BindJSON(&json)
@@ -253,7 +256,7 @@ func handlePageUpdate(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
 		return
 	}
-	if len(json.NewText) > 10000000 {
+	if len(json.NewText) > 100000000 {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Too much"})
 		return
 	}
@@ -270,9 +273,7 @@ func handlePageUpdate(c *gin.Context) {
 	} else if p.IsEncrypted {
 		message = "Encrypted, must decrypt first"
 	} else {
-		// Add the page name into the history so it can be retrieved
-		p.Update(json.FileName)
-		// Add the page text so it can be retried as the latest part of the history
+		p.Meta = json.Meta
 		p.Update(json.NewText)
 		if json.IsEncrypted {
 			p.IsEncrypted = true
@@ -280,6 +281,7 @@ func handlePageUpdate(c *gin.Context) {
 		if json.IsPrimed {
 			p.IsPrimedForSelfDestruct = true
 		}
+		p.Save()
 		message = "Saved"
 		success = true
 	}
