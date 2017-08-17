@@ -281,6 +281,7 @@ func handlePageUpdate(c *gin.Context) {
 		if json.IsPrimed {
 			p.IsPrimedForSelfDestruct = true
 		}
+		p.Save()
 		message = "Saved"
 		success = true
 	}
