@@ -23,6 +23,8 @@
         <meta name="theme-color" content="#fff">
 
         <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
+        <script type="text/javascript" src="/static/js/inline-attachment.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.inline-attachment.js"></script>
         <link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
         <link rel="stylesheet" type="text/css" href="/static/css/menus-min.css">
         <link rel="stylesheet" type="text/css" href="/static/css/base-min.css">
@@ -481,7 +483,13 @@ Use Markdown for formatting and links (also make links like [[this]])." id="user
 
 
 
-
+        <script type="text/javascript">
+            $(function() {
+                $('textarea').inlineattachment({
+                    uploadUrl: 'upload_attachment.php'
+                });
+            });
+        </script>
 
     </body>
 
