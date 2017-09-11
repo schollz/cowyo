@@ -31,65 +31,104 @@
         <script type="text/javascript" src="/static/js/highlight.pack.js"></script>
 
         <style type="text/css">
-            {{ if .ListPage }}
-            /* Required for lists */
-            span { cursor: pointer; }
-            {{ end }}
+{{ if .ListPage }}
+/* Required for lists */
+span { cursor: pointer; }
+{{ end }}
+body {
+    background: #fff;
+}
+.success {
+    color: #5cb85c;
+    font-weight: bold;
+}
+.failure {
+    color: #d9534f;
+    font-weight: bold;
+}
+.pure-menu a {
+    color: #777;
+}
+#wrap {
+    position: absolute;
+    top: 30px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+}
+#pad {
+    height:100%;
+}
+{{ if .EditPage }}
+body {
+    overflow:hidden;
+}
+{{ end  }}
+body#pad textarea {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 30px;
+    border: 0;
+    border: none;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    resize: none;
+    font-size: 1.0em;
+    {{ if .HasDotInName }}
+    font-family: "Lucida Console", Monaco, monospace;
+    {{else}}
+    font-family: 'Open Sans','Segoe UI',Tahoma,Arial,sans-serif;
+    {{ end }}
+}
 
+.markdown-body ul, .markdown-body ol {
+    padding-left: 0em;
+}
 
-            body {
-                background: #fff;
-            }
+@media (min-width: 5em) {
+    div#menu, div#rendered, body#pad textarea {
+        padding-left: 2%;
+        padding-right: 2%;
+    }
+    .pure-menu .pure-menu-horizontal {
+        max-width: 300px;
+    }
+    .pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
+        padding-left:0.8em;
+        padding-right:0em;
+    }
+}
+@media (min-width: 50em) {
+    div#menu, div#rendered, body#pad textarea {
+        padding-left: 10%;
+        padding-right: 10%;
+    }
+    .pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
+        padding: .5em 1em;
+    }
+}
+@media (min-width: 70em) {
+    div#menu, div#rendered, body#pad textarea {
+        padding-left: 15%;
+        padding-right: 15%;
+    }
+}
 
-            .success {
-                color: #5cb85c;
-                font-weight: bold;
-            }
-
-            .failure {
-                color: #d9534f;
-                font-weight: bold;
-            }
-
-            .pure-menu a {
-                color: #777;
-            }
-
-            #wrap {
-                position: absolute;
-                top: 50px;
-                left: 2%;
-                right: 2%;
-                bottom: 2%;
-                /*   border: 3px double #f99;
-   */
-            }
-
-            textarea {
-                width: 100%;
-                height: 100%;
-                box-sizing: border-box;
-                /* For IE and modern versions of Chrome */
-                -moz-box-sizing: border-box;
-                /* For Firefox                          */
-                -webkit-box-sizing: border-box;
-                /* For Safari                           */
-                position: absolute;
-                /*   padding: 1em 2em;
-   */
-                left: 0;
-                right: 0;
-                bottom: 0;
-                top: 0;
-                border: 0;
-                border: none;
-                outline: none;
-                -webkit-box-shadow: none;
-                -moz-box-shadow: none;
-                box-shadow: none;
-                resize: none;
-                {{ if .HasDotInName }}font-family: "Lucida Console", Monaco, monospace{{ end }}
-            }
+@media (min-width: 100em) {
+    div#menu, div#rendered, body#pad textarea {
+        padding-left: 20%;
+        padding-right: 20%;
+    }
+}
 
         </style>
 
@@ -389,9 +428,9 @@
 
     </head>
 
-    <body>
+    <body id="pad">
         <article class="markdown-body">
-            <div class="pure-menu pure-menu-horizontal">
+            <div class="pure-menu pure-menu-horizontal" id="menu">
                 <ul class="pure-menu-list">
                     <li></li>
                     <!-- Required to keep them level? -->
@@ -436,11 +475,12 @@
 
 
             <div id="wrap">
-                {{ if .DontKnowPage }} <strong><center>{{ .Route }} not understood!</center></strong>{{ end }}
-                {{ if .ViewPage }} {{ .RenderedPage }} {{ end }}
-                {{ if .EditPage }} <textarea autofocus placeholder="Start typing, it will save automatically.
+                {{ if .EditPage }} <div id="pad"><textarea autofocus placeholder="Start typing, it will save automatically.
 
-Use Markdown for formatting and links (also make links like [[this]])." id="userInput">{{ .RawPage }}</textarea>{{ end }}
+Use Markdown for formatting and links (also make links like [[this]])." id="userInput">{{ .RawPage }}</textarea></div>{{ end }}
+<div id="rendered"> 
+                {{ if .DontKnowPage }} <strong><center>{{ .Route }} not understood!</center></strong>{{ end }}
+                {{ if .ViewPage }}{{ .RenderedPage }}{{ end }}
             {{ if .HistoryPage }}
                 <h1>History</h1>
                 <ul>
@@ -475,7 +515,7 @@ Use Markdown for formatting and links (also make links like [[this]])." id="user
                   {{ end }}
                 </table>
             {{end}}
-
+</div> 
             </div>
         </article>
 
