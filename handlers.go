@@ -9,6 +9,7 @@ import (
 
 	// "github.com/gin-contrib/static"
 	"github.com/gin-contrib/multitemplate"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/schollz/cowyo/encrypt"
 )
@@ -16,6 +17,8 @@ import (
 func serve(host, port, crt_path, key_path string, TLS bool) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	store := sessions.NewCookieStore([]byte("secret"))
+	router.Use(sessions.Sessions("mysession", store))
 	router.HTMLRender = loadTemplates("index.tmpl")
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
@@ -219,7 +222,37 @@ func handlePageRequest(c *gin.Context) {
 		"ListItems":          renderList(rawText),
 		"Route":              "/" + page + command,
 		"HasDotInName":       strings.Contains(page, "."),
+		"RecentlyEdited":     getRecentlyEdited(page, c),
 	})
+}
+
+func getRecentlyEdited(title string, c *gin.Context) []string {
+	session := sessions.Default(c)
+	var recentlyEdited string
+	v := session.Get("recentlyEdited")
+	editedThings := []string{}
+	if v == nil {
+		recentlyEdited = title
+	} else {
+		editedThings = strings.Split(v.(string), "|||")
+		if !stringInSlice(title, editedThings) {
+			recentlyEdited = v.(string) + "|||" + title
+		} else {
+			recentlyEdited = v.(string)
+		}
+	}
+	session.Set("recentlyEdited", recentlyEdited)
+	session.Save()
+	editedThingsWithoutCurrent := make([]string, len(editedThings))
+	i := 0
+	for _, thing := range editedThings {
+		if thing == title {
+			continue
+		}
+		editedThingsWithoutCurrent[i] = thing
+		i++
+	}
+	return editedThingsWithoutCurrent[:i]
 }
 
 func handlePageExists(c *gin.Context) {

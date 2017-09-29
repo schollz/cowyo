@@ -451,7 +451,23 @@ body#pad textarea {
                             {{ end }}
                         </ul>
                     </li>
-                    <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/view" class="pure-menu-link">View</a></li>
+                    <!--
+                    <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}">
+                    <a href="/{{ .Page }}/view" class="pure-menu-link">View</a>
+                    </li>-->
+
+                    <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover  {{ with .ViewPage }}pure-menu-selected{{ end }}">
+                        <a href="#" id="menuLink1" class="pure-menu-link">View</a>
+                        <ul class="pure-menu-children">
+                        <li class="pure-menu-item">
+                    <a href="/{{ .Page }}/view" class="pure-menu-link">Current</a>                      
+                        </li>
+                        {{ range .RecentlyEdited}}
+                            <li class="pure-menu-item"><a  class="pure-menu-link" href="/{{.}}/view/">{{.}}</a></li>
+                        {{ end }}
+                        </ul>
+                    </li>
+
                     {{ if (or (.IsLocked) (.IsEncrypted) )}}
                     {{ if .IsLocked }}
                     <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
@@ -469,7 +485,9 @@ body#pad textarea {
                     <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
                     {{end}}
 
-                    
+                
+
+
                 </ul>
             </div>
 
