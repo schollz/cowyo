@@ -249,6 +249,9 @@ func getRecentlyEdited(title string, c *gin.Context) []string {
 		if thing == title {
 			continue
 		}
+		if strings.Contains(thing, "icon-") {
+			continue
+		}
 		editedThingsWithoutCurrent[i] = thing
 		i++
 	}
