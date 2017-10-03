@@ -1,0 +1,30 @@
+language: go
+sudo: false
+
+go:
+  - 1.6.x
+  - 1.7.x
+  - 1.8.x
+  - 1.9.x
+  - tip
+
+install:
+  - make install
+
+script:
+  - make vet
+  - make fmt-check
+  - make embedmd
+  - make misspell-check
+  - make test
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/acc2c57482e94b44f557
+    on_success: change
+    on_failure: always
+    on_start: false
