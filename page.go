@@ -76,6 +76,8 @@ func (p *Page) Update(newText string) error {
 	return p.Save()
 }
 
+var rBracketPage = regexp.MustCompile(`\[\[(.*?)\]\]`)
+
 func (p *Page) Render() {
 	if p.IsEncrypted {
 		p.RenderedPage = "<code>" + p.Text.GetCurrent() + "</code>"
@@ -83,9 +85,8 @@ func (p *Page) Render() {
 	}
 
 	// Convert [[page]] to [page](/page/view)
-	r, _ := regexp.Compile("\\[\\[(.*?)\\]\\]")
 	currentText := p.Text.GetCurrent()
-	for _, s := range r.FindAllString(currentText, -1) {
+	for _, s := range rBracketPage.FindAllString(currentText, -1) {
 		currentText = strings.Replace(currentText, s, "["+s[2:len(s)-2]+"](/"+s[2:len(s)-2]+"/view)", 1)
 	}
 	p.Text.Update(currentText)

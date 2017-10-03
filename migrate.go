@@ -7,8 +7,14 @@ import (
 )
 
 func migrate(pathToOldData, pathToData string) error {
-	files, _ := ioutil.ReadDir(pathToOldData)
+	files, err := ioutil.ReadDir(pathToOldData)
+	if len(files) == 0 {
+		return err
+	}
 	for _, f := range files {
+		if f.Mode().IsDir() {
+			continue
+		}
 		fmt.Printf("Migrating %s", f.Name())
 		p := Open(f.Name())
 		bData, err := ioutil.ReadFile(path.Join(pathToOldData, f.Name()))
@@ -19,7 +25,9 @@ func migrate(pathToOldData, pathToData string) error {
 		if err != nil {
 			return err
 		}
-		p.Save()
+		if err = p.Save(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
