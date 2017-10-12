@@ -102,5 +102,3 @@ Any contributions are welcome.
 
 MIT
 
-
-![](https://analytics.schollz.com/1.png?page=github.com/schollz/cowyo)
