@@ -2,7 +2,7 @@
 # make -j4 release
 
 VERSION=$(shell git describe)
-LDFLAGS=-ldflags "-s -w -X main.version=${VERSION}"
+LDFLAGS=-ldflags "-s -w -X main.version=${VERSION}" -a -installsuffix cgo
 
 .PHONY: build
 build:
