@@ -47,6 +47,16 @@ Specify a matching pair of SSL Certificate and Key to run cowyo using https. *co
 cowyo --cert "/path/to/server.crt" --key "/p/t/server.key"
 ```
 
+### Running with Docker
+
+You can easily get started with Docker. First pull the latest image and create the volume with:
+
+```
+docker run -d --name cowyo -p 8050:8050 schollz/cowyo
+```
+
+Then you can stop it with `docker stop cowyo` and start it again with `docker start cowyo`.
+
 ## Usage
 
 *cowyo* is straightforward to use. Here are some of the basic features:
