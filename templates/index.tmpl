@@ -407,7 +407,7 @@ body#pad textarea {
 
                 $("#publishPage").click(function(e) {
                     e.preventDefault();
-                    var message = " This will add your page to the sitemap.xml so it will be indexed.";
+                    var message = " This will add your page to the sitemap.xml so it will be indexed by search engines.";
                     if ($('#publishPage').text() == "Unpublish") {
                         message = "";
                     }
@@ -553,8 +553,7 @@ body#pad textarea {
 
 
             <div id="wrap">
-                {{ if .EditPage }} <div id="pad"><textarea autofocus placeholder="Start typing, it will save automatically.
-Use Markdown for formatting and links (also make links like [[this]])." id="userInput">{{ .RawPage }}</textarea></div>{{ end }}
+                {{ if .EditPage }} <div id="pad"><textarea autofocus placeholder="Use markdown to write your note! New: you can publish your note when you are done ({{ .Page }} -> Publish)." id="userInput">{{ .RawPage }}</textarea></div>{{ end }}
 <div id="rendered"> 
                 {{ if .DontKnowPage }} <strong><center>{{ .Route }} not understood!</center></strong>{{ end }}
                 {{ if .ViewPage }}{{ .RenderedPage }}

@@ -121,8 +121,6 @@ func generateSiteMap() (sitemap string) {
 	}
 	names = names[:i]
 	lastEdited = lastEdited[:i]
-	fmt.Println(names)
-
 	sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 	<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
 	for i := range names {
@@ -140,23 +138,26 @@ func generateSiteMap() (sitemap string) {
 }
 func handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
+	command := c.Param("command")
+
 	if page == "sitemap.xml" {
 		c.Data(http.StatusOK, contentType("sitemap.xml"), []byte(generateSiteMap()))
 		return
-	}
-	command := c.Param("command")
-	if len(command) < 2 {
-		c.Redirect(302, "/"+page+"/edit")
+	} else if page == "favicon.ico" {
+		data, _ := Asset("/static/img/cowyo/favicon.ico")
+		c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
 		return
-	}
-	// Serve static content from memory
-	if page == "static" {
+	} else if page == "static" {
 		filename := page + command
 		data, err := Asset(filename)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Could not find data")
 		}
 		c.Data(http.StatusOK, contentType(filename), data)
+		return
+	}
+	if len(command) < 2 {
+		c.Redirect(302, "/"+page+"/edit")
 		return
 	}
 
