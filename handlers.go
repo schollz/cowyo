@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -40,6 +41,9 @@ func serve(host, port, crt_path, key_path string, TLS bool) {
 	router.POST("/encrypt", handleEncrypt)
 	router.DELETE("/oldlist", handleClearOldListItems)
 	router.DELETE("/listitem", deleteListItem)
+
+	// start long-processes as threads
+	go thread_SiteMap()
 
 	if TLS {
 		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
@@ -106,6 +110,15 @@ func handlePageRelinquish(c *gin.Context) {
 		"destroyed": destroyed})
 }
 
+func thread_SiteMap() {
+	for {
+		log.Info("Generating sitemap...")
+		ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
+		log.Info("..finished generating sitemap")
+		time.Sleep(24 * time.Hour)
+	}
+}
+
 func generateSiteMap() (sitemap string) {
 	files, _ := ioutil.ReadDir(pathToData)
 	lastEdited := make([]string, len(files))
@@ -122,16 +135,16 @@ func generateSiteMap() (sitemap string) {
 	names = names[:i]
 	lastEdited = lastEdited[:i]
 	sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-	<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+		<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
 	for i := range names {
 		sitemap += fmt.Sprintf(`
-<url>
-<loc>https://cowyo.com/%s/view</loc>
-<lastmod>%s</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.8</priority>
-</url>
-`, names[i], lastEdited[i])
+	<url>
+	<loc>https://cowyo.com/%s/view</loc>
+	<lastmod>%s</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.8</priority>
+	</url>
+	`, names[i], lastEdited[i])
 	}
 	sitemap += "</urlset>"
 	return
@@ -141,7 +154,12 @@ func handlePageRequest(c *gin.Context) {
 	command := c.Param("command")
 
 	if page == "sitemap.xml" {
-		c.Data(http.StatusOK, contentType("sitemap.xml"), []byte(generateSiteMap()))
+		siteMap, err := ioutil.ReadFile(path.Join(pathToData, "sitemap.xml"))
+		if err != nil {
+			c.Data(http.StatusInternalServerError, contentType("sitemap.xml"), []byte(""))
+		} else {
+			c.Data(http.StatusOK, contentType("sitemap.xml"), siteMap)
+		}
 		return
 	} else if page == "favicon.ico" {
 		data, _ := Asset("/static/img/cowyo/favicon.ico")
