@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -34,6 +36,7 @@ func serve(host, port, crt_path, key_path string, TLS bool) {
 	router.POST("/exists", handlePageExists)
 	router.POST("/prime", handlePrime)
 	router.POST("/lock", handleLock)
+	router.POST("/publish", handlePublish)
 	router.POST("/encrypt", handleEncrypt)
 	router.DELETE("/oldlist", handleClearOldListItems)
 	router.DELETE("/listitem", deleteListItem)
@@ -103,8 +106,44 @@ func handlePageRelinquish(c *gin.Context) {
 		"destroyed": destroyed})
 }
 
+func generateSiteMap() (sitemap string) {
+	files, _ := ioutil.ReadDir(pathToData)
+	lastEdited := make([]string, len(files))
+	names := make([]string, len(files))
+	i := 0
+	for _, f := range files {
+		names[i] = DecodeFileName(f.Name())
+		p := Open(names[i])
+		if p.IsPublished {
+			lastEdited[i] = time.Unix(p.Text.LastEditTime()/1000000000, 0).Format("2006-01-02")
+			i++
+		}
+	}
+	names = names[:i]
+	lastEdited = lastEdited[:i]
+	fmt.Println(names)
+
+	sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+	<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+	for i := range names {
+		sitemap += fmt.Sprintf(`
+<url>
+<loc>https://cowyo.com/%s/view</loc>
+<lastmod>%s</lastmod>
+<changefreq>monthly</changefreq>
+<priority>0.8</priority>
+</url>
+`, names[i], lastEdited[i])
+	}
+	sitemap += "</urlset>"
+	return
+}
 func handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
+	if page == "sitemap.xml" {
+		c.Data(http.StatusOK, contentType("sitemap.xml"), []byte(generateSiteMap()))
+		return
+	}
 	command := c.Param("command")
 	if len(command) < 2 {
 		c.Redirect(302, "/"+page+"/edit")
@@ -223,6 +262,7 @@ func handlePageRequest(c *gin.Context) {
 		"Route":              "/" + page + command,
 		"HasDotInName":       strings.Contains(page, "."),
 		"RecentlyEdited":     getRecentlyEdited(page, c),
+		"IsPublished":        p.IsPublished,
 	})
 }
 
@@ -379,6 +419,27 @@ func handleLock(c *gin.Context) {
 		message = "Locked"
 	}
 	p.Save()
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
+}
+
+func handlePublish(c *gin.Context) {
+	type QueryJSON struct {
+		Page    string `json:"page"`
+		Publish bool   `json:"publish"`
+	}
+
+	var json QueryJSON
+	if c.BindJSON(&json) != nil {
+		c.String(http.StatusBadRequest, "Problem binding keys")
+		return
+	}
+	p := Open(json.Page)
+	p.IsPublished = json.Publish
+	p.Save()
+	message := "Published"
+	if !p.IsPublished {
+		message = "Unpublished"
+	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 

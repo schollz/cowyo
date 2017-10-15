@@ -85,6 +85,8 @@ func contentType(filename string) string {
 		return "image/png"
 	case strings.Contains(filename, ".js"):
 		return "application/javascript"
+	case strings.Contains(filename, ".xml"):
+		return "application/xml"
 	}
 	return "text/html"
 }

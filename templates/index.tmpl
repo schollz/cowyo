@@ -262,6 +262,38 @@ body#pad textarea {
                     });
                 }
 
+                function publishPage() {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/publish',
+                        data: JSON.stringify({
+                            page: "{{ .Page }}",
+                            publish: $('#publishPage').text() == "Publish"
+                        }),
+                        success: function(data) {
+                            $('#saveEditButton').removeClass()
+                            if (data.success == true) {
+                                $('#saveEditButton').addClass("success");
+                            } else {
+                                $('#saveEditButton').addClass("failure");
+                            }
+                            $('#saveEditButton').text(data.message);
+                            if (data.message == "Unpublished") {
+                                $('#publishPage').text("Publish");
+                            } else {
+                                $('#publishPage').text("Unpublish");                             
+                            }
+                        },
+                        error: function(xhr, error) {
+                            $('#saveEditButton').removeClass()
+                            $('#saveEditButton').addClass("failure");
+                            $('#saveEditButton').text(error);
+                        },
+                        contentType: "application/json",
+                        dataType: 'json'
+                    });
+                }
+
                 function encryptPage(passphrase) {
                     $.ajax({
                         type: 'POST',
@@ -373,6 +405,25 @@ body#pad textarea {
                     }
                 });
 
+                $("#publishPage").click(function(e) {
+                    e.preventDefault();
+                    var message = " This will add your page to the sitemap.xml so it will be indexed.";
+                    if ($('#publishPage').text() == "Unpublish") {
+                        message = "";
+                    }
+                    var confirmed = confirm("Are you sure?" + message);
+                    if (confirmed == true) {
+                        if ($('#publishPage').text() == "Unpublish") {
+                            $('#saveEditButton').removeClass();
+                            $("#saveEditButton").text("Unpublishing");                   
+                        } else {
+                            $('#saveEditButton').removeClass();
+                            $("#saveEditButton").text("Publishing");
+                        }      
+                        publishPage();
+                    }
+                });
+
                 $("#clearOld").click(function(e) {
                     e.preventDefault();
                     var r = confirm("This will erase all cleared list items, are you sure you want to do that? (Versions will stay in history).");
@@ -439,6 +490,15 @@ body#pad textarea {
                         <ul class="pure-menu-children">
                             <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
                             <li class="pure-menu-item"><a href="https://github.com/schollz/cowyo" class="pure-menu-link">Source</a></li>
+                            {{ if .EditPage }}
+                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="publishPage">
+                            {{- if .IsPublished -}}
+                            Unpublish
+                            {{- else -}}
+                            Publish
+                            {{- end -}}
+                            </a></li>
+                            {{ end }}
                             <hr>
                             {{ if (or (.IsLocked) (.IsEncrypted) )}}
                             {{ else }}

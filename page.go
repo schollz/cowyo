@@ -22,6 +22,7 @@ type Page struct {
 	PassphraseToUnlock      string
 	IsEncrypted             bool
 	IsPrimedForSelfDestruct bool
+	IsPublished             bool
 }
 
 func Open(name string) (p *Page) {
@@ -104,4 +105,8 @@ func (p *Page) Save() error {
 func (p *Page) Erase() error {
 	log.Trace("Erasing " + p.Name)
 	return os.Remove(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
+}
+
+func (p *Page) Published() bool {
+	return p.IsPublished
 }
