@@ -149,6 +149,7 @@ func generateSiteMap() (sitemap string) {
 	sitemap += "</urlset>"
 	return
 }
+
 func handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
@@ -174,13 +175,19 @@ func handlePageRequest(c *gin.Context) {
 		c.Data(http.StatusOK, contentType(filename), data)
 		return
 	}
+	p := Open(page)
+	fmt.Println(command)
 	if len(command) < 2 {
-		c.Redirect(302, "/"+page+"/edit")
+		fmt.Println(p.IsPublished)
+		if p.IsPublished {
+			c.Redirect(302, "/"+page+"/read")
+		} else {
+			c.Redirect(302, "/"+page+"/edit")
+		}
 		return
 	}
 
 	version := c.DefaultQuery("version", "ajksldfjl")
-	p := Open(page)
 
 	// Disallow anything but viewing locked/encrypted pages
 	if (p.IsEncrypted || p.IsLocked) &&
@@ -232,7 +239,7 @@ func handlePageRequest(c *gin.Context) {
 		versionsChangeSums = reverseSliceInt(versionsChangeSums)
 	}
 
-	if command[0:2] == "/r" {
+	if command[0:3] == "/ra" {
 		c.Writer.Header().Set("Content-Type", contentType(p.Name))
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
@@ -246,7 +253,8 @@ func handlePageRequest(c *gin.Context) {
 	log.Debug("%v", command[0:2] != "/e" &&
 		command[0:2] != "/v" &&
 		command[0:2] != "/l" &&
-		command[0:2] != "/h")
+		command[0:2] != "/h" &&
+		command[0:2] != "/r")
 
 	var FileNames, FileLastEdited []string
 	var FileSizes, FileNumChanges []int
@@ -260,6 +268,7 @@ func handlePageRequest(c *gin.Context) {
 		"ViewPage":    command[0:2] == "/v", // /view
 		"ListPage":    command[0:2] == "/l", // /list
 		"HistoryPage": command[0:2] == "/h", // /history
+		"ReadPage":    command[0:2] == "/r", // /history
 		"DontKnowPage": command[0:2] != "/e" &&
 			command[0:2] != "/v" &&
 			command[0:2] != "/l" &&
@@ -282,6 +291,7 @@ func handlePageRequest(c *gin.Context) {
 		"HasDotInName":       strings.Contains(page, "."),
 		"RecentlyEdited":     getRecentlyEdited(page, c),
 		"IsPublished":        p.IsPublished,
+		"CustomCSS":          "",
 	})
 }
 

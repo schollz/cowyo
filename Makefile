@@ -9,6 +9,11 @@ build:
 	go-bindata static/... templates/... 
 	go build ${LDFLAGS}
 
+.PHONY: quick
+quick:
+	go-bindata static/... templates/... 
+	go build
+
 .PHONY: linuxarm
 linuxarm:
 	env GOOS=linux GOARCH=arm go build ${LDFLAGS} -o dist/cowyo_linux_arm
