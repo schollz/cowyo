@@ -38,7 +38,7 @@ func main() {
 		} else {
 			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
 		}
-		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS)
+		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS, c.GlobalString("css"), c.GlobalString("default-page"), c.GlobalString("lock"))
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -71,6 +71,21 @@ func main() {
 			Name:  "key",
 			Value: "",
 			Usage: "absolute path to SSL private key",
+		},
+		cli.StringFlag{
+			Name:  "css",
+			Value: "",
+			Usage: "use a custom CSS file",
+		},
+		cli.StringFlag{
+			Name:  "default-page",
+			Value: "",
+			Usage: "show default-page/read instead of editing (default: show random editing)",
+		},
+		cli.StringFlag{
+			Name:  "lock",
+			Value: "",
+			Usage: "password to lock editing all files (default: all pages unlocked)",
 		},
 		cli.BoolFlag{
 			Name:  "debug, d",

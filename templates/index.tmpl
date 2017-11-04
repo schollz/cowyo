@@ -22,15 +22,18 @@
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
         <meta name="theme-color" content="#fff">
 
-        <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
-        <link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
-        <link rel="stylesheet" type="text/css" href="/static/css/menus-min.css">
-        <link rel="stylesheet" type="text/css" href="/static/css/base-min.css">
-        <link rel="stylesheet" href="/static/css/highlight.css">
-        <script src="/static/js/highlight.min.js"></script>
-        <script type="text/javascript" src="/static/js/highlight.pack.js"></script>
+{{ if and .CustomCSS .ReadPage }}
+<link rel="stylesheet" type="text/css" href="/static/css/custom.css">
+{{ else }}
+<script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
+<link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
+<link rel="stylesheet" type="text/css" href="/static/css/menus-min.css">
+<link rel="stylesheet" type="text/css" href="/static/css/base-min.css">
+<link rel="stylesheet" href="/static/css/highlight.css">
+<script src="/static/js/highlight.min.js"></script>
+<script type="text/javascript" src="/static/js/highlight.pack.js"></script>
 
-        <style type="text/css">
+<style type="text/css">
 {{ if .ListPage }}
 /* Required for lists */
 span { cursor: pointer; }
@@ -129,9 +132,8 @@ body#pad textarea {
         padding-right: 20%;
     }
 }
-
-        </style>
-
+</style>
+{{ end }}
         <title>{{ .Page }}</title>
 
 
@@ -478,9 +480,18 @@ body#pad textarea {
         <script>hljs.initHighlightingOnLoad();</script>
 
     </head>
-
     <body id="pad">
         <article class="markdown-body">
+
+        {{ if .ReadPage }} 
+        <div id="wrap">
+            <div id="rendered">
+        {{ .RenderedPage }}
+            </div>
+        </div>
+        {{ else }}
+
+
             <div class="pure-menu pure-menu-horizontal" id="menu">
                 <ul class="pure-menu-list">
                     <li></li>
@@ -594,8 +605,9 @@ body#pad textarea {
             {{end}}
 </div> 
             </div>
-        </article>
+{{ end }}
 
+        </article>
 
 
 

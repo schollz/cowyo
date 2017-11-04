@@ -17,7 +17,10 @@ import (
 	"github.com/schollz/cowyo/encrypt"
 )
 
-func serve(host, port, crt_path, key_path string, TLS bool) {
+var customCSS []byte
+var defaultLock string
+
+func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	store := sessions.NewCookieStore([]byte("secret"))
@@ -25,7 +28,11 @@ func serve(host, port, crt_path, key_path string, TLS bool) {
 	router.HTMLRender = loadTemplates("index.tmpl")
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/"+randomAlliterateCombo())
+		if defaultPage != "" {
+			c.Redirect(302, "/"+defaultPage+"/read")
+		} else {
+			c.Redirect(302, "/"+randomAlliterateCombo())
+		}
 	})
 	router.GET("/:page", func(c *gin.Context) {
 		page := c.Param("page")
@@ -44,6 +51,22 @@ func serve(host, port, crt_path, key_path string, TLS bool) {
 
 	// start long-processes as threads
 	go thread_SiteMap()
+
+	// collect custom CSS
+	if len(cssFile) > 0 {
+		var errRead error
+		customCSS, errRead = ioutil.ReadFile(cssFile)
+		if errRead != nil {
+			fmt.Println(errRead.Error())
+			return
+		}
+		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
+	}
+
+	if defaultPassword != "" {
+		fmt.Println("running with locked pages")
+		defaultLock = HashPassword(defaultPassword)
+	}
 
 	if TLS {
 		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
@@ -149,6 +172,7 @@ func generateSiteMap() (sitemap string) {
 	sitemap += "</urlset>"
 	return
 }
+
 func handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
@@ -165,26 +189,49 @@ func handlePageRequest(c *gin.Context) {
 		data, _ := Asset("/static/img/cowyo/favicon.ico")
 		c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
 		return
+	} else if page == "/static/css/custom.css" {
+		c.Data(http.StatusOK, contentType("custom.css"), customCSS)
+		return
 	} else if page == "static" {
 		filename := page + command
-		data, err := Asset(filename)
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Could not find data")
+		var data []byte
+		fmt.Println(filename)
+		if filename == "static/css/custom.css" {
+			data = customCSS
+		} else {
+			var errAssset error
+			data, errAssset = Asset(filename)
+			if errAssset != nil {
+				c.String(http.StatusInternalServerError, "Could not find data")
+			}
 		}
 		c.Data(http.StatusOK, contentType(filename), data)
 		return
 	}
+	p := Open(page)
+	fmt.Println(command)
 	if len(command) < 2 {
-		c.Redirect(302, "/"+page+"/edit")
+		fmt.Println(p.IsPublished)
+		if p.IsPublished {
+			c.Redirect(302, "/"+page+"/read")
+		} else {
+			c.Redirect(302, "/"+page+"/edit")
+		}
 		return
 	}
 
 	version := c.DefaultQuery("version", "ajksldfjl")
-	p := Open(page)
+
+	// use the default lock
+	if defaultLock != "" && p.IsNew() {
+		p.IsLocked = true
+		p.PassphraseToUnlock = defaultLock
+	}
 
 	// Disallow anything but viewing locked/encrypted pages
 	if (p.IsEncrypted || p.IsLocked) &&
 		(command[0:2] != "/v" && command[0:2] != "/r") {
+		fmt.Println("IS LOCKED")
 		c.Redirect(302, "/"+page+"/view")
 		return
 	}
@@ -232,7 +279,7 @@ func handlePageRequest(c *gin.Context) {
 		versionsChangeSums = reverseSliceInt(versionsChangeSums)
 	}
 
-	if command[0:2] == "/r" {
+	if command[0:3] == "/ra" {
 		c.Writer.Header().Set("Content-Type", contentType(p.Name))
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
@@ -246,7 +293,8 @@ func handlePageRequest(c *gin.Context) {
 	log.Debug("%v", command[0:2] != "/e" &&
 		command[0:2] != "/v" &&
 		command[0:2] != "/l" &&
-		command[0:2] != "/h")
+		command[0:2] != "/h" &&
+		command[0:2] != "/r")
 
 	var FileNames, FileLastEdited []string
 	var FileSizes, FileNumChanges []int
@@ -260,6 +308,7 @@ func handlePageRequest(c *gin.Context) {
 		"ViewPage":    command[0:2] == "/v", // /view
 		"ListPage":    command[0:2] == "/l", // /list
 		"HistoryPage": command[0:2] == "/h", // /history
+		"ReadPage":    command[0:2] == "/r", // /history
 		"DontKnowPage": command[0:2] != "/e" &&
 			command[0:2] != "/v" &&
 			command[0:2] != "/l" &&
@@ -282,6 +331,7 @@ func handlePageRequest(c *gin.Context) {
 		"HasDotInName":       strings.Contains(page, "."),
 		"RecentlyEdited":     getRecentlyEdited(page, c),
 		"IsPublished":        p.IsPublished,
+		"CustomCSS":          len(customCSS) > 0,
 	})
 }
 
@@ -419,6 +469,11 @@ func handleLock(c *gin.Context) {
 		return
 	}
 	p := Open(json.Page)
+	if defaultLock != "" && p.IsNew() {
+		p.IsLocked = true
+		p.PassphraseToUnlock = defaultLock
+	}
+
 	if p.IsEncrypted {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
 		return
@@ -437,6 +492,7 @@ func handleLock(c *gin.Context) {
 		p.PassphraseToUnlock = HashPassword(json.Passphrase)
 		message = "Locked"
 	}
+	fmt.Println(p)
 	p.Save()
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }

@@ -102,6 +102,10 @@ func (p *Page) Save() error {
 	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0644)
 }
 
+func (p *Page) IsNew() bool {
+	return !exists(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
+}
+
 func (p *Page) Erase() error {
 	log.Trace("Erasing " + p.Name)
 	return os.Remove(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
