@@ -18,8 +18,9 @@ import (
 )
 
 var customCSS []byte
+var defaultLock string
 
-func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string) {
+func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	store := sessions.NewCookieStore([]byte("secret"))
@@ -60,6 +61,11 @@ func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defa
 			return
 		}
 		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
+	}
+
+	if defaultPassword != "" {
+		fmt.Println("running with locked pages")
+		defaultLock = HashPassword(defaultPassword)
 	}
 
 	if TLS {
@@ -216,9 +222,16 @@ func handlePageRequest(c *gin.Context) {
 
 	version := c.DefaultQuery("version", "ajksldfjl")
 
+	// use the default lock
+	if defaultLock != "" && p.IsNew() {
+		p.IsLocked = true
+		p.PassphraseToUnlock = defaultLock
+	}
+
 	// Disallow anything but viewing locked/encrypted pages
 	if (p.IsEncrypted || p.IsLocked) &&
 		(command[0:2] != "/v" && command[0:2] != "/r") {
+		fmt.Println("IS LOCKED")
 		c.Redirect(302, "/"+page+"/view")
 		return
 	}
@@ -456,6 +469,11 @@ func handleLock(c *gin.Context) {
 		return
 	}
 	p := Open(json.Page)
+	if defaultLock != "" && p.IsNew() {
+		p.IsLocked = true
+		p.PassphraseToUnlock = defaultLock
+	}
+
 	if p.IsEncrypted {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
 		return
@@ -474,6 +492,7 @@ func handleLock(c *gin.Context) {
 		p.PassphraseToUnlock = HashPassword(json.Passphrase)
 		message = "Locked"
 	}
+	fmt.Println(p)
 	p.Save()
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
