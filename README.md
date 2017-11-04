@@ -5,7 +5,7 @@
     width="260" height="80" border="0" alt="linkcrawler">
 <br>
 <a href="https://travis-ci.org/schollz/cowyo"><img src="https://img.shields.io/travis/schollz/cowyo.svg?style=flat-square" alt="Build Status"></a>
-<a href="https://github.com/schollz/cowyo/releases/latest"><img src="https://img.shields.io/badge/version-2.7.0-brightgreen.svg?style=flat-square" alt="Version"></a>
+<a href="https://github.com/schollz/cowyo/releases/latest"><img src="https://img.shields.io/badge/version-2.8.0-brightgreen.svg?style=flat-square" alt="Version"></a>
 </p>
 
 <p align="center">A feature-rich wiki for minimalists</a></p>
@@ -56,6 +56,16 @@ docker run -d --name cowyo -p 8050:8050 schollz/cowyo
 ```
 
 Then you can stop it with `docker stop cowyo` and start it again with `docker start cowyo`.
+
+### Running as a micro-CMS
+
+There are a couple of command-line flags that you can use to make your own micro-CMS. 
+
+```
+cowyo -lock 123 -default-page index.html -css mystyle.css
+```
+
+The `-lock` flag will automatically lock every page with the passphrase "123". Also, the default behavior will be to redirect `/` to `/index.html`. Also, every page that is published will automatically redirect to `/mypage/read` which will show the custom CSS file if it is supplied with `-css`.
 
 ## Usage
 
