@@ -162,7 +162,7 @@ func generateSiteMap() (sitemap string) {
 	for i := range names {
 		sitemap += fmt.Sprintf(`
 	<url>
-	<loc>https://cowyo.com/%s/view</loc>
+	<loc>https://cowyo.com/%s/read</loc>
 	<lastmod>%s</lastmod>
 	<changefreq>monthly</changefreq>
 	<priority>0.8</priority>
