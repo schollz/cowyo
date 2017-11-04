@@ -189,9 +189,6 @@ func handlePageRequest(c *gin.Context) {
 		data, _ := Asset("/static/img/cowyo/favicon.ico")
 		c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
 		return
-	} else if page == "/static/css/custom.css" {
-		c.Data(http.StatusOK, contentType("custom.css"), customCSS)
-		return
 	} else if page == "static" {
 		filename := page + command
 		var data []byte
