@@ -19,7 +19,7 @@ import (
 
 var customCSS []byte
 
-func serve(host, port, crt_path, key_path string, TLS bool, cssFile string) {
+func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	store := sessions.NewCookieStore([]byte("secret"))
@@ -27,7 +27,11 @@ func serve(host, port, crt_path, key_path string, TLS bool, cssFile string) {
 	router.HTMLRender = loadTemplates("index.tmpl")
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
-		c.Redirect(302, "/"+randomAlliterateCombo())
+		if defaultPage != "" {
+			c.Redirect(302, "/"+defaultPage+"/read")
+		} else {
+			c.Redirect(302, "/"+randomAlliterateCombo())
+		}
 	})
 	router.GET("/:page", func(c *gin.Context) {
 		page := c.Param("page")
