@@ -37,7 +37,7 @@ cowyo
 
 and it will start a server listening  on `0.0.0.0:8050`. To view it, just go to http://localhost:8050 (the server prints out the local IP for your info if you want to do LAN networking). You can change the port with `-port X`, and you can listen *only* on localhost using `-host localhost`.
 
-### Running with TLS
+**Running with TLS**
 
 Specify a matching pair of SSL Certificate and Key to run cowyo using https. *cowyo* will now run in a secure session. 
 
@@ -47,7 +47,7 @@ Specify a matching pair of SSL Certificate and Key to run cowyo using https. *co
 cowyo --cert "/path/to/server.crt" --key "/p/t/server.key"
 ```
 
-### Running with Docker
+**Running with Docker**
 
 You can easily get started with Docker. First pull the latest image and create the volume with:
 
@@ -57,19 +57,27 @@ docker run -d --name cowyo -p 8050:8050 schollz/cowyo
 
 Then you can stop it with `docker stop cowyo` and start it again with `docker start cowyo`.
 
-### Running as a micro-CMS
+## Server customization
 
-There are a couple of command-line flags that you can use to make your own micro-CMS. 
+There are a couple of command-line flags that you can use to make *cowyo* your own micro-CMS. 
 
 ```
-cowyo -lock 123 -default-page index.html -css mystyle.css
+cowyo -lock 123 -default-page index.html -css mystyle.css -diary
 ```
 
-The `-lock` flag will automatically lock every page with the passphrase "123". Also, the default behavior will be to redirect `/` to `/index.html`. Also, every page that is published will automatically redirect to `/mypage/read` which will show the custom CSS file if it is supplied with `-css`.
+The `-lock` flag will automatically lock every page with the passphrase "123". Also, the default behavior will be to redirect `/` to `/index.html`. Also, every page that is published will automatically redirect to `/mypage/read` which will show the custom CSS file if it is supplied with `-css`. The `-diary` flag allows you to generate a time-stamped page instead of a random named page when you select "New".
 
 ## Usage
 
 *cowyo* is straightforward to use. Here are some of the basic features:
+
+### Publishing 
+
+If you hover the the top left button (the name of the page) you will see the option "Publish". Publishing will add the page to the `sitemap.xml` for crawlers to find. It will also default that page to go to the `/read` route so it can be easily viewed as a single page.
+
+### View all the pages
+
+To view the current list of all the pages goto to `/ls`.
 
 ### Editing
 
@@ -106,6 +114,7 @@ Encryption is performed using AES-256.
 Just like in mission impossible.
 
 ![Self-destructing](http://i.imgur.com/upMxFQh.gif)
+
 
 ## Development
 
