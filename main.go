@@ -38,7 +38,7 @@ func main() {
 		} else {
 			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
 		}
-		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS, c.GlobalString("css"), c.GlobalString("default-page"), c.GlobalString("lock"), c.GlobalInt("debounce"))
+		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS, c.GlobalString("css"), c.GlobalString("default-page"), c.GlobalString("lock"), c.GlobalInt("debounce"), c.GlobalBool("diary"))
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -95,6 +95,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "turn on debugging",
+		},
+		cli.BoolFlag{
+			Name:  "diary",
+			Usage: "turn diary mode (doing New will give a timestamped page)",
 		},
 	}
 	app.Commands = []cli.Command{

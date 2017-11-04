@@ -20,8 +20,9 @@ import (
 var customCSS []byte
 var defaultLock string
 var debounceTime int
+var diaryMode bool
 
-func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string, debounce int) {
+func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string, debounce int, diary bool) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	store := sessions.NewCookieStore([]byte("secret"))
@@ -72,6 +73,9 @@ func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defa
 
 	// set the debounce time
 	debounceTime = debounce
+
+	// set diary mode
+	diaryMode = diary
 
 	if TLS {
 		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
@@ -340,6 +344,8 @@ func handlePageRequest(c *gin.Context) {
 		"IsPublished":        p.IsPublished,
 		"CustomCSS":          len(customCSS) > 0,
 		"Debounce":           debounceTime,
+		"DiaryMode":          diaryMode,
+		"Date":               time.Now().Format("2006-01-02"),
 	})
 }
 
