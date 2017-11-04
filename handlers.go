@@ -19,8 +19,9 @@ import (
 
 var customCSS []byte
 var defaultLock string
+var debounceTime int
 
-func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string) {
+func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string, debounce int) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	store := sessions.NewCookieStore([]byte("secret"))
@@ -63,10 +64,14 @@ func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defa
 		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
 	}
 
+	// lock all pages automatically
 	if defaultPassword != "" {
 		fmt.Println("running with locked pages")
 		defaultLock = HashPassword(defaultPassword)
 	}
+
+	// set the debounce time
+	debounceTime = debounce
 
 	if TLS {
 		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
@@ -334,6 +339,7 @@ func handlePageRequest(c *gin.Context) {
 		"RecentlyEdited":     getRecentlyEdited(page, c),
 		"IsPublished":        p.IsPublished,
 		"CustomCSS":          len(customCSS) > 0,
+		"Debounce":           debounceTime,
 	})
 }
 

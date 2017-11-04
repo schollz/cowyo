@@ -176,7 +176,7 @@ body#pad textarea {
                     $('#saveEditButton').removeClass()
                     $('#saveEditButton').text("Saving")
                     upload();
-                }, 500));
+                }, {{ .Debounce }}));
 
                 function upload() {
                     $.ajax({
@@ -531,10 +531,10 @@ body#pad textarea {
                         <a href="#" id="menuLink1" class="pure-menu-link">View</a>
                         <ul class="pure-menu-children">
                         <li class="pure-menu-item">
-                    <a href="/{{ .Page }}/view" class="pure-menu-link">Current</a>                      
+                    <a href="/{{ .Page }}/read" class="pure-menu-link">Current</a>                      
                         </li>
                         {{ range .RecentlyEdited}}
-                            <li class="pure-menu-item"><a  class="pure-menu-link" href="/{{.}}/view/">{{.}}</a></li>
+                            <li class="pure-menu-item"><a  class="pure-menu-link" href="/{{.}}/read">{{.}}</a></li>
                         {{ end }}
                         </ul>
                     </li>

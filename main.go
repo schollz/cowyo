@@ -38,7 +38,7 @@ func main() {
 		} else {
 			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
 		}
-		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS, c.GlobalString("css"), c.GlobalString("default-page"), c.GlobalString("lock"))
+		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS, c.GlobalString("css"), c.GlobalString("default-page"), c.GlobalString("lock"), c.GlobalInt("debounce"))
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -86,6 +86,11 @@ func main() {
 			Name:  "lock",
 			Value: "",
 			Usage: "password to lock editing all files (default: all pages unlocked)",
+		},
+		cli.IntFlag{
+			Name:  "debounce",
+			Value: 500,
+			Usage: "debounce time for saving data, in milliseconds",
 		},
 		cli.BoolFlag{
 			Name:  "debug, d",
