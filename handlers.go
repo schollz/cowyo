@@ -17,7 +17,9 @@ import (
 	"github.com/schollz/cowyo/encrypt"
 )
 
-func serve(host, port, crt_path, key_path string, TLS bool) {
+var customCSS []byte
+
+func serve(host, port, crt_path, key_path string, TLS bool, cssFile string) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	store := sessions.NewCookieStore([]byte("secret"))
@@ -44,6 +46,17 @@ func serve(host, port, crt_path, key_path string, TLS bool) {
 
 	// start long-processes as threads
 	go thread_SiteMap()
+
+	// collect custom CSS
+	if len(cssFile) > 0 {
+		var errRead error
+		customCSS, errRead = ioutil.ReadFile(cssFile)
+		if errRead != nil {
+			fmt.Println(errRead.Error())
+			return
+		}
+		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
+	}
 
 	if TLS {
 		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
@@ -166,11 +179,21 @@ func handlePageRequest(c *gin.Context) {
 		data, _ := Asset("/static/img/cowyo/favicon.ico")
 		c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
 		return
+	} else if page == "/static/css/custom.css" {
+		c.Data(http.StatusOK, contentType("custom.css"), customCSS)
+		return
 	} else if page == "static" {
 		filename := page + command
-		data, err := Asset(filename)
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Could not find data")
+		var data []byte
+		fmt.Println(filename)
+		if filename == "static/css/custom.css" {
+			data = customCSS
+		} else {
+			var errAssset error
+			data, errAssset = Asset(filename)
+			if errAssset != nil {
+				c.String(http.StatusInternalServerError, "Could not find data")
+			}
 		}
 		c.Data(http.StatusOK, contentType(filename), data)
 		return
@@ -291,7 +314,7 @@ func handlePageRequest(c *gin.Context) {
 		"HasDotInName":       strings.Contains(page, "."),
 		"RecentlyEdited":     getRecentlyEdited(page, c),
 		"IsPublished":        p.IsPublished,
-		"CustomCSS":          "",
+		"CustomCSS":          len(customCSS) > 0,
 	})
 }
 

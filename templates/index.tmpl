@@ -22,7 +22,8 @@
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
         <meta name="theme-color" content="#fff">
 
-{{ if and .CustomCSS .IsPublished }}
+{{ if and .CustomCSS .ReadPage }}
+<link rel="stylesheet" type="text/css" href="/static/css/custom.css">
 {{ else }}
 <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
 <link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
