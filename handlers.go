@@ -300,6 +300,11 @@ func handlePageRequest(c *gin.Context) {
 		FileNames, FileSizes, FileNumChanges, FileLastEdited = DirectoryList()
 	}
 
+	// swap out /view for /read if it is published
+	if p.IsPublished {
+		rawHTML = strings.Replace(rawHTML, "/view", "/read", -1)
+	}
+
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{
 		"EditPage":    command[0:2] == "/e", // /edit
 		"ViewPage":    command[0:2] == "/v", // /view
