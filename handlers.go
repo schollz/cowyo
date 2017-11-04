@@ -36,7 +36,7 @@ func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defa
 	})
 	router.GET("/:page", func(c *gin.Context) {
 		page := c.Param("page")
-		c.Redirect(302, "/"+page+"/edit")
+		c.Redirect(302, "/"+page+"/")
 	})
 	router.GET("/:page/*command", handlePageRequest)
 	router.POST("/update", handlePageUpdate)
