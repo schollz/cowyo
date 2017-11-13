@@ -285,7 +285,7 @@ func handlePageRequest(c *gin.Context) {
 		versionsChangeSums = reverseSliceInt(versionsChangeSums)
 	}
 
-	if command[0:3] == "/ra" {
+	if len(command) > 3 && command[0:3] == "/ra" {
 		c.Writer.Header().Set("Content-Type", contentType(p.Name))
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
