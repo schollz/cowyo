@@ -215,9 +215,7 @@ func handlePageRequest(c *gin.Context) {
 		return
 	}
 	p := Open(page)
-	fmt.Println(command)
 	if len(command) < 2 {
-		fmt.Println(p.IsPublished)
 		if p.IsPublished {
 			c.Redirect(302, "/"+page+"/read")
 		} else {
@@ -237,7 +235,6 @@ func handlePageRequest(c *gin.Context) {
 	// Disallow anything but viewing locked/encrypted pages
 	if (p.IsEncrypted || p.IsLocked) &&
 		(command[0:2] != "/v" && command[0:2] != "/r") {
-		fmt.Println("IS LOCKED")
 		c.Redirect(302, "/"+page+"/view")
 		return
 	}
@@ -295,12 +292,6 @@ func handlePageRequest(c *gin.Context) {
 		c.Data(200, contentType(p.Name), []byte(rawText))
 		return
 	}
-	log.Debug(command)
-	log.Debug("%v", command[0:2] != "/e" &&
-		command[0:2] != "/v" &&
-		command[0:2] != "/l" &&
-		command[0:2] != "/h" &&
-		command[0:2] != "/r")
 
 	var FileNames, FileLastEdited []string
 	var FileSizes, FileNumChanges []int
