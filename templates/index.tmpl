@@ -143,7 +143,7 @@ body#pad textarea {
 
 
         <script type='text/javascript'>
-	    oulipo = false; 
+	    oulipo = false;
             //<![CDATA[
             $(window).load(function() {
                 // Returns a function, that, as long as it continues to be invoked, will not
@@ -247,12 +247,12 @@ body#pad textarea {
                                 $('#saveEditButton').addClass("failure");
                             }
                             $('#saveEditButton').text(data.message);
-                            if (data.success == true && $('#lockPage').text() == "Lock") {               
+                            if (data.success == true && $('#lockPage').text() == "Lock") {
                                 window.location = "/{{ .Page }}/view";
-                            } 
-                            if (data.success == true && $('#lockPage').text() == "Unlock") {               
+                            }
+                            if (data.success == true && $('#lockPage').text() == "Unlock") {
                                 window.location = "/{{ .Page }}/edit";
-                            } 
+                            }
                         },
                         error: function(xhr, error) {
                             $('#saveEditButton').removeClass()
@@ -283,7 +283,7 @@ body#pad textarea {
                             if (data.message == "Unpublished") {
                                 $('#publishPage').text("Publish");
                             } else {
-                                $('#publishPage').text("Unpublish");                             
+                                $('#publishPage').text("Unpublish");
                             }
                         },
                         error: function(xhr, error) {
@@ -312,12 +312,12 @@ body#pad textarea {
                                 $('#saveEditButton').addClass("failure");
                             }
                             $('#saveEditButton').text(data.message);
-                            if (data.success == true && $('#encryptPage').text() == "Encrypt") {               
+                            if (data.success == true && $('#encryptPage').text() == "Encrypt") {
                                 window.location = "/{{ .Page }}/view";
-                            } 
-                            if (data.success == true && $('#encryptPage').text() == "Decrypt") {               
+                            }
+                            if (data.success == true && $('#encryptPage').text() == "Decrypt") {
                                 window.location = "/{{ .Page }}/edit";
-                            } 
+                            }
                         },
                         error: function(xhr, error) {
                             $('#saveEditButton').removeClass()
@@ -344,9 +344,9 @@ body#pad textarea {
                                 $('#saveEditButton').addClass("failure");
                             }
                             $('#saveEditButton').text(data.message);
-                            if (data.success == true) {               
+                            if (data.success == true) {
                                 window.location = "/{{ .Page }}/list";
-                            } 
+                            }
                         },
                         error: function(xhr, error) {
                             $('#saveEditButton').removeClass();
@@ -396,7 +396,7 @@ body#pad textarea {
                     if (passphrase != null) {
                         if ($('#lockPage').text() == "Lock") {
                             $('#saveEditButton').removeClass();
-                            $("#saveEditButton").text("Locking");                           
+                            $("#saveEditButton").text("Locking");
                         } else {
                             $('#saveEditButton').removeClass();
                             $("#saveEditButton").text("Unlocking");
@@ -417,11 +417,11 @@ body#pad textarea {
                     if (confirmed == true) {
                         if ($('#publishPage').text() == "Unpublish") {
                             $('#saveEditButton').removeClass();
-                            $("#saveEditButton").text("Unpublishing");                   
+                            $("#saveEditButton").text("Unpublishing");
                         } else {
                             $('#saveEditButton').removeClass();
                             $("#saveEditButton").text("Publishing");
-                        }      
+                        }
                         publishPage();
                     }
                 });
@@ -483,7 +483,7 @@ body#pad textarea {
     <body id="pad">
         <article class="markdown-body">
 
-        {{ if .ReadPage }} 
+        {{ if .ReadPage }}
         <div id="wrap">
             <div id="rendered">
         {{ .RenderedPage }}
@@ -535,7 +535,7 @@ body#pad textarea {
                         <a href="#" id="menuLink1" class="pure-menu-link">View</a>
                         <ul class="pure-menu-children">
                         <li class="pure-menu-item">
-                    <a href="/{{ .Page }}/read" class="pure-menu-link">Current</a>                      
+                    <a href="/{{ .Page }}/read" class="pure-menu-link">Current</a>
                         </li>
                         {{ range .RecentlyEdited}}
                             <li class="pure-menu-item"><a  class="pure-menu-link" href="/{{.}}/read">{{.}}</a></li>
@@ -560,7 +560,7 @@ body#pad textarea {
                     <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
                     {{end}}
 
-                
+
 
 
                 </ul>
@@ -569,7 +569,7 @@ body#pad textarea {
 
             <div id="wrap">
                 {{ if .EditPage }} <div id="pad"><textarea autofocus placeholder="Use markdown to write your note! New: you can publish your note when you are done ({{ .Page }} -> Publish)." id="userInput">{{ .RawPage }}</textarea></div>{{ end }}
-<div id="rendered"> 
+<div id="rendered">
                 {{ if .DontKnowPage }} <strong><center>{{ .Route }} not understood!</center></strong>{{ end }}
                 {{ if .ViewPage }}{{ .RenderedPage }}
                 {{ end }}
@@ -593,21 +593,21 @@ body#pad textarea {
                 <table style="width:100%">
                   <tr>
                     <th>Document</th>
-                    <th>Current size</th> 
-                    <th>Num Edits</th> 
-                    <th>Last Edited</th> 
+                    <th>Current size</th>
+                    <th>Num Edits</th>
+                    <th>Last Edited</th>
                   </tr>
                   {{range $i, $e := .FileNames}}
                   <tr>
                     <td><a href="/{{ $e }}/view">{{ $e }}</a></td>
-                    <td>{{index $.FileSizes $i}}</td> 
-                    <td>{{index $.FileNumChanges $i}}</td> 
-                    <td>{{index $.FileLastEdited $i}}</td> 
+                    <td>{{index $.FileSizes $i}}</td>
+                    <td>{{index $.FileNumChanges $i}}</td>
+                    <td>{{index $.FileLastEdited $i}}</td>
                   </tr>
                   {{ end }}
                 </table>
             {{end}}
-</div> 
+</div>
             </div>
 {{ end }}
 
