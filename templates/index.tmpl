@@ -52,6 +52,9 @@ body {
 .pure-menu a {
     color: #777;
 }
+.deleting {
+    opacity: 0.5;
+}
 #wrap {
     position: absolute;
     top: 50px;
@@ -460,17 +463,19 @@ body#pad textarea {
 
                 $('.deletable').click(function(event) {
                   event.preventDefault();
-                  var lineNum = $(this).attr('id')
-                    $.ajax({
-                      url: "/listitem" + '?' + $.param({
-                        "lineNum": lineNum,
-                        "page": "{{ .Page }}"
-                      }),
-                      type: 'DELETE',
-                      success: function() {
-                        window.location.reload(true);
-                      }
-                    });
+                  var lineNum = $(this).attr('id');
+
+                  $.ajax({
+                    url: "/listitem" + '?' + $.param({
+                      "lineNum": lineNum,
+                      "page": "{{ .Page }}"
+                    }),
+                    type: 'DELETE',
+                    success: function() {
+                      window.location.reload(true);
+                    }
+                  });
+                  event.target.classList.add('deleting');
                 });
 
 
