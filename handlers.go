@@ -22,7 +22,18 @@ var defaultLock string
 var debounceTime int
 var diaryMode bool
 
-func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string, debounce int, diary bool) {
+func serve(
+	host,
+	port,
+	crt_path,
+	key_path string,
+	TLS bool,
+	cssFile string,
+	defaultPage string,
+	defaultPassword string,
+	debounce int,
+	diary bool,
+) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	store := sessions.NewCookieStore([]byte("secret"))
