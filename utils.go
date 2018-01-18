@@ -20,6 +20,7 @@ import (
 var animals []string
 var adjectives []string
 var aboutPageText string
+var allowInsecureHtml bool
 
 var log *lumber.ConsoleLogger
 
@@ -174,6 +175,11 @@ func exists(path string) bool {
 
 func MarkdownToHtml(s string) string {
 	unsafe := blackfriday.MarkdownCommon([]byte(s))
+
+	if allowInsecureHtml {
+		return string(unsafe)
+	}
+
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
 	pClean.AllowAttrs("alt").OnElements("img")

@@ -38,7 +38,20 @@ func main() {
 		} else {
 			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
 		}
-		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS, c.GlobalString("css"), c.GlobalString("default-page"), c.GlobalString("lock"), c.GlobalInt("debounce"), c.GlobalBool("diary"))
+
+		allowInsecureHtml = c.GlobalBool("allow-insecure-markup")
+		serve(
+			c.GlobalString("host"),
+			c.GlobalString("port"),
+			c.GlobalString("cert"),
+			c.GlobalString("key"),
+			TLS,
+			c.GlobalString("css"),
+			c.GlobalString("default-page"),
+			c.GlobalString("lock"),
+			c.GlobalInt("debounce"),
+			c.GlobalBool("diary"),
+		)
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -81,6 +94,10 @@ func main() {
 			Name:  "default-page",
 			Value: "",
 			Usage: "show default-page/read instead of editing (default: show random editing)",
+		},
+		cli.BoolFlag{
+			Name:  "allow-insecure-markup",
+			Usage: "Skip HTML sanitization",
 		},
 		cli.StringFlag{
 			Name:  "lock",
