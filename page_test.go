@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"os"
 	"strings"
 	"testing"
@@ -17,9 +16,19 @@ func TestListFiles(t *testing.T) {
 	p.Update("A different bunch of data")
 	p = Open("testpage3")
 	p.Update("Not much else")
-	n, l, _, _ := DirectoryList()
-	if strings.Join(n, " ") != "testpage testpage2 testpage3" {
-		t.Errorf("Names: %s, Lengths: %d", n, l)
+	n := DirectoryList()
+	if len(n) != 3 {
+		t.Error("Expected three directory entries")
+		t.FailNow()
+	}
+	if n[0].Name != "testpage" {
+		t.Error("Expected testpage to be first")
+	}
+	if n[1].Name != "testpage2" {
+		t.Error("Expected testpage2 to be second")
+	}
+	if n[2].Name != "testpage3" {
+		t.Error("Expected testpage3 to be last")
 	}
 }
 

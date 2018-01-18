@@ -293,11 +293,10 @@ func handlePageRequest(c *gin.Context) {
 		return
 	}
 
-	var FileNames, FileLastEdited []string
-	var FileSizes, FileNumChanges []int
+	var DirectoryEntries []DirectoryEntry
 	if page == "ls" {
 		command = "/view"
-		FileNames, FileSizes, FileNumChanges, FileLastEdited = DirectoryList()
+		DirectoryEntries = DirectoryList()
 	}
 
 	// swap out /view for /read if it is published
@@ -316,10 +315,7 @@ func handlePageRequest(c *gin.Context) {
 			command[0:2] != "/l" &&
 			command[0:2] != "/h",
 		"DirectoryPage":      page == "ls",
-		"FileNames":          FileNames,
-		"FileSizes":          FileSizes,
-		"FileNumChanges":     FileNumChanges,
-		"FileLastEdited":     FileLastEdited,
+		"DirectoryEntries":   DirectoryEntries,
 		"Page":               page,
 		"RenderedPage":       template.HTML([]byte(rawHTML)),
 		"RawPage":            rawText,

@@ -602,12 +602,12 @@ body#pad textarea {
                     <th>Num Edits</th>
                     <th>Last Edited</th>
                   </tr>
-                  {{range $i, $e := .FileNames}}
+                  {{range .DirectoryEntries}}
                   <tr>
-                    <td><a href="/{{ $e }}/view">{{ $e }}</a></td>
-                    <td>{{index $.FileSizes $i}}</td>
-                    <td>{{index $.FileNumChanges $i}}</td>
-                    <td>{{index $.FileLastEdited $i}}</td>
+                    <td><a href="/{{ .Name }}/view">{{ .Name }}</a></td>
+                    <td>{{.Length}}</td>
+                    <td>{{.Numchanges}}</td>
+                    <td>{{.LastEditTime}}</td>
                   </tr>
                   {{ end }}
                 </table>
