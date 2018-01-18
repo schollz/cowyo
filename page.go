@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -65,6 +66,7 @@ func DirectoryList() []DirectoryEntry {
 			LastEdited: time.Unix(p.Text.LastEditTime()/1000000000, 0),
 		}
 	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].LastEdited.Before(entries[j].LastEdited) })
 	return entries
 }
 
