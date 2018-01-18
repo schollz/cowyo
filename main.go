@@ -51,6 +51,7 @@ func main() {
 			c.GlobalString("lock"),
 			c.GlobalInt("debounce"),
 			c.GlobalBool("diary"),
+			c.GlobalString("cookie-secret"),
 		)
 		return nil
 	}
@@ -116,6 +117,11 @@ func main() {
 		cli.BoolFlag{
 			Name:  "diary",
 			Usage: "turn diary mode (doing New will give a timestamped page)",
+		},
+		cli.StringFlag{
+			Name:  "cookie-secret",
+			Value: "secret",
+			Usage: "random data to use for cookies; changing it will invalidate all sessions",
 		},
 	}
 	app.Commands = []cli.Command{

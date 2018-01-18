@@ -33,10 +33,11 @@ func serve(
 	defaultPassword string,
 	debounce int,
 	diary bool,
+	secret string,
 ) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	store := sessions.NewCookieStore([]byte("secret"))
+	store := sessions.NewCookieStore([]byte(secret))
 	router.Use(sessions.Sessions("mysession", store))
 	router.HTMLRender = loadTemplates("index.tmpl")
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
