@@ -6,12 +6,12 @@ LDFLAGS=-ldflags "-s -w -X main.version=${VERSION}" -a -installsuffix cgo
 
 .PHONY: build
 build:
-	go-bindata static/... templates/... 
+	go-bindata static/... templates/...
 	go build ${LDFLAGS}
 
 .PHONY: quick
 quick:
-	go-bindata static/... templates/... 
+	go-bindata static/... templates/...
 	go build
 
 .PHONY: linuxarm
@@ -41,5 +41,3 @@ osx:
 
 .PHONY: release
 release: osx windows linux64 linux32 linuxarm
-
-
