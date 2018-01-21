@@ -11,7 +11,6 @@ import (
 	"time"
 
 	// "github.com/gin-contrib/static"
-	secretRequired "github.com/danielheath/gin-teeny-security"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -23,29 +22,11 @@ var defaultLock string
 var debounceTime int
 var diaryMode bool
 
-func serve(
-	host,
-	port,
-	crt_path,
-	key_path string,
-	TLS bool,
-	cssFile string,
-	defaultPage string,
-	defaultPassword string,
-	debounce int,
-	diary bool,
-	secret string,
-	secretCode string,
-	allowInsecure bool,
-) {
-
+func serve(host, port, crt_path, key_path string, TLS bool, cssFile string, defaultPage string, defaultPassword string, debounce int, diary bool) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	store := sessions.NewCookieStore([]byte(secret))
+	store := sessions.NewCookieStore([]byte("secret"))
 	router.Use(sessions.Sessions("mysession", store))
-	if secretCode != "" {
-		router.Use(secretRequired.RequiresSecretAccessCode(secretCode, "/login/"))
-	}
 	router.HTMLRender = loadTemplates("index.tmpl")
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
@@ -95,9 +76,6 @@ func serve(
 
 	// set diary mode
 	diaryMode = diary
-
-	// Allow iframe/scripts in markup?
-	allowInsecureHtml = allowInsecure
 
 	if TLS {
 		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
@@ -237,7 +215,9 @@ func handlePageRequest(c *gin.Context) {
 		return
 	}
 	p := Open(page)
+	fmt.Println(command)
 	if len(command) < 2 {
+		fmt.Println(p.IsPublished)
 		if p.IsPublished {
 			c.Redirect(302, "/"+page+"/read")
 		} else {
@@ -257,6 +237,7 @@ func handlePageRequest(c *gin.Context) {
 	// Disallow anything but viewing locked/encrypted pages
 	if (p.IsEncrypted || p.IsLocked) &&
 		(command[0:2] != "/v" && command[0:2] != "/r") {
+		fmt.Println("IS LOCKED")
 		c.Redirect(302, "/"+page+"/view")
 		return
 	}
@@ -304,7 +285,7 @@ func handlePageRequest(c *gin.Context) {
 		versionsChangeSums = reverseSliceInt(versionsChangeSums)
 	}
 
-	if len(command) > 3 && command[0:3] == "/ra" {
+	if command[0:3] == "/ra" {
 		c.Writer.Header().Set("Content-Type", contentType(p.Name))
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
@@ -314,11 +295,18 @@ func handlePageRequest(c *gin.Context) {
 		c.Data(200, contentType(p.Name), []byte(rawText))
 		return
 	}
+	log.Debug(command)
+	log.Debug("%v", command[0:2] != "/e" &&
+		command[0:2] != "/v" &&
+		command[0:2] != "/l" &&
+		command[0:2] != "/h" &&
+		command[0:2] != "/r")
 
-	var DirectoryEntries []DirectoryEntry
+	var FileNames, FileLastEdited []string
+	var FileSizes, FileNumChanges []int
 	if page == "ls" {
 		command = "/view"
-		DirectoryEntries = DirectoryList()
+		FileNames, FileSizes, FileNumChanges, FileLastEdited = DirectoryList()
 	}
 
 	// swap out /view for /read if it is published
@@ -337,7 +325,10 @@ func handlePageRequest(c *gin.Context) {
 			command[0:2] != "/l" &&
 			command[0:2] != "/h",
 		"DirectoryPage":      page == "ls",
-		"DirectoryEntries":   DirectoryEntries,
+		"FileNames":          FileNames,
+		"FileSizes":          FileSizes,
+		"FileNumChanges":     FileNumChanges,
+		"FileLastEdited":     FileLastEdited,
 		"Page":               page,
 		"RenderedPage":       template.HTML([]byte(rawHTML)),
 		"RawPage":            rawText,

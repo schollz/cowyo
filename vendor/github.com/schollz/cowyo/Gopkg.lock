@@ -26,12 +26,6 @@
   revision = "75ee37df8664a47cd5d9eb84d41e1f2b08086893"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/danielheath/gin-teeny-security"
-  packages = ["."]
-  revision = "0bc769386cc5a75bd79ccdcceaf0f977eeb6990e"
-
-[[projects]]
   name = "github.com/garyburd/redigo"
   packages = ["internal","redis"]
   revision = "34a326de1fea52965fa5ad664d3fc7163dd4b0a1"
@@ -114,12 +108,6 @@
   packages = ["."]
   revision = "4048872b16cc0fc2c5fd9eacf0ed2c2fedaa0c8c"
   version = "v1.5"
-
-[[projects]]
-  name = "github.com/schollz/cowyo"
-  packages = ["encrypt"]
-  revision = "684ff4e692da7ce06781b2fecb47b34fc100faf4"
-  version = "v2.8.0"
 
 [[projects]]
   branch = "master"
@@ -250,6 +238,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "78100cdb84da20268b3f0840cd94ee575c61b892b6474f3744499256026625af"
+  inputs-digest = "3b488719d6a087407dfd8d956f305228c41a71472ce5c12d09c3a22cdaacbbcb"
   solver-name = "gps-cdcl"
   solver-version = 1
