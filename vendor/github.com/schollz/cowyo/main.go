@@ -38,22 +38,7 @@ func main() {
 		} else {
 			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
 		}
-
-		serve(
-			c.GlobalString("host"),
-			c.GlobalString("port"),
-			c.GlobalString("cert"),
-			c.GlobalString("key"),
-			TLS,
-			c.GlobalString("css"),
-			c.GlobalString("default-page"),
-			c.GlobalString("lock"),
-			c.GlobalInt("debounce"),
-			c.GlobalBool("diary"),
-			c.GlobalString("cookie-secret"),
-			c.GlobalString("access-code"),
-			c.GlobalBool("allow-insecure-markup"),
-		)
+		serve(c.GlobalString("host"), c.GlobalString("port"), c.GlobalString("cert"), c.GlobalString("key"), TLS, c.GlobalString("css"), c.GlobalString("default-page"), c.GlobalString("lock"), c.GlobalInt("debounce"), c.GlobalBool("diary"))
 		return nil
 	}
 	app.Flags = []cli.Flag{
@@ -97,10 +82,6 @@ func main() {
 			Value: "",
 			Usage: "show default-page/read instead of editing (default: show random editing)",
 		},
-		cli.BoolFlag{
-			Name:  "allow-insecure-markup",
-			Usage: "Skip HTML sanitization",
-		},
 		cli.StringFlag{
 			Name:  "lock",
 			Value: "",
@@ -118,16 +99,6 @@ func main() {
 		cli.BoolFlag{
 			Name:  "diary",
 			Usage: "turn diary mode (doing New will give a timestamped page)",
-		},
-		cli.StringFlag{
-			Name:  "access-code",
-			Value: "",
-			Usage: "Secret code to login with before accessing any wiki stuff",
-		},
-		cli.StringFlag{
-			Name:  "cookie-secret",
-			Value: "secret",
-			Usage: "random data to use for cookies; changing it will invalidate all sessions",
 		},
 	}
 	app.Commands = []cli.Command{

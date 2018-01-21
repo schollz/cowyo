@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -42,32 +41,20 @@ func Open(name string) (p *Page) {
 	return p
 }
 
-type DirectoryEntry struct {
-	Name       string
-	Length     int
-	Numchanges int
-	LastEdited time.Time
-}
-
-func (d DirectoryEntry) LastEditTime() string {
-	return d.LastEdited.Format("Mon Jan 2 15:04:05 MST 2006")
-}
-
-func DirectoryList() []DirectoryEntry {
+func DirectoryList() (names []string, lengths []int, numchanges []int, lastEdited []string) {
 	files, _ := ioutil.ReadDir(pathToData)
-	entries := make([]DirectoryEntry, len(files))
+	names = make([]string, len(files))
+	lengths = make([]int, len(files))
+	numchanges = make([]int, len(files))
+	lastEdited = make([]string, len(files))
 	for i, f := range files {
-		name := DecodeFileName(f.Name())
-		p := Open(name)
-		entries[i] = DirectoryEntry{
-			Name:       name,
-			Length:     len(p.Text.GetCurrent()),
-			Numchanges: p.Text.NumEdits(),
-			LastEdited: time.Unix(p.Text.LastEditTime()/1000000000, 0),
-		}
+		names[i] = DecodeFileName(f.Name())
+		p := Open(names[i])
+		lengths[i] = len(p.Text.GetCurrent())
+		numchanges[i] = p.Text.NumEdits()
+		lastEdited[i] = time.Unix(p.Text.LastEditTime()/1000000000, 0).Format("Mon Jan 2 15:04:05 MST 2006")
 	}
-	sort.Slice(entries, func(i, j int) bool { return entries[i].LastEdited.After(entries[j].LastEdited) })
-	return entries
+	return
 }
 
 func DecodeFileName(s string) string {
