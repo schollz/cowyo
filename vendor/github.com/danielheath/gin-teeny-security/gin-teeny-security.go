@@ -1,9 +1,14 @@
 // A GIN middleware providing low-fi security for personal stuff.
+
 package gin_teeny_security
 
 import "github.com/gin-gonic/gin"
 import "github.com/gin-contrib/sessions"
 import "net/http"
+import "net/url"
+import "fmt"
+import "io"
+import "html/template"
 
 // Forces you to a login page until you provide a secret code.
 // No CSRF protection, so any script on any page can log you
@@ -12,54 +17,135 @@ import "net/http"
 // net can inject stuff. If you're sending open CORS headers this
 // would be particularly bad.
 func RequiresSecretAccessCode(secretAccessCode, path string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		if c.Request.URL.Path == path {
-			if c.Request.Method == "POST" {
-				c.Request.ParseForm()
+	cfg := &Config{
+		Path:   path,
+		Secret: secretAccessCode,
+	}
 
-				if c.Request.PostForm.Get("secretAccessCode") == secretAccessCode {
-					c.Header("Location", "/")
-					session.Set("secretAccessCode", secretAccessCode)
-					session.Save()
-					c.AbortWithStatus(http.StatusFound)
-					return
-				} else {
-					session.Set("secretAccessCode", "")
-					session.Save()
-					c.Data(http.StatusForbidden, "text/html", []byte(`
-            <h1>Login</h1>
-            <h2>Wrong password</h2>
-            <form action="`+path+`" method="POST">
-              <input name="secretAccessCode" />
-              <input type="submit" value="Login" />
-            </form>
-          `))
-					c.Abort()
-					return
-				}
-			} else if c.Request.Method == "GET" {
-				c.Data(http.StatusOK, "text/html", []byte(`
-          <h1>Login</h1>
-          <form action="`+path+`" method="POST">
-          <input name="secretAccessCode" />
-          <input type="submit" value="Login" />
-          </form>
-        `))
-				c.Abort()
+	return cfg.Middleware
+}
+
+type Config struct {
+	Path              string // defaults to login
+	Secret            string
+	RequireAuth       func(*gin.Context) bool // defaults to always requiring auth if unset
+	Template          *template.Template
+	SaveKeyToSession  func(*gin.Context, string)
+	GetKeyFromSession func(*gin.Context) string
+}
+
+func (c Config) saveKey(ctx *gin.Context, k string) {
+	if c.SaveKeyToSession == nil {
+		c.SaveKeyToSession = DefaultSetSession
+	}
+	c.SaveKeyToSession(ctx, k)
+}
+
+func (c Config) getKey(ctx *gin.Context) string {
+	if c.GetKeyFromSession == nil {
+		c.GetKeyFromSession = DefaultGetSession
+	}
+	return c.GetKeyFromSession(ctx)
+}
+
+func DefaultSetSession(c *gin.Context, secret string) {
+	session := sessions.Default(c)
+	session.Set("secretAccessCode", secret)
+	session.Save()
+}
+
+func DefaultGetSession(c *gin.Context) string {
+	session := sessions.Default(c)
+	str, ok := session.Get("secretAccessCode").(string)
+	if !ok {
+		fmt.Println(session.Get("secretAccessCode"))
+		return ""
+	}
+	return str
+}
+
+func (c Config) path() string {
+	if c.Path == "" {
+		return "/login/"
+	}
+	return c.Path
+}
+
+func (c Config) requireAuth(ctx *gin.Context) bool {
+	if ctx.Request.Header.Get("Authorization") == c.Secret {
+		return false
+	}
+	return c.RequireAuth == nil || c.RequireAuth(ctx)
+}
+
+func (c Config) template() *template.Template {
+	if c.Template == nil {
+		return DEFAULT_LOGIN_PAGE
+	}
+	return c.Template
+}
+
+func (c Config) ExecTemplate(w io.Writer, message, returnUrl string) error {
+	return c.template().Execute(w, LoginPageParams{
+		Message: message,
+		Path:    c.path() + "?" + url.Values{"return": []string{returnUrl}}.Encode(),
+	})
+}
+
+type LoginPageParams struct {
+	Message string
+	Path    string
+}
+
+var DEFAULT_LOGIN_PAGE = template.Must(template.New("login").Parse(`
+<h1>Login</h1>
+{{ if .Message }}<h2>{{ .Message }}</h2>{{ end }}
+<form action="{{.Path}}" method="POST">
+  <input name="secretAccessCode" />
+  <input type="submit" value="Login" />
+</form>
+`))
+
+func (cfg *Config) Middleware(c *gin.Context) {
+	if c.Request.URL.Path == cfg.path() {
+		returnTo := c.Request.URL.Query().Get("return")
+		if returnTo == "" {
+			returnTo = "/"
+		}
+
+		if c.Request.Method == "POST" {
+			c.Request.ParseForm()
+
+			fmt.Println(c.Request.PostForm.Get("secretAccessCode"))
+			if c.Request.PostForm.Get("secretAccessCode") == cfg.Secret {
+
+				c.Header("Location", returnTo)
+				cfg.saveKey(c, cfg.Secret)
+
+				c.AbortWithStatus(http.StatusFound)
 				return
 			} else {
-				c.Next()
+				cfg.saveKey(c, "")
+				c.Writer.WriteHeader(http.StatusForbidden)
+				cfg.ExecTemplate(c.Writer, "Wrong Password", returnTo)
+				c.Abort()
 				return
 			}
-		}
-
-		v := session.Get("secretAccessCode")
-		if v != secretAccessCode {
-			c.Header("Location", path)
-			c.AbortWithStatus(http.StatusTemporaryRedirect)
+		} else if c.Request.Method == "GET" {
+			cfg.ExecTemplate(c.Writer, "", returnTo)
+			c.Abort()
+			return
 		} else {
 			c.Next()
+			return
 		}
+	}
+
+	v := cfg.getKey(c)
+	if cfg.requireAuth(c) && (v != cfg.Secret) {
+		c.Header("Location", cfg.Path+"?"+url.Values{"return": []string{c.Request.URL.RequestURI()}}.Encode())
+		c.AbortWithStatus(http.StatusTemporaryRedirect)
+	} else {
+		c.Next()
 	}
 }

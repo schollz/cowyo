@@ -81,13 +81,14 @@ func TestParseScreamingSnakeCase(t *testing.T) {
 	}
 }
 
-func TestWords_ToMixedCaps(t *testing.T) {
+func TestName_ToMixedCaps(t *testing.T) {
 	tests := []struct {
 		in   ident.Name
 		want string
 	}{
 		{in: ident.Name{"client", "Mutation", "Id"}, want: "ClientMutationID"},
 		{in: ident.Name{"CLIENT", "MUTATION", "ID"}, want: "ClientMutationID"},
+		{in: ident.Name{"github", "logo"}, want: "GitHubLogo"},
 	}
 	for _, tc := range tests {
 		got := tc.in.ToMixedCaps()
@@ -97,7 +98,7 @@ func TestWords_ToMixedCaps(t *testing.T) {
 	}
 }
 
-func TestWords_ToLowerCamelCase(t *testing.T) {
+func TestName_ToLowerCamelCase(t *testing.T) {
 	tests := []struct {
 		in   ident.Name
 		want string

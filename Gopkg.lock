@@ -29,13 +29,13 @@
   branch = "master"
   name = "github.com/danielheath/gin-teeny-security"
   packages = ["."]
-  revision = "0bc769386cc5a75bd79ccdcceaf0f977eeb6990e"
+  revision = "5f00fb6ac0933c2b378c907a3e2a43667afc4289"
 
 [[projects]]
   name = "github.com/garyburd/redigo"
   packages = ["internal","redis"]
-  revision = "34a326de1fea52965fa5ad664d3fc7163dd4b0a1"
-  version = "v1.2.0"
+  revision = "d1ed5c67e5794de818ea85e6b522fda02623a484"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -65,7 +65,7 @@
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "1643683e1b54a9e88ad26d98f81400c8c9d9f4f9"
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -107,7 +107,7 @@
   branch = "master"
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
-  revision = "68fecaef60268522d2ac3f0123cec9d3bcab7b6e"
+  revision = "542fd4642604d0d0c26112396ce5b1a9d01eee0b"
 
 [[projects]]
   name = "github.com/russross/blackfriday"
@@ -137,19 +137,19 @@
   branch = "master"
   name = "github.com/sergi/go-diff"
   packages = ["diffmatchpatch"]
-  revision = "2fc9cd33b5f86077aa3e0f442fa0476a9fa9a1dc"
+  revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
 
 [[projects]]
   branch = "master"
   name = "github.com/shurcooL/github_flavored_markdown"
   packages = ["."]
-  revision = "cccd3ce4f8e394ae9f87de0bd8b37e00625913d9"
+  revision = "28433ea3fc83827d77424782fefdcd94703366cc"
 
 [[projects]]
   branch = "master"
   name = "github.com/shurcooL/go"
   packages = ["parserutil","printerutil","reflectfind","reflectsource"]
-  revision = "c661e953e604ba4a84a3c4e458462a481bd6ce72"
+  revision = "004faa6b0118cf52635363b72b51cdcc297800a2"
 
 [[projects]]
   branch = "master"
@@ -161,7 +161,7 @@
   branch = "master"
   name = "github.com/shurcooL/graphql"
   packages = ["ident"]
-  revision = "cf6db17b893acfad0ca1929ba6be45bf854790ed"
+  revision = "d0549edd16dceb6939e538fdb1b4f2ec7ee816cc"
 
 [[projects]]
   branch = "master"
@@ -179,7 +179,7 @@
   branch = "master"
   name = "github.com/shurcooL/octiconssvg"
   packages = ["."]
-  revision = "8c9861b86a08c72d14e0285d0dc313bb6df52295"
+  revision = "38b02129bb6460858e11f90798a3832da1e502bd"
 
 [[projects]]
   branch = "master"
@@ -200,28 +200,28 @@
   revision = "bd320f5d308e1a3c4314c678d8227a0d72574ae7"
 
 [[projects]]
-  branch = "master"
   name = "github.com/ugorji/go"
   packages = ["codec"]
-  revision = "50189f05eaf5a0c17e5084eb8f7fb91e23699840"
+  revision = "9831f2c3ac1068a78f50999a30db84270f647af6"
+  version = "v1.1"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish"]
-  revision = "bd6f299fb381e4c3393d1c4b1f0b94f5e77650c8"
+  revision = "39efaea5da11abd5e2b90a435b1f338cdb94619c"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["html","html/atom"]
-  revision = "01c190206fbdffa42f334f4b2bf2220f50e64920"
+  revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "4fe5d7925040acd225bf9c7cee65e82d07f06bff"
+  revision = "af50095a40f9041b3b38960738837185c26e9419"
 
 [[projects]]
   name = "gopkg.in/go-playground/validator.v8"
@@ -245,7 +245,7 @@
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "eb3733d160e74a9c7e442f435eb3bea458e1d19f"
+  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"

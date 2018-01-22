@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"go/format"
 	"io"
 	"log"
 	"os"
@@ -55,6 +54,8 @@ func run() error {
 	fmt.Fprint(&buf, `package octiconssvg
 
 import (
+	"strconv"
+
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
@@ -71,14 +72,18 @@ func Icon(name string) *html.Node {
 		return nil
 	}
 }
-`)
-	for _, name := range names {
-		processOcticon(&buf, octicons, name)
-	}
 
-	b, err := format.Source(buf.Bytes())
-	if err != nil {
-		return fmt.Errorf("error from format.Source(): %v", err)
+// SetSize sets size of icon, and returns a reference to it.
+func SetSize(icon *html.Node, size int) *html.Node {
+	icon.Attr[`, widthAttrIndex, `].Val = strconv.Itoa(size)
+	icon.Attr[`, heightAttrIndex, `].Val = strconv.Itoa(size)
+	return icon
+}
+`)
+
+	// Write all individual Octicon functions.
+	for _, name := range names {
+		generateAndWriteOcticon(&buf, octicons, name)
 	}
 
 	var w io.Writer
@@ -94,7 +99,7 @@ func Icon(name string) *html.Node {
 		w = f
 	}
 
-	_, err = w.Write(b)
+	_, err = w.Write(buf.Bytes())
 	return err
 }
 
@@ -104,10 +109,10 @@ type octicon struct {
 	Height int `json:",string"`
 }
 
-func processOcticon(w io.Writer, octicons map[string]octicon, name string) {
+func generateAndWriteOcticon(w io.Writer, octicons map[string]octicon, name string) {
 	svgXML := generateOcticon(octicons[name])
-	svg := parseOcticon(svgXML)
 
+	svg := parseOcticon(svgXML)
 	// Clear these fields to remove cycles in the data structure, since go-goon
 	// cannot print those in a way that's valid Go code. The generated data structure
 	// is not a proper *html.Node with all fields set, but it's enough for rendering
@@ -129,9 +134,18 @@ func generateOcticon(o octicon) (svgXML string) {
 		// Skip fill-rule, if present. It has no effect on displayed SVG, but takes up space.
 		path = `<path ` + path[len(`<path fill-rule="evenodd" `):]
 	}
+	// Note, SetSize relies on the absolute position of the width, height attributes.
+	// Keep them in sync with widthAttrIndex and heightAttrIndex.
 	return fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">%s</svg>`,
 		o.Width, o.Height, o.Width, o.Height, path)
 }
+
+// These constants are used during generation of SetSize function.
+// Keep them in sync with generateOcticon.
+const (
+	widthAttrIndex  = 1
+	heightAttrIndex = 2
+)
 
 func parseOcticon(svgXML string) *html.Node {
 	e, err := html.ParseFragment(strings.NewReader(svgXML), nil)

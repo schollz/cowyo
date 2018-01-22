@@ -38,7 +38,7 @@ func run() error {
 	mux := http.NewServeMux()
 	mux.Handle("/query", &relay.Handler{Schema: schema})
 
-	client := graphql.NewClient("/query", &http.Client{Transport: localRoundTripper{handler: mux}}, nil)
+	client := graphql.NewClient("/query", &http.Client{Transport: localRoundTripper{handler: mux}})
 
 	/*
 		query {

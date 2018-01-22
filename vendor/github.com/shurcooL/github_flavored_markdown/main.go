@@ -199,114 +199,92 @@ var gfmHTMLConfig = syntaxhighlight.HTMLConfig{
 	Decimal:       "m",
 }
 
-// TODO: Support highlighting for more languages.
 func highlightCode(src []byte, lang string) (highlightedCode []byte, ok bool) {
 	switch lang {
-	case "Go":
+	case "Go", "Go-unformatted":
 		var buf bytes.Buffer
 		err := highlight_go.Print(src, &buf, syntaxhighlight.HTMLPrinter(gfmHTMLConfig))
 		if err != nil {
 			return nil, false
 		}
 		return buf.Bytes(), true
-	case "Go-old":
-		var buf bytes.Buffer
-		err := syntaxhighlight.Print(syntaxhighlight.NewScanner(src), &buf, syntaxhighlight.HTMLPrinter(gfmHTMLConfig))
+	case "diff":
+		anns, err := highlight_diff.Annotate(src)
 		if err != nil {
 			return nil, false
 		}
-		return buf.Bytes(), true
-	case "diff":
-		switch 2 {
-		default:
-			var buf bytes.Buffer
-			err := highlight_diff.Print(highlight_diff.NewScanner(src), &buf)
-			if err != nil {
-				return nil, false
-			}
-			return buf.Bytes(), true
-		case 1:
-			lines := bytes.Split(src, []byte("\n"))
-			return bytes.Join(lines, []byte("\n")), true
-		case 2:
-			anns, err := highlight_diff.Annotate(src)
-			if err != nil {
-				return nil, false
-			}
 
-			lines := bytes.Split(src, []byte("\n"))
-			lineStarts := make([]int, len(lines))
-			var offset int
-			for lineIndex := 0; lineIndex < len(lines); lineIndex++ {
-				lineStarts[lineIndex] = offset
-				offset += len(lines[lineIndex]) + 1
-			}
+		lines := bytes.Split(src, []byte("\n"))
+		lineStarts := make([]int, len(lines))
+		var offset int
+		for lineIndex := 0; lineIndex < len(lines); lineIndex++ {
+			lineStarts[lineIndex] = offset
+			offset += len(lines[lineIndex]) + 1
+		}
 
-			lastDel, lastIns := -1, -1
-			for lineIndex := 0; lineIndex < len(lines); lineIndex++ {
-				var lineFirstChar byte
-				if len(lines[lineIndex]) > 0 {
-					lineFirstChar = lines[lineIndex][0]
+		lastDel, lastIns := -1, -1
+		for lineIndex := 0; lineIndex < len(lines); lineIndex++ {
+			var lineFirstChar byte
+			if len(lines[lineIndex]) > 0 {
+				lineFirstChar = lines[lineIndex][0]
+			}
+			switch lineFirstChar {
+			case '+':
+				if lastIns == -1 {
+					lastIns = lineIndex
 				}
-				switch lineFirstChar {
-				case '+':
-					if lastIns == -1 {
+			case '-':
+				if lastDel == -1 {
+					lastDel = lineIndex
+				}
+			default:
+				if lastDel != -1 || lastIns != -1 {
+					if lastDel == -1 {
+						lastDel = lastIns
+					} else if lastIns == -1 {
 						lastIns = lineIndex
 					}
-				case '-':
-					if lastDel == -1 {
-						lastDel = lineIndex
-					}
-				default:
-					if lastDel != -1 || lastIns != -1 {
-						if lastDel == -1 {
-							lastDel = lastIns
-						} else if lastIns == -1 {
-							lastIns = lineIndex
+
+					beginOffsetLeft := lineStarts[lastDel]
+					endOffsetLeft := lineStarts[lastIns]
+					beginOffsetRight := lineStarts[lastIns]
+					endOffsetRight := lineStarts[lineIndex]
+
+					anns = append(anns, &annotate.Annotation{Start: beginOffsetLeft, End: endOffsetLeft, Left: []byte(`<span class="gd input-block">`), Right: []byte(`</span>`), WantInner: 0})
+					anns = append(anns, &annotate.Annotation{Start: beginOffsetRight, End: endOffsetRight, Left: []byte(`<span class="gi input-block">`), Right: []byte(`</span>`), WantInner: 0})
+
+					if '@' != lineFirstChar {
+						//leftContent := string(src[beginOffsetLeft:endOffsetLeft])
+						//rightContent := string(src[beginOffsetRight:endOffsetRight])
+						// This is needed to filter out the "-" and "+" at the beginning of each line from being highlighted.
+						// TODO: Still not completely filtered out.
+						leftContent := ""
+						for line := lastDel; line < lastIns; line++ {
+							leftContent += "\x00" + string(lines[line][1:]) + "\n"
+						}
+						rightContent := ""
+						for line := lastIns; line < lineIndex; line++ {
+							rightContent += "\x00" + string(lines[line][1:]) + "\n"
 						}
 
-						beginOffsetLeft := lineStarts[lastDel]
-						endOffsetLeft := lineStarts[lastIns]
-						beginOffsetRight := lineStarts[lastIns]
-						endOffsetRight := lineStarts[lineIndex]
+						var sectionSegments [2][]*annotate.Annotation
+						highlight_diff.HighlightedDiffFunc(leftContent, rightContent, &sectionSegments, [2]int{beginOffsetLeft, beginOffsetRight})
 
-						anns = append(anns, &annotate.Annotation{Start: beginOffsetLeft, End: endOffsetLeft, Left: []byte(`<span class="gd input-block">`), Right: []byte(`</span>`), WantInner: 0})
-						anns = append(anns, &annotate.Annotation{Start: beginOffsetRight, End: endOffsetRight, Left: []byte(`<span class="gi input-block">`), Right: []byte(`</span>`), WantInner: 0})
-
-						if '@' != lineFirstChar {
-							//leftContent := string(src[beginOffsetLeft:endOffsetLeft])
-							//rightContent := string(src[beginOffsetRight:endOffsetRight])
-							// This is needed to filter out the "-" and "+" at the beginning of each line from being highlighted.
-							// TODO: Still not completely filtered out.
-							leftContent := ""
-							for line := lastDel; line < lastIns; line++ {
-								leftContent += "\x00" + string(lines[line][1:]) + "\n"
-							}
-							rightContent := ""
-							for line := lastIns; line < lineIndex; line++ {
-								rightContent += "\x00" + string(lines[line][1:]) + "\n"
-							}
-
-							var sectionSegments [2][]*annotate.Annotation
-							highlight_diff.HighlightedDiffFunc(leftContent, rightContent, &sectionSegments, [2]int{beginOffsetLeft, beginOffsetRight})
-
-							anns = append(anns, sectionSegments[0]...)
-							anns = append(anns, sectionSegments[1]...)
-						}
+						anns = append(anns, sectionSegments[0]...)
+						anns = append(anns, sectionSegments[1]...)
 					}
-					lastDel, lastIns = -1, -1
 				}
+				lastDel, lastIns = -1, -1
 			}
-
-			sort.Sort(anns)
-
-			out, err := annotate.Annotate(src, anns, template.HTMLEscape)
-			if err != nil {
-				return nil, false
-			}
-
-			return out, true
 		}
+
+		sort.Sort(anns)
+
+		out, err := annotate.Annotate(src, anns, template.HTMLEscape)
+		if err != nil {
+			return nil, false
+		}
+		return out, true
 	default:
 		return nil, false
 	}
