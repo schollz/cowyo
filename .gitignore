@@ -24,4 +24,6 @@ _testmain.go
 *.prof
 
 data/*
-cowyodist
+cowyo
+dist
+
