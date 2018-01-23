@@ -131,6 +131,10 @@ func (n Name) ToMixedCaps() string {
 			n[i] = initialism
 			continue
 		}
+		if brand, ok := isBrand(word); ok {
+			n[i] = brand
+			continue
+		}
 		r, size := utf8.DecodeRuneInString(word)
 		n[i] = string(unicode.ToUpper(r)) + strings.ToLower(word[size:])
 	}
@@ -219,4 +223,18 @@ var initialisms = map[string]struct{}{
 
 	// Additional common initialisms.
 	"RSS": {},
+}
+
+// isBrand reports whether word is a brand.
+func isBrand(word string) (string, bool) {
+	brand, ok := brands[strings.ToLower(word)]
+	return brand, ok
+}
+
+// brands is the map of brands in the MixedCaps naming convention;
+// see https://dmitri.shuralyov.com/idiomatic-go#for-brands-or-words-with-more-than-1-capital-letter-lowercase-all-letters.
+// Key is the lower case version of the brand, value is the canonical brand spelling.
+// Only add entries that are highly unlikely to be non-brands.
+var brands = map[string]string{
+	"github": "GitHub",
 }

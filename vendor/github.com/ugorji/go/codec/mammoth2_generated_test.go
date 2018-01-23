@@ -3,10 +3,7 @@
 // Copyright (c) 2012-2015 Ugorji Nwoke. All rights reserved.
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-// ************************************************************
-// DO NOT EDIT.
-// THIS FILE IS AUTO-GENERATED from mammoth2-test.go.tmpl
-// ************************************************************
+// Code generated from mammoth2-test.go.tmpl - DO NOT EDIT.
 
 package codec
 
@@ -74,6 +71,8 @@ type TestMammoth2 struct {
 	FptrSliceFloat64 *[]float64
 	FSliceUint       []uint
 	FptrSliceUint    *[]uint
+	FSliceUint8      []uint8
+	FptrSliceUint8   *[]uint8
 	FSliceUint16     []uint16
 	FptrSliceUint16  *[]uint16
 	FSliceUint32     []uint32
