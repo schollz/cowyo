@@ -22,7 +22,7 @@ linuxarm:
 .PHONY: linux32
 linux32:
 	env GOOS=linux GOARCH=386 go build ${LDFLAGS} -o dist/cowyo_linux_32bit
-	#cd dist && upx --brute cowyo_linux_amd64
+	#cd dist && upx --brute cowyo_linux_32bit
 
 .PHONY: linux64
 linux64:
