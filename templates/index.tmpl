@@ -537,7 +537,7 @@ body#pad textarea {
                     </li>-->
 
                     <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover  {{ with .ViewPage }}pure-menu-selected{{ end }}">
-                        <a href="#" id="menuLink1" class="pure-menu-link">View</a>
+                        <a href="/{{ .Page }}/view"  class="pure-menu-link">View</a>
                         <ul class="pure-menu-children">
                         <li class="pure-menu-item">
                     <a href="/{{ .Page }}/read" class="pure-menu-link">Current</a>
