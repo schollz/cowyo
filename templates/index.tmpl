@@ -139,14 +139,8 @@ body#pad textarea {
 {{ end }}
         <title>{{ .Page }}</title>
 
-
-
-
-
-
-
         <script type='text/javascript'>
-	    oulipo = false;
+            oulipo = false;
             //<![CDATA[
             $(window).load(function() {
                 // Returns a function, that, as long as it continues to be invoked, will not
@@ -174,8 +168,9 @@ body#pad textarea {
                 // This will apply the debounce effect on the keyup event
                 // And it only fires 500ms or half a second after the user stopped typing
                 $('#userInput').on('keyup', debounce(function() {
-                    console.log('typing occurred');
-		    if (oulipo == true) { $('#userInput').val($('#userInput').val().replace(/e/g,"")); }
+                    if (oulipo) {
+                        $('#userInput').val($('#userInput').val().replace(/e/g,""));
+                    }
                     $('#saveEditButton').removeClass()
                     $('#saveEditButton').text("Saving")
                     upload();
@@ -488,139 +483,146 @@ body#pad textarea {
     <body id="pad">
         <article class="markdown-body">
 
-        {{ if .ReadPage }}
-        <div id="wrap">
-            <div id="rendered">
-        {{ .RenderedPage }}
-            </div>
-        </div>
-        {{ else }}
-
-
-            <div class="pure-menu pure-menu-horizontal" id="menu">
-                <ul class="pure-menu-list">
-                    <li></li>
-                    <!-- Required to keep them level? -->
-                    <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
-                        <a href="#" id="menuLink1" class="pure-menu-link">{{ .Page }}</a>
-                        <ul class="pure-menu-children">
-                            {{ if .DiaryMode }}
-                            <li class="pure-menu-item"><a href="/{{ .Date }}/edit" class="pure-menu-link">New</a></li>
-                            {{ else }}
-                            <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
-                            {{ end }}
-                            <li class="pure-menu-item"><a href="https://github.com/schollz/cowyo" class="pure-menu-link">Source</a></li>
-                            {{ if .EditPage }}
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="publishPage">
-                            {{- if .IsPublished -}}
-                            Unpublish
-                            {{- else -}}
-                            Publish
-                            {{- end -}}
-                            </a></li>
-                            {{ end }}
-                            <hr>
-                            {{ if (or (.IsLocked) (.IsEncrypted) )}}
-                            {{ else }}
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
-                            <li class="pure-menu-item"><a href="/{{ .Page }}/history" class="pure-menu-link">History</a></li>
-                            <hr>
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="selfDestructPage">Self-destruct</a></li>
-                            <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="erasePage">Erase</a></li>
-                            {{ end }}
-                        </ul>
-                    </li>
-                    <!--
-                    <li class="pure-menu-item  {{ with .ViewPage }}pure-menu-selected{{ end }}">
-                    <a href="/{{ .Page }}/view" class="pure-menu-link">View</a>
-                    </li>-->
-
-                    <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover  {{ with .ViewPage }}pure-menu-selected{{ end }}">
-                        <a href="/{{ .Page }}/view"  class="pure-menu-link">View</a>
-                        <ul class="pure-menu-children">
-                        <li class="pure-menu-item">
-                    <a href="/{{ .Page }}/read" class="pure-menu-link">Current</a>
+            {{ if .ReadPage  }}
+                <!-- No menu for read page -->
+            {{ else }}
+                <div class="pure-menu pure-menu-horizontal" id="menu">
+                    <ul class="pure-menu-list">
+                        <li></li>
+                        <!-- Required to keep them level? -->
+                        <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover">
+                            <a href="#" id="menuLink1" class="pure-menu-link">{{ .Page }}</a>
+                            <ul class="pure-menu-children">
+                                {{ if .DiaryMode }}
+                                <li class="pure-menu-item"><a href="/{{ .Date }}/edit" class="pure-menu-link">New</a></li>
+                                {{ else }}
+                                <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
+                                {{ end }}
+                                <li class="pure-menu-item"><a href="https://github.com/schollz/cowyo" class="pure-menu-link">Source</a></li>
+                                {{ if .EditPage }}
+                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="publishPage">
+                                {{- if .IsPublished -}}
+                                Unpublish
+                                {{- else -}}
+                                Publish
+                                {{- end -}}
+                                </a></li>
+                                {{ end }}
+                                <hr>
+                                {{ if (or (.IsLocked) (.IsEncrypted) )}}
+                                {{ else }}
+                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
+                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
+                                <li class="pure-menu-item"><a href="/{{ .Page }}/history" class="pure-menu-link">History</a></li>
+                                <hr>
+                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="selfDestructPage">Self-destruct</a></li>
+                                <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="erasePage">Erase</a></li>
+                                {{ end }}
+                            </ul>
                         </li>
-                        {{ range .RecentlyEdited}}
-                            <li class="pure-menu-item"><a  class="pure-menu-link" href="/{{.}}/read">{{.}}</a></li>
+
+                        <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover  {{ with .ViewPage }}pure-menu-selected{{ end }}">
+                            <a href="/{{ .Page }}/view"  class="pure-menu-link">View</a>
+                            <ul class="pure-menu-children">
+                            <li class="pure-menu-item">
+                        <a href="/{{ .Page }}/read" class="pure-menu-link">Current</a>
+                            </li>
+                            {{ range .RecentlyEdited}}
+                                <li class="pure-menu-item"><a  class="pure-menu-link" href="/{{.}}/read">{{.}}</a></li>
+                            {{ end }}
+                            </ul>
+                        </li>
+
+                        {{ if (or (.IsLocked) (.IsEncrypted) )}}
+                        {{ if .IsLocked }}
+                        <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
+                        <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton"></span></a></li>
+                        {{ else }}
+                        <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
+                        <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton"></span></a></li>
                         {{ end }}
-                        </ul>
-                    </li>
-
-                    {{ if (or (.IsLocked) (.IsEncrypted) )}}
-                    {{ if .IsLocked }}
-                    <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
-                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton"></span></a></li>
-                    {{ else }}
-                    <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
-                    <li class="pure-menu-item" class="pure-menu-link"><a href="#"><span id="saveEditButton"></span></a></li>
-                    {{ end }}
-                    {{else}}
-                    {{ if .ListPage }}
-                    <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="#" class="pure-menu-link" id="clearOld">Clear done</a></li>
-                    {{ else }}
-                    <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
-                    {{ end }}
-                    <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
-                    {{end}}
-
-
-
-
-                </ul>
-            </div>
-
+                        {{else}}
+                        {{ if .ListPage }}
+                        <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="#" class="pure-menu-link" id="clearOld">Clear done</a></li>
+                        {{ else }}
+                        <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
+                        {{ end }}
+                        <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
+                        {{end}}
+                    </ul>
+                </div>
+            {{ end }}
 
             <div id="wrap">
-                {{ if .EditPage }} <div id="pad"><textarea autofocus placeholder="Use markdown to write your note! New: you can publish your note when you are done ({{ .Page }} -> Publish)." id="userInput">{{ .RawPage }}</textarea></div>{{ end }}
-<div id="rendered">
-                {{ if .DontKnowPage }} <strong><center>{{ .Route }} not understood!</center></strong>{{ end }}
-                {{ if .ViewPage }}{{ .RenderedPage }}
+                {{ if .EditPage }}
+                    <div id="pad">
+                        <textarea
+                            autofocus
+                            placeholder="Use markdown to write your note! New: you can publish your note when you are done ({{ .Page }} -> Publish)."
+                            id="userInput"
+                        >{{ .RawPage }}</textarea>
+                    </div>
                 {{ end }}
-            {{ if .HistoryPage }}
-                <h1>History</h1>
-                <ul>
-                {{range $i, $e := .Versions}}
-                    <li style="list-style: none;">
-                    <a href="/{{ $.Page }}/view?version={{$e}}">View</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/list?version={{$e}}">List</a>&nbsp;&nbsp;<a href="/{{ $.Page }}/raw?version={{$e}}">Raw</a>&nbsp;&nbsp;
-                    {{index $.VersionsText $i}}&nbsp;({{if lt (index $.VersionsChangeSums $i) 0}}<span style="color:red">{{else}}<span style="color:green">+{{end}}{{index $.VersionsChangeSums $i}}</span>)</li>
-                {{end}}
-                </ul>
-            {{ end }}
-            {{ if .ListPage }}
-                  {{ range $index, $element := .ListItems }}
-                    {{ $element }}
-                  {{ end }}
-            {{ end }}
 
-            {{ if .DirectoryPage }}
-                <table style="width:100%">
-                  <tr>
-                    <th>Document</th>
-                    <th>Current size</th>
-                    <th>Num Edits</th>
-                    <th>Last Edited</th>
-                  </tr>
-                  {{range .DirectoryEntries}}
-                  <tr>
-                    <td><a href="/{{ .Name }}/view">{{ .Name }}</a></td>
-                    <td>{{.Length}}</td>
-                    <td>{{.Numchanges}}</td>
-                    <td>{{.LastEditTime}}</td>
-                  </tr>
-                  {{ end }}
-                </table>
-            {{end}}
-</div>
+                <div id="rendered">
+                    {{ if .DontKnowPage }}
+                        <strong>
+                            <center>
+                                {{ .Route }} not understood!
+                            </center>
+                        </strong>
+                    {{ end }}
+
+                    {{ if .ViewPage }}
+                        {{ .RenderedPage }}
+                    {{ end }}
+
+                    {{ if .ReadPage }}
+                        {{ .RenderedPage }}
+                    {{ end }}
+
+                    {{ if .HistoryPage }}
+                        <h1>History</h1>
+                        <ul>
+                            {{range $i, $e := .Versions}}
+                                <li style="list-style: none;">
+                                <a href="/{{ $.Page }}/view?version={{$e}}">View</a>
+                                &nbsp;&nbsp;
+                                <a href="/{{ $.Page }}/list?version={{$e}}">List</a>
+                                &nbsp;&nbsp;
+                                <a href="/{{ $.Page }}/raw?version={{$e}}">Raw</a>
+                                &nbsp;&nbsp;
+                                {{index $.VersionsText $i}}&nbsp;({{if lt (index $.VersionsChangeSums $i) 0}}<span style="color:red">{{else}}<span style="color:green">+{{end}}{{index $.VersionsChangeSums $i}}</span>)</li>
+                            {{end}}
+                        </ul>
+                    {{ end }}
+
+                    {{ if .ListPage }}
+                          {{ range $index, $element := .ListItems }}
+                            {{ $element }}
+                          {{ end }}
+                    {{ end }}
+
+                    {{ if .DirectoryPage }}
+                        <table style="width:100%">
+                          <tr>
+                            <th>Document</th>
+                            <th>Current size</th>
+                            <th>Num Edits</th>
+                            <th>Last Edited</th>
+                          </tr>
+                          {{range .DirectoryEntries}}
+                          <tr>
+                            <td><a href="/{{ .Name }}/view">{{ .Name }}</a></td>
+                            <td>{{.Length}}</td>
+                            <td>{{.Numchanges}}</td>
+                            <td>{{.LastEditTime}}</td>
+                          </tr>
+                          {{ end }}
+                        </table>
+                    {{end}}
+                </div>
             </div>
-{{ end }}
-
         </article>
-
-
-
-
     </body>
-
 </html>

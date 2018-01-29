@@ -335,6 +335,7 @@ func handlePageRequest(c *gin.Context) {
 		"DontKnowPage": command[0:2] != "/e" &&
 			command[0:2] != "/v" &&
 			command[0:2] != "/l" &&
+			command[0:2] != "/r" &&
 			command[0:2] != "/h",
 		"DirectoryPage":      page == "ls",
 		"DirectoryEntries":   DirectoryEntries,
