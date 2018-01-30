@@ -27,6 +27,14 @@ type Page struct {
 	IsPublished             bool
 }
 
+func (p Page) LastEditTime() time.Time {
+	return time.Unix(p.LastEditUnixTime(), 0)
+}
+
+func (p Page) LastEditUnixTime() int64 {
+	return p.Text.LastEditTime() / 1000000000
+}
+
 func Open(name string) (p *Page) {
 	p = new(Page)
 	p.Name = name

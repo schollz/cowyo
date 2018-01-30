@@ -356,6 +356,7 @@ func handlePageRequest(c *gin.Context) {
 		"Debounce":           debounceTime,
 		"DiaryMode":          diaryMode,
 		"Date":               time.Now().Format("2006-01-02"),
+		"UnixTime":           time.Now().Unix(),
 	})
 }
 
@@ -415,6 +416,7 @@ func handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
 		Page        string `json:"page"`
 		NewText     string `json:"new_text"`
+		FetchedAt   int64  `json:"fetched_at"`
 		IsEncrypted bool   `json:"is_encrypted"`
 		IsPrimed    bool   `json:"is_primed"`
 		Meta        string `json:"meta"`
@@ -442,6 +444,8 @@ func handlePageUpdate(c *gin.Context) {
 		message = "Locked, must unlock first"
 	} else if p.IsEncrypted {
 		message = "Encrypted, must decrypt first"
+	} else if json.FetchedAt > 0 && p.LastEditUnixTime() > json.FetchedAt {
+		message = "Refusing to overwrite others work"
 	} else {
 		p.Meta = json.Meta
 		p.Update(json.NewText)
@@ -455,7 +459,7 @@ func handlePageUpdate(c *gin.Context) {
 		message = "Saved"
 		success = true
 	}
-	c.JSON(http.StatusOK, gin.H{"success": success, "message": message})
+	c.JSON(http.StatusOK, gin.H{"success": success, "message": message, "unix_time": time.Now().Unix()})
 }
 
 func handlePrime(c *gin.Context) {

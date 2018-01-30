@@ -182,18 +182,21 @@ body#pad textarea {
                     upload();
                 }, {{ .Debounce }}));
 
+                var lastFetch = {{ .UnixTime }};
                 function upload() {
                     $.ajax({
                         type: 'POST',
                         url: '/update',
                         data: JSON.stringify({
                             new_text: $('#userInput').val(),
-                            page: "{{ .Page }}"
+                            page: "{{ .Page }}",
+                            fetched_at: lastFetch,
                         }),
                         success: function(data) {
                             $('#saveEditButton').removeClass()
                             if (data.success == true) {
                                 $('#saveEditButton').addClass("success");
+                                lastFetch = data.unix_time;
                             } else {
                                 $('#saveEditButton').addClass("failure");
                             }
