@@ -167,7 +167,13 @@ body#pad textarea {
 
                 // This will apply the debounce effect on the keyup event
                 // And it only fires 500ms or half a second after the user stopped typing
+                var prevText = $('#userInput').val();
                 $('#userInput').on('keyup', debounce(function() {
+                    if (prevText == $('#userInput').val()) {
+                        return // no changes
+                    }
+                    prevText = $('#userInput').val();
+
                     if (oulipo) {
                         $('#userInput').val($('#userInput').val().replace(/e/g,""));
                     }
