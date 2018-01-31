@@ -63,7 +63,7 @@ func TestGeneral(t *testing.T) {
 
 	children := p.ChildPageNames()
 	if len(children) != 1 {
-		t.Errorf("Expected 1 child page to be found by '%s', got %d", encodeToBase32FileGlob(p.Name+": ")+"*", len(children))
+		t.Errorf("Expected 1 child page to be found, got %d", len(children))
 		return
 	}
 	if children[0] != "testpage: childpage" {
