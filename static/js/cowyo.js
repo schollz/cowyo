@@ -224,7 +224,6 @@ $(window).load(function() {
         });
     }
 
-
     $("#encryptPage").click(function(e) {
         e.preventDefault();
         var passphrase = prompt("Please enter a passphrase. Note: Encrypting will remove all previous history.", "");
@@ -232,7 +231,6 @@ $(window).load(function() {
             encryptPage(passphrase);
         }
     });
-
 
     $("#erasePage").click(function(e) {
         e.preventDefault();
@@ -244,7 +242,6 @@ $(window).load(function() {
         }
     });
 
-
     $("#selfDestructPage").click(function(e) {
         e.preventDefault();
         var r = confirm("This will erase the page the next time it is opened, are you sure you want to do that?");
@@ -254,7 +251,6 @@ $(window).load(function() {
             x = "You pressed Cancel!";
         }
     });
-
 
     $("#lockPage").click(function(e) {
         e.preventDefault();
