@@ -37,16 +37,28 @@ func serve(
 	secret string,
 	secretCode string,
 	allowInsecure bool,
+	hotTemplateReloading bool,
 ) {
+	if hotTemplateReloading {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
-	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+
+	if hotTemplateReloading {
+		router.LoadHTMLGlob("templates/*.tmpl")
+	} else {
+		router.HTMLRender = loadTemplates("index.tmpl")
+	}
+
 	store := sessions.NewCookieStore([]byte(secret))
 	router.Use(sessions.Sessions("mysession", store))
 	if secretCode != "" {
 		router.Use(secretRequired.RequiresSecretAccessCode(secretCode, "/login/"))
 	}
-	router.HTMLRender = loadTemplates("index.tmpl")
+
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
 		if defaultPage != "" {

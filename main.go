@@ -9,6 +9,7 @@ import (
 )
 
 var version string
+var hotTemplateReloading bool
 var pathToData string
 
 func main() {
@@ -53,6 +54,7 @@ func main() {
 			c.GlobalString("cookie-secret"),
 			c.GlobalString("access-code"),
 			c.GlobalBool("allow-insecure-markup"),
+			hotTemplateReloading,
 		)
 		return nil
 	}

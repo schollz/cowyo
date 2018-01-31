@@ -2,7 +2,7 @@
 # make -j4 release
 
 VERSION=$(shell git describe)
-LDFLAGS=-ldflags "-s -w -X main.version=${VERSION}" -a -installsuffix cgo
+LDFLAGS=-ldflags "-s -w -X main.version=${VERSION} -X main.hotCodeReloading=false" -a -installsuffix cgo
 
 .PHONY: build
 build:
@@ -11,8 +11,8 @@ build:
 
 .PHONY: quick
 quick:
-	go-bindata static/... templates/...
-	go build
+	go-bindata -debug static/... templates/...
+	go build -ldflags "-X main.hotCodeReloading=true"
 
 .PHONY: linuxarm
 linuxarm:
