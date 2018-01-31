@@ -369,6 +369,7 @@ func handlePageRequest(c *gin.Context) {
 		"DiaryMode":          diaryMode,
 		"Date":               time.Now().Format("2006-01-02"),
 		"UnixTime":           time.Now().Unix(),
+		"ChildPageNames":     p.ChildPageNames(),
 	})
 }
 

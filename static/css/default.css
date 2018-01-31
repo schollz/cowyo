@@ -64,7 +64,7 @@ body#pad.HasDotInName textarea {
 }
 
 @media (min-width: 5em) {
-    div#menu, div#rendered, body#pad textarea {
+    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
         padding-left: 2%;
         padding-right: 2%;
     }
@@ -75,26 +75,54 @@ body#pad.HasDotInName textarea {
         padding-left:1.2em;
         padding-right:em;
     }
+    .ChildPageNames ul {
+        grid-template-columns: repeat(1, 1fr);
+    }
 }
 @media (min-width: 50em) {
-    div#menu, div#rendered, body#pad textarea {
+    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
         padding-left: 10%;
         padding-right: 10%;
     }
     .pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
         padding: .5em 1em;
     }
+    .ChildPageNames ul {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 @media (min-width: 70em) {
-    div#menu, div#rendered, body#pad textarea {
+    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
         padding-left: 15%;
         padding-right: 15%;
+    }
+    .ChildPageNames ul {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (min-width: 100em) {
-    div#menu, div#rendered, body#pad textarea {
+    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
         padding-left: 20%;
         padding-right: 20%;
     }
+    .ChildPageNames ul {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.ChildPageNames ul {
+    margin: 0.3em 0 0 1.6em;
+    padding: 0;
+    display: grid;
+    grid-gap: 0.5rem;
+}
+
+.ChildPageNames li {
+    margin: 0;
+}
+
+.ChildPageNames a {
+    color: #0645ad;
+    background: none;
 }

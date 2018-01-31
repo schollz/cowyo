@@ -197,6 +197,16 @@
                         </table>
                     {{ end }}
                 </div>
+                {{ if .ChildPageNames }}
+                    <section class="ChildPageNames">
+                        <h2>See also</h2>
+                        <ul>
+                        {{ range .ChildPageNames }}
+                            <li><a href="/{{ . }}/view">{{ . }}</a></li>
+                        {{ end }}
+                        </ul>
+                    </section>
+                {{ end }}
             </div>
         </article>
     </body>
