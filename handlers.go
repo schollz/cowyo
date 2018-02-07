@@ -56,7 +56,28 @@ func serve(
 	store := sessions.NewCookieStore([]byte(secret))
 	router.Use(sessions.Sessions("mysession", store))
 	if secretCode != "" {
-		router.Use(secretRequired.RequiresSecretAccessCode(secretCode, "/login/"))
+		cfg := &secretRequired.Config{
+			Secret: secretCode,
+			Path:   "/login/",
+			RequireAuth: func(c *gin.Context) bool {
+				page := c.Param("page")
+				cmd := c.Param("command")
+
+				if page == "sitemap.xml" || page == "favicon.ico" || page == "static" {
+					return false // no auth for sitemap
+				}
+
+				if page != "" && cmd == "/read" {
+					p := Open(page)
+					fmt.Printf("p: '%+v'\n", p)
+					if p != nil && p.IsPublished {
+						return false // Published pages don't require auth.
+					}
+				}
+				return true
+			},
+		}
+		router.Use(cfg.Middleware)
 	}
 
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
