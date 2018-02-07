@@ -41,8 +41,14 @@ $(window).load(function() {
         upload();
     }, window.debounceMS));
 
+    var latestUpload = null, needAnother = false;
     function upload() {
-        $.ajax({
+        // Prevent concurrent uploads
+        if (latestUpload != null) {
+            needAnother = true;
+            return
+        }
+        latestUpload = $.ajax({
             type: 'POST',
             url: '/update',
             data: JSON.stringify({
@@ -51,16 +57,25 @@ $(window).load(function() {
                 fetched_at: window.lastFetch,
             }),
             success: function(data) {
+                latestUpload = null;
+
                 $('#saveEditButton').removeClass()
                 if (data.success == true) {
                     $('#saveEditButton').addClass("success");
                     window.lastFetch = data.unix_time;
+
+                    if (needAnother) {
+                        upload();
+                    };
                 } else {
                     $('#saveEditButton').addClass("failure");
                 }
                 $('#saveEditButton').text(data.message);
+                needAnother = false;
             },
             error: function(xhr, error) {
+                latestUpload = null;
+                needAnother = false;
                 $('#saveEditButton').removeClass()
                 $('#saveEditButton').addClass("failure");
                 $('#saveEditButton').text(error);
