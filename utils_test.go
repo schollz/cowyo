@@ -20,6 +20,7 @@ func TestReverseList(t *testing.T) {
 		t.Errorf("Could not reverse: %v", s2)
 	}
 }
+
 func TestHashing(t *testing.T) {
 	p := HashPassword("1234")
 	log.Debug(p)

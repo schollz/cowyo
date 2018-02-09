@@ -37,16 +37,49 @@ func serve(
 	secret string,
 	secretCode string,
 	allowInsecure bool,
+	hotTemplateReloading bool,
 ) {
+	if hotTemplateReloading {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
-	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+
+	if hotTemplateReloading {
+		router.LoadHTMLGlob("templates/*.tmpl")
+	} else {
+		router.HTMLRender = loadTemplates("index.tmpl")
+	}
+
 	store := sessions.NewCookieStore([]byte(secret))
 	router.Use(sessions.Sessions("mysession", store))
 	if secretCode != "" {
-		router.Use(secretRequired.RequiresSecretAccessCode(secretCode, "/login/"))
+		cfg := &secretRequired.Config{
+			Secret: secretCode,
+			Path:   "/login/",
+			RequireAuth: func(c *gin.Context) bool {
+				page := c.Param("page")
+				cmd := c.Param("command")
+
+				if page == "sitemap.xml" || page == "favicon.ico" || page == "static" {
+					return false // no auth for sitemap
+				}
+
+				if page != "" && cmd == "/read" {
+					p := Open(page)
+					fmt.Printf("p: '%+v'\n", p)
+					if p != nil && p.IsPublished {
+						return false // Published pages don't require auth.
+					}
+				}
+				return true
+			},
+		}
+		router.Use(cfg.Middleware)
 	}
-	router.HTMLRender = loadTemplates("index.tmpl")
+
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
 		if defaultPage != "" {
@@ -335,6 +368,7 @@ func handlePageRequest(c *gin.Context) {
 		"DontKnowPage": command[0:2] != "/e" &&
 			command[0:2] != "/v" &&
 			command[0:2] != "/l" &&
+			command[0:2] != "/r" &&
 			command[0:2] != "/h",
 		"DirectoryPage":      page == "ls",
 		"DirectoryEntries":   DirectoryEntries,
@@ -355,6 +389,8 @@ func handlePageRequest(c *gin.Context) {
 		"Debounce":           debounceTime,
 		"DiaryMode":          diaryMode,
 		"Date":               time.Now().Format("2006-01-02"),
+		"UnixTime":           time.Now().Unix(),
+		"ChildPageNames":     p.ChildPageNames(),
 	})
 }
 
@@ -414,6 +450,7 @@ func handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
 		Page        string `json:"page"`
 		NewText     string `json:"new_text"`
+		FetchedAt   int64  `json:"fetched_at"`
 		IsEncrypted bool   `json:"is_encrypted"`
 		IsPrimed    bool   `json:"is_primed"`
 		Meta        string `json:"meta"`
@@ -441,6 +478,8 @@ func handlePageUpdate(c *gin.Context) {
 		message = "Locked, must unlock first"
 	} else if p.IsEncrypted {
 		message = "Encrypted, must decrypt first"
+	} else if json.FetchedAt > 0 && p.LastEditUnixTime() > json.FetchedAt {
+		message = "Refusing to overwrite others work"
 	} else {
 		p.Meta = json.Meta
 		p.Update(json.NewText)
@@ -454,7 +493,7 @@ func handlePageUpdate(c *gin.Context) {
 		message = "Saved"
 		success = true
 	}
-	c.JSON(http.StatusOK, gin.H{"success": success, "message": message})
+	c.JSON(http.StatusOK, gin.H{"success": success, "message": message, "unix_time": time.Now().Unix()})
 }
 
 func handlePrime(c *gin.Context) {

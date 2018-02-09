@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -25,6 +26,14 @@ type Page struct {
 	IsEncrypted             bool
 	IsPrimedForSelfDestruct bool
 	IsPublished             bool
+}
+
+func (p Page) LastEditTime() time.Time {
+	return time.Unix(p.LastEditUnixTime(), 0)
+}
+
+func (p Page) LastEditUnixTime() int64 {
+	return p.Text.LastEditTime() / 1000000000
 }
 
 func Open(name string) (p *Page) {
@@ -118,6 +127,26 @@ func (p *Page) Save() error {
 		return err
 	}
 	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0644)
+}
+
+func (p *Page) ChildPageNames() []string {
+	prefix := strings.ToLower(p.Name + ": ")
+	files, err := filepath.Glob(path.Join(pathToData, "*"))
+	if err != nil {
+		panic("Filepath pattern cannot be malformed")
+	}
+
+	result := []string{}
+	for i := range files {
+		basename := filepath.Base(files[i])
+		if strings.HasSuffix(basename, ".json") {
+			cname, err := decodeFromBase32(basename[:len(basename)-len(".json")])
+			if err == nil && strings.HasPrefix(strings.ToLower(cname), prefix) {
+				result = append(result, cname)
+			}
+		}
+	}
+	return result
 }
 
 func (p *Page) IsNew() bool {
