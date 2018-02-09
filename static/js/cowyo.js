@@ -39,7 +39,7 @@ $(window).load(function() {
         $('#saveEditButton').removeClass()
         $('#saveEditButton').text("Saving")
         upload();
-    }, window.debounceMS));
+    }, window.cowyo.debounceMS));
 
     var latestUpload = null, needAnother = false;
     function upload() {
@@ -54,7 +54,7 @@ $(window).load(function() {
             data: JSON.stringify({
                 new_text: $('#userInput').val(),
                 page: window.cowyo.pageName,
-                fetched_at: window.lastFetch,
+                fetched_at: window.cowyo.lastFetch,
             }),
             success: function(data) {
                 latestUpload = null;
@@ -62,7 +62,7 @@ $(window).load(function() {
                 $('#saveEditButton').removeClass()
                 if (data.success == true) {
                     $('#saveEditButton').addClass("success");
-                    window.lastFetch = data.unix_time;
+                    window.cowyo.lastFetch = data.unix_time;
 
                     if (needAnother) {
                         upload();
