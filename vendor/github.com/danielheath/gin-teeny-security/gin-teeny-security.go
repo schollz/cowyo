@@ -6,8 +6,9 @@ import "github.com/gin-gonic/gin"
 import "github.com/gin-contrib/sessions"
 import "net/http"
 import "net/url"
-import "fmt"
 import "io"
+import "time"
+import "sync"
 import "html/template"
 
 // Forces you to a login page until you provide a secret code.
@@ -32,6 +33,9 @@ type Config struct {
 	Template          *template.Template
 	SaveKeyToSession  func(*gin.Context, string)
 	GetKeyFromSession func(*gin.Context) string
+
+	LoginAttemptSlowdown time.Duration
+	mutex                sync.Mutex
 }
 
 func (c Config) saveKey(ctx *gin.Context, k string) {
@@ -58,7 +62,6 @@ func DefaultGetSession(c *gin.Context) string {
 	session := sessions.Default(c)
 	str, ok := session.Get("secretAccessCode").(string)
 	if !ok {
-		fmt.Println(session.Get("secretAccessCode"))
 		return ""
 	}
 	return str
@@ -85,6 +88,13 @@ func (c Config) template() *template.Template {
 	return c.Template
 }
 
+func (c Config) loginSlowdown() time.Duration {
+	if c.LoginAttemptSlowdown == 0 {
+		return time.Second
+	}
+	return c.LoginAttemptSlowdown
+}
+
 func (c Config) ExecTemplate(w io.Writer, message, returnUrl string) error {
 	return c.template().Execute(w, LoginPageParams{
 		Message: message,
@@ -101,7 +111,7 @@ var DEFAULT_LOGIN_PAGE = template.Must(template.New("login").Parse(`
 <h1>Login</h1>
 {{ if .Message }}<h2>{{ .Message }}</h2>{{ end }}
 <form action="{{.Path}}" method="POST">
-  <input name="secretAccessCode" />
+  <input type="password" name="secretAccessCode" />
   <input type="submit" value="Login" />
 </form>
 `))
@@ -114,11 +124,14 @@ func (cfg *Config) Middleware(c *gin.Context) {
 		}
 
 		if c.Request.Method == "POST" {
+			// slow down brute-force attacks
+			cfg.mutex.Lock()
+			defer cfg.mutex.Unlock()
+			time.Sleep(cfg.loginSlowdown())
+
 			c.Request.ParseForm()
 
-			fmt.Println(c.Request.PostForm.Get("secretAccessCode"))
 			if c.Request.PostForm.Get("secretAccessCode") == cfg.Secret {
-
 				c.Header("Location", returnTo)
 				cfg.saveKey(c, cfg.Secret)
 

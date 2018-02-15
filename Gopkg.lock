@@ -29,7 +29,7 @@
   branch = "master"
   name = "github.com/danielheath/gin-teeny-security"
   packages = ["."]
-  revision = "5f00fb6ac0933c2b378c907a3e2a43667afc4289"
+  revision = "b9ad6bd1a94e8e68fd1256221b3e055c8af5f81a"
 
 [[projects]]
   name = "github.com/garyburd/redigo"
