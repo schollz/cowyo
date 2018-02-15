@@ -24,6 +24,7 @@
         {{ if and .CustomCSS .ReadPage }}
             <link rel="stylesheet" type="text/css" href="/static/css/custom.css">
         {{ else }}
+            <link rel="stylesheet" href="/static/css/dropzone.css">
             <link rel="stylesheet" type="text/css" href="/static/css/github-markdown.css">
             <link rel="stylesheet" type="text/css" href="/static/css/menus-min.css">
             <link rel="stylesheet" type="text/css" href="/static/css/base-min.css">
@@ -32,6 +33,7 @@
             <script type="text/javascript" src="/static/js/jquery-1.8.3.js"></script>
             <script src="/static/js/highlight.min.js"></script>
             <script type="text/javascript" src="/static/js/highlight.pack.js"></script>
+            <script src="/static/js/dropzone.js"></script>
         {{ end }}
 
         <title>{{ .Page }}</title>
@@ -130,12 +132,32 @@
 
             <div id="wrap">
                 {{ if .EditPage }}
+
                     <div id="pad">
-                        <textarea
-                            autofocus
-                            placeholder="Use markdown to write your note! New: you can publish your note when you are done ({{ .Page }} -> Publish)."
-                            id="userInput"
-                        >{{ .RawPage }}</textarea>
+
+                        <script>
+                            Dropzone.options.userInputForm = {
+                                clickable: false,
+                                maxFilesize: {{ if .MaxUploadMB }} {{.MaxUploadMB}} {{ else }} 10 {{end }}, // MB
+                                init: function initDropzone() {
+                                    this.on("complete", onUploadFinished);
+                                }
+                            };
+                        </script>
+
+                        <form
+                            id="userInputForm"
+                            action="/uploads"
+                            {{ if .AllowFileUploads }}
+                            class="dropzone"
+                            {{ end }}
+                        >
+                            <textarea
+                                autofocus
+                                placeholder="Use markdown to write your note! New: you can publish your note when you are done ({{ .Page }} -> Publish)."
+                                id="userInput"
+                            >{{ .RawPage }}</textarea>
+                        </form>
                     </div>
                 {{ end }}
 
