@@ -256,7 +256,6 @@ func handlePageRequest(c *gin.Context) {
 	} else if page == "static" {
 		filename := page + command
 		var data []byte
-		fmt.Println(filename)
 		if filename == "static/css/custom.css" {
 			data = customCSS
 		} else {
