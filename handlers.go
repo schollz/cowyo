@@ -297,7 +297,11 @@ func handlePageRequest(c *gin.Context) {
 	if p.IsPrimedForSelfDestruct && !p.IsLocked && !p.IsEncrypted {
 		p.Update("*This page has self-destructed. You can not return to it.*\n\n" + p.Text.GetCurrent())
 		p.Erase()
-		command = "/view"
+		if p.IsPublished {
+			command = "/read"
+		} else {
+			command = "/view"
+		}
 	}
 	if command == "/erase" {
 		if !p.IsLocked && !p.IsEncrypted {
