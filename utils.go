@@ -182,6 +182,7 @@ func MarkdownToHtml(s string) string {
 
 	pClean := bluemonday.UGCPolicy()
 	pClean.AllowElements("img")
+	pClean.AllowElements("center")
 	pClean.AllowAttrs("alt").OnElements("img")
 	pClean.AllowAttrs("src").OnElements("img")
 	pClean.AllowAttrs("class").OnElements("a")

@@ -295,7 +295,7 @@ func handlePageRequest(c *gin.Context) {
 
 	// Destroy page if it is opened and primed
 	if p.IsPrimedForSelfDestruct && !p.IsLocked && !p.IsEncrypted {
-		p.Update("*This page has self-destructed. You cannot return to it.*\n\n" + p.Text.GetCurrent())
+		p.Update("<center><em>This page has self-destructed. You cannot return to it.</em></center>\n\n" + p.Text.GetCurrent())
 		p.Erase()
 		if p.IsPublished {
 			command = "/read"
