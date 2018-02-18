@@ -27,6 +27,7 @@ $(window).load(function() {
     // This will apply the debounce effect on the keyup event
     // And it only fires 500ms or half a second after the user stopped typing
     var prevText = $('#userInput').val();
+    console.log("debounce: " + window.cowyo.debounceMS)
     $('#userInput').on('keyup', debounce(function() {
         if (prevText == $('#userInput').val()) {
             return // no changes
@@ -39,7 +40,7 @@ $(window).load(function() {
         $('#saveEditButton').removeClass()
         $('#saveEditButton').text("Saving")
         upload();
-    }, window.debounceMS));
+    }, window.cowyo.debounceMS));
 
     var latestUpload = null, needAnother = false;
     function upload() {
