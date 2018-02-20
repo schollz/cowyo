@@ -12,9 +12,12 @@ STATICFILES := $(wildcard static/*)
 TEMPLATES := $(wildcard templates/*)
 bindata.go: $(STATICFILES) $(TEMPLATES)
 	go-bindata -tags '!debug' static/... templates/...
+	go fmt
 
 bindata-debug.go: $(STATICFILES) $(TEMPLATES)
 	go-bindata -tags 'debug' -o bindata-debug.go -debug static/... templates/...
+	go fmt
+
 
 .PHONY: devel
 devel: bindata-debug.go
