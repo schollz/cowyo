@@ -196,8 +196,13 @@ func MarkdownToHtml(s string) string {
 func GithubMarkdownToHTML(s string) string {
 	return string(github_flavored_markdown.Markdown([]byte(s)))
 }
+
 func encodeToBase32(s string) string {
-	return base32.StdEncoding.EncodeToString([]byte(s))
+	return encodeBytesToBase32([]byte(s))
+}
+
+func encodeBytesToBase32(s []byte) string {
+	return base32.StdEncoding.EncodeToString(s)
 }
 
 func decodeFromBase32(s string) (s2 string, err error) {

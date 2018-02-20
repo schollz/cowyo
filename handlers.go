@@ -1,10 +1,14 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -22,6 +26,8 @@ var customCSS []byte
 var defaultLock string
 var debounceTime int
 var diaryMode bool
+var allowFileUploads bool
+var maxUploadMB uint
 
 func serve(
 	host,
@@ -39,6 +45,7 @@ func serve(
 	allowInsecure bool,
 	hotTemplateReloading bool,
 ) {
+
 	if hotTemplateReloading {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -63,8 +70,8 @@ func serve(
 				page := c.Param("page")
 				cmd := c.Param("command")
 
-				if page == "sitemap.xml" || page == "favicon.ico" || page == "static" {
-					return false // no auth for sitemap
+				if page == "sitemap.xml" || page == "favicon.ico" || page == "static" || page == "uploads" {
+					return false // no auth for these
 				}
 
 				if page != "" && cmd == "/read" {
@@ -88,6 +95,9 @@ func serve(
 			c.Redirect(302, "/"+randomAlliterateCombo())
 		}
 	})
+
+	router.POST("/uploads", handleUpload)
+
 	router.GET("/:page", func(c *gin.Context) {
 		page := c.Param("page")
 		c.Redirect(302, "/"+page+"/")
@@ -135,7 +145,7 @@ func serve(
 	if TLS {
 		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
 	} else {
-		router.Run(host + ":" + port)
+		panic(router.Run(host + ":" + port))
 	}
 }
 
@@ -267,7 +277,26 @@ func handlePageRequest(c *gin.Context) {
 		}
 		c.Data(http.StatusOK, contentType(filename), data)
 		return
+	} else if page == "uploads" {
+		pathname := path.Join(pathToData, command[1:]+".upload")
+
+		if allowInsecureHtml {
+			c.Header(
+				"Content-Disposition",
+				`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+			)
+		} else {
+			// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
+			c.Header("Content-Type", "text/plain")
+			c.Header(
+				"Content-Disposition",
+				`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+			)
+		}
+		c.File(pathname)
+		return
 	}
+
 	p := Open(page)
 	if len(command) < 2 {
 		if p.IsPublished {
@@ -394,6 +423,8 @@ func handlePageRequest(c *gin.Context) {
 		"Date":               time.Now().Format("2006-01-02"),
 		"UnixTime":           time.Now().Unix(),
 		"ChildPageNames":     p.ChildPageNames(),
+		"AllowFileUploads":   allowFileUploads,
+		"MaxUploadMB":        maxUploadMB,
 	})
 }
 
@@ -581,6 +612,45 @@ func handlePublish(c *gin.Context) {
 		message = "Unpublished"
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
+}
+
+func handleUpload(c *gin.Context) {
+	if !allowFileUploads {
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
+		return
+	}
+
+	file, info, err := c.Request.FormFile("file")
+	defer file.Close()
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	h := sha256.New()
+	if _, err := io.Copy(h, file); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	newName := "sha256-" + encodeBytesToBase32(h.Sum(nil))
+
+	// Replaces any existing version, but sha256 collisions are rare as anything.
+	outfile, err := os.Create(path.Join(pathToData, newName+".upload"))
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	file.Seek(0, io.SeekStart)
+	_, err = io.Copy(outfile, file)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.Header("Location", "/uploads/"+newName+"?filename="+url.QueryEscape(info.Filename))
+	return
 }
 
 func handleEncrypt(c *gin.Context) {

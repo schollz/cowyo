@@ -40,6 +40,9 @@ func main() {
 			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
 		}
 
+		allowFileUploads = c.GlobalBool("allow-file-uploads")
+		maxUploadMB = c.GlobalUint("max-upload-mb")
+
 		serve(
 			c.GlobalString("host"),
 			c.GlobalString("port"),
@@ -130,6 +133,15 @@ func main() {
 			Name:  "cookie-secret",
 			Value: "secret",
 			Usage: "random data to use for cookies; changing it will invalidate all sessions",
+		},
+		cli.BoolFlag{
+			Name:  "allow-file-uploads",
+			Usage: "Enable file uploads",
+		},
+		cli.UintFlag{
+			Name:  "max-upload-mb",
+			Value: 2,
+			Usage: "Largest file upload (in mb) allowed",
 		},
 	}
 	app.Commands = []cli.Command{
