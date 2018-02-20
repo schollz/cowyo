@@ -127,6 +127,10 @@ $ go test ./...
 
 Any contributions are welcome.
 
+## Thanks
+
+...to [DanielHeath](https://github.com/DanielHeath) who has introduced some stellar improvements into cowyo including supporting category pages, hot-template reloading, preventing out-of-order updates, added password access, fade-out on deleting list items, and image upload support!
+
 ## License
 
 MIT
