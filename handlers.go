@@ -22,6 +22,8 @@ import (
 	"github.com/schollz/cowyo/encrypt"
 )
 
+const minutesToUnlock = 10.0
+
 var customCSS []byte
 var defaultLock string
 var debounceTime int
@@ -169,6 +171,13 @@ func loadTemplates(list ...string) multitemplate.Render {
 	return r
 }
 
+func pageIsLocked(p *Page, c *gin.Context) bool {
+	// it is easier to reason about when the page is actually unlocked
+	var unlocked = !p.IsLocked ||
+		(p.IsLocked && p.UnlockedFor == getSetSessionID(c))
+	return !unlocked
+}
+
 func handlePageRelinquish(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
@@ -191,10 +200,10 @@ func handlePageRelinquish(c *gin.Context) {
 		name = json.Page
 	}
 	text := p.Text.GetCurrent()
-	isLocked := p.IsEncrypted
+	isLocked := pageIsLocked(p, c)
 	isEncrypted := p.IsEncrypted
 	destroyed := p.IsPrimedForSelfDestruct
-	if !p.IsLocked && p.IsPrimedForSelfDestruct {
+	if !isLocked && p.IsPrimedForSelfDestruct {
 		p.Erase()
 		message = "Relinquished and erased"
 	}
@@ -205,6 +214,22 @@ func handlePageRelinquish(c *gin.Context) {
 		"locked":    isLocked,
 		"encrypted": isEncrypted,
 		"destroyed": destroyed})
+}
+
+func getSetSessionID(c *gin.Context) (sid string) {
+	var (
+		session = sessions.Default(c)
+		v       = session.Get("sid")
+	)
+	if v != nil {
+		sid = v.(string)
+	}
+	if v == nil || sid == "" {
+		sid = RandStringBytesMaskImprSrc(8)
+		session.Set("sid", sid)
+		session.Save()
+	}
+	return sid
 }
 
 func thread_SiteMap() {
@@ -307,23 +332,24 @@ func handlePageRequest(c *gin.Context) {
 		return
 	}
 
-	version := c.DefaultQuery("version", "ajksldfjl")
-
 	// use the default lock
 	if defaultLock != "" && p.IsNew() {
 		p.IsLocked = true
 		p.PassphraseToUnlock = defaultLock
 	}
 
+	version := c.DefaultQuery("version", "ajksldfjl")
+	isLocked := pageIsLocked(p, c)
+
 	// Disallow anything but viewing locked/encrypted pages
-	if (p.IsEncrypted || p.IsLocked) &&
+	if (p.IsEncrypted || isLocked) &&
 		(command[0:2] != "/v" && command[0:2] != "/r") {
 		c.Redirect(302, "/"+page+"/view")
 		return
 	}
 
 	// Destroy page if it is opened and primed
-	if p.IsPrimedForSelfDestruct && !p.IsLocked && !p.IsEncrypted {
+	if p.IsPrimedForSelfDestruct && !isLocked && !p.IsEncrypted {
 		p.Update("<center><em>This page has self-destructed. You cannot return to it.</em></center>\n\n" + p.Text.GetCurrent())
 		p.Erase()
 		if p.IsPublished {
@@ -333,7 +359,7 @@ func handlePageRequest(c *gin.Context) {
 		}
 	}
 	if command == "/erase" {
-		if !p.IsLocked && !p.IsEncrypted {
+		if !isLocked && !p.IsEncrypted {
 			p.Erase()
 			c.Redirect(302, "/"+page+"/edit")
 		} else {
@@ -410,7 +436,7 @@ func handlePageRequest(c *gin.Context) {
 		"Versions":           versionsInt64,
 		"VersionsText":       versionsText,
 		"VersionsChangeSums": versionsChangeSums,
-		"IsLocked":           p.IsLocked,
+		"IsLocked":           isLocked,
 		"IsEncrypted":        p.IsEncrypted,
 		"ListItems":          renderList(rawText),
 		"Route":              "/" + page + command,
@@ -506,10 +532,19 @@ func handlePageUpdate(c *gin.Context) {
 	}
 	log.Trace("Update: %v", json)
 	p := Open(json.Page)
-	var message string
+	var (
+		message       string
+		sinceLastEdit = time.Since(p.LastEditTime())
+	)
 	success := false
-	if p.IsLocked {
-		message = "Locked, must unlock first"
+	if pageIsLocked(p, c) {
+		if sinceLastEdit < minutesToUnlock {
+			message = "This page is being edited by someone else"
+		} else {
+			// here what might have happened is that two people unlock without
+			// editing thus they both suceeds but only one is able to edit
+			message = "Locked, must unlock first"
+		}
 	} else if p.IsEncrypted {
 		message = "Encrypted, must decrypt first"
 	} else if json.FetchedAt > 0 && p.LastEditUnixTime() > json.FetchedAt {
@@ -541,7 +576,7 @@ func handlePrime(c *gin.Context) {
 	}
 	log.Trace("Update: %v", json)
 	p := Open(json.Page)
-	if p.IsLocked {
+	if pageIsLocked(p, c) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
 		return
 	} else if p.IsEncrypted {
@@ -566,7 +601,7 @@ func handleLock(c *gin.Context) {
 	}
 	p := Open(json.Page)
 	if defaultLock != "" && p.IsNew() {
-		p.IsLocked = true
+		p.IsLocked = true // IsLocked was replaced by variable wrt Context
 		p.PassphraseToUnlock = defaultLock
 	}
 
@@ -574,21 +609,38 @@ func handleLock(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
 		return
 	}
-	var message string
-	if p.IsLocked {
+	var (
+		message       string
+		sessionID     = getSetSessionID(c)
+		sinceLastEdit = time.Since(p.LastEditTime())
+	)
+
+	// both lock/unlock ends here on locked&timeout combination
+	if p.IsLocked &&
+		p.UnlockedFor != sessionID &&
+		p.UnlockedFor != "" &&
+		sinceLastEdit.Minutes() < minutesToUnlock {
+
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": fmt.Sprintf("This page is being edited by someone else! Will unlock automatically %2.0f minutes after the last change.", minutesToUnlock-sinceLastEdit.Minutes()),
+		})
+		return
+	}
+	if !pageIsLocked(p, c) {
+		p.IsLocked = true
+		p.PassphraseToUnlock = HashPassword(json.Passphrase)
+		p.UnlockedFor = ""
+		message = "Locked"
+	} else {
 		err2 := CheckPasswordHash(json.Passphrase, p.PassphraseToUnlock)
 		if err2 != nil {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": "Can't unlock"})
 			return
 		}
-		p.IsLocked = false
-		message = "Unlocked"
-	} else {
-		p.IsLocked = true
-		p.PassphraseToUnlock = HashPassword(json.Passphrase)
-		message = "Locked"
+		p.UnlockedFor = sessionID
+		message = "Unlocked only for you"
 	}
-	fmt.Println(p)
 	p.Save()
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
@@ -665,7 +717,7 @@ func handleEncrypt(c *gin.Context) {
 		return
 	}
 	p := Open(json.Page)
-	if p.IsLocked {
+	if pageIsLocked(p, c) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
 		return
 	}
@@ -749,7 +801,7 @@ func handleClearOldListItems(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
 		return
 	}
-	if p.IsLocked {
+	if pageIsLocked(p, c) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
 		return
 	}

@@ -26,6 +26,7 @@ type Page struct {
 	IsEncrypted             bool
 	IsPrimedForSelfDestruct bool
 	IsPublished             bool
+	UnlockedFor             string
 }
 
 func (p Page) LastEditTime() time.Time {
