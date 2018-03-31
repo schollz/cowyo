@@ -1,5 +1,15 @@
-// A GIN middleware providing low-fi security for personal stuff.
-
+// A GIN middleware providing low-fi security for sites with simple needs.
+//
+// Redirects users to a login page until they provide a secret code.
+// No CSRF protection, so any js on the web can log you
+// out (or in, if they know the password).
+//
+// Protects you from brute-force attacks by making all login attempts
+// take 1 second (configurable) and serializing them through a mutex.
+//
+// Scripts can send `Authorization: <secret code>` instead of
+// having to keep a cookie jar.
+//
 package gin_teeny_security
 
 import "github.com/gin-gonic/gin"
@@ -11,12 +21,8 @@ import "time"
 import "sync"
 import "html/template"
 
-// Forces you to a login page until you provide a secret code.
-// No CSRF protection, so any script on any page can log you
-// out (or in, if they know the password).
-// The rest of your site needs XSS protection on forms or any site on the
-// net can inject stuff. If you're sending open CORS headers this
-// would be particularly bad.
+// Convenient entry-point for those using gin-sessions and
+// not wanting to override anything.
 func RequiresSecretAccessCode(secretAccessCode, path string) gin.HandlerFunc {
 	cfg := &Config{
 		Path:   path,
@@ -26,15 +32,16 @@ func RequiresSecretAccessCode(secretAccessCode, path string) gin.HandlerFunc {
 	return cfg.Middleware
 }
 
+// Main entry point
 type Config struct {
-	Path              string // defaults to login
-	Secret            string
-	RequireAuth       func(*gin.Context) bool // defaults to always requiring auth if unset
-	Template          *template.Template
-	SaveKeyToSession  func(*gin.Context, string)
-	GetKeyFromSession func(*gin.Context) string
+	Path              string                     // defaults to 'login'
+	Secret            string                     // the password
+	RequireAuth       func(*gin.Context) bool    // defaults to always requiring auth if unset; override to allow some public access.
+	Template          *template.Template         // Markup for the login page
+	SaveKeyToSession  func(*gin.Context, string) // Override to use something other than gin-sessions
+	GetKeyFromSession func(*gin.Context) string  // Override to use something other than gin-sessions
 
-	LoginAttemptSlowdown time.Duration
+	LoginAttemptSlowdown time.Duration // Increase to slow-down attempts to brute force your password.
 	mutex                sync.Mutex
 }
 
@@ -52,12 +59,14 @@ func (c Config) getKey(ctx *gin.Context) string {
 	return c.GetKeyFromSession(ctx)
 }
 
+// Saves your login status using gin-sessions
 func DefaultSetSession(c *gin.Context, secret string) {
 	session := sessions.Default(c)
 	session.Set("secretAccessCode", secret)
 	session.Save()
 }
 
+// Gets your login status from gin-sessions
 func DefaultGetSession(c *gin.Context) string {
 	session := sessions.Default(c)
 	str, ok := session.Get("secretAccessCode").(string)
@@ -75,6 +84,12 @@ func (c Config) path() string {
 }
 
 func (c Config) requireAuth(ctx *gin.Context) bool {
+	if ctx.Request.Header.Get("Authorization") != "" {
+		// Slow down brute-force attempts.
+		c.mutex.Lock()
+		defer c.mutex.Unlock()
+		time.Sleep(c.loginSlowdown())
+	}
 	if ctx.Request.Header.Get("Authorization") == c.Secret {
 		return false
 	}
@@ -114,6 +129,10 @@ var DEFAULT_LOGIN_PAGE = template.Must(template.New("login").Parse(`
   <input type="password" name="secretAccessCode" />
   <input type="submit" value="Login" />
 </form>
+
+<div style="display: none">
+CURL users: try setting -H 'Authorization: <your secret>'
+</div>
 `))
 
 func (cfg *Config) Middleware(c *gin.Context) {
