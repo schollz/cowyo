@@ -30,6 +30,7 @@ var debounceTime int
 var diaryMode bool
 var allowFileUploads bool
 var maxUploadMB uint
+var needSitemapUpdate = true
 
 func serve(
 	host,
@@ -234,10 +235,13 @@ func getSetSessionID(c *gin.Context) (sid string) {
 
 func thread_SiteMap() {
 	for {
-		log.Info("Generating sitemap...")
-		ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
-		log.Info("..finished generating sitemap")
-		time.Sleep(24 * time.Hour)
+		if needSitemapUpdate {
+			log.Info("Generating sitemap...")
+			needSitemapUpdate = false
+			ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
+			log.Info("..finished generating sitemap")
+		}
+		time.Sleep(time.Second)
 	}
 }
 
@@ -256,12 +260,11 @@ func generateSiteMap() (sitemap string) {
 	}
 	names = names[:i]
 	lastEdited = lastEdited[:i]
-	sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-		<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+	sitemap = ""
 	for i := range names {
 		sitemap += fmt.Sprintf(`
 	<url>
-	<loc>https://cowyo.com/%s/read</loc>
+	<loc>{{ .Request.Host }}/%s/read</loc>
 	<lastmod>%s</lastmod>
 	<changefreq>monthly</changefreq>
 	<priority>0.8</priority>
@@ -281,7 +284,8 @@ func handlePageRequest(c *gin.Context) {
 		if err != nil {
 			c.Data(http.StatusInternalServerError, contentType("sitemap.xml"), []byte(""))
 		} else {
-			c.Data(http.StatusOK, contentType("sitemap.xml"), siteMap)
+			fmt.Fprintln(c.Writer, `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+			template.Must(template.New("sitemap").Parse(string(siteMap))).Execute(c.Writer, c)
 		}
 		return
 	} else if page == "favicon.ico" {
@@ -560,6 +564,9 @@ func handlePageUpdate(c *gin.Context) {
 		}
 		p.Save()
 		message = "Saved"
+		if p.IsPublished {
+			needSitemapUpdate = true
+		}
 		success = true
 	}
 	c.JSON(http.StatusOK, gin.H{"success": success, "message": message, "unix_time": time.Now().Unix()})
