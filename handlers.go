@@ -400,7 +400,7 @@ func handlePageRequest(c *gin.Context) {
 	}
 
 	if len(command) > 3 && command[0:3] == "/ra" {
-		c.Writer.Header().Set("Content-Type", contentType(p.Name))
+		c.Writer.Header().Set("Content-Type", "text/plain")
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
