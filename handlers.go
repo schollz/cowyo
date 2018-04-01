@@ -57,6 +57,10 @@ func serve(
 
 	router := gin.Default()
 
+	router.SetFuncMap(template.FuncMap{
+		"sniffContentType": sniffContentType,
+	})
+
 	if hotTemplateReloading {
 		router.LoadHTMLGlob("templates/*.tmpl")
 	} else {
@@ -307,23 +311,34 @@ func handlePageRequest(c *gin.Context) {
 		c.Data(http.StatusOK, contentType(filename), data)
 		return
 	} else if page == "uploads" {
-		pathname := path.Join(pathToData, command[1:]+".upload")
-
-		if allowInsecureHtml {
-			c.Header(
-				"Content-Disposition",
-				`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-			)
+		if len(command) == 0 || command == "/" || command == "/edit" {
+			if !allowFileUploads {
+				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
+				return
+			}
 		} else {
-			// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
-			c.Header("Content-Type", "text/plain")
-			c.Header(
-				"Content-Disposition",
-				`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-			)
+			command = command[1:]
+			if !strings.HasSuffix(command, ".upload") {
+				command = command + ".upload"
+			}
+			pathname := path.Join(pathToData, command)
+
+			if allowInsecureHtml {
+				c.Header(
+					"Content-Disposition",
+					`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+				)
+			} else {
+				// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
+				c.Header("Content-Type", "text/plain")
+				c.Header(
+					"Content-Disposition",
+					`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+				)
+			}
+			c.File(pathname)
+			return
 		}
-		c.File(pathname)
-		return
 	}
 
 	p := Open(page)
@@ -410,10 +425,19 @@ func handlePageRequest(c *gin.Context) {
 		return
 	}
 
-	var DirectoryEntries []DirectoryEntry
+	var DirectoryEntries []os.FileInfo
 	if page == "ls" {
 		command = "/view"
 		DirectoryEntries = DirectoryList()
+	}
+	if page == "uploads" {
+		command = "/view"
+		var err error
+		DirectoryEntries, err = UploadList()
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	// swap out /view for /read if it is published
@@ -432,7 +456,8 @@ func handlePageRequest(c *gin.Context) {
 			command[0:2] != "/l" &&
 			command[0:2] != "/r" &&
 			command[0:2] != "/h",
-		"DirectoryPage":      page == "ls",
+		"DirectoryPage":      page == "ls" || page == "uploads",
+		"UploadPage":         page == "uploads",
 		"DirectoryEntries":   DirectoryEntries,
 		"Page":               page,
 		"RenderedPage":       template.HTML([]byte(rawHTML)),
