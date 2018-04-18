@@ -202,18 +202,29 @@
 
                     {{ if .DirectoryPage }}
                         <table style="width:100%">
+                          {{ $upload := .UploadPage }}
                           <tr>
                             <th>Document</th>
                             <th>Current size</th>
+                            {{ if not $upload }}
                             <th>Num Edits</th>
+                            {{ end }}
                             <th>Last Edited</th>
                           </tr>
                           {{range .DirectoryEntries}}
                           <tr>
-                            <td><a href="/{{ .Name }}/view">{{ .Name }}</a></td>
-                            <td>{{.Length}}</td>
+                            <td>
+                                {{ if $upload }}
+                                <a href="/uploads/{{ .Name }}">{{ sniffContentType .Name }}</a>
+                                {{ else }}
+                                <a href="/{{ .Name }}/view">{{ .Name }}</a>
+                                {{ end }}
+                            </td>
+                            <td>{{.Size}}</td>
+                            {{ if not $upload }}
                             <td>{{.Numchanges}}</td>
-                            <td>{{.LastEditTime}}</td>
+                            {{ end }}
+                            <td>{{.ModTime.Format "Mon Jan 2 15:04:05 MST 2006" }}</td>
                           </tr>
                           {{ end }}
                         </table>

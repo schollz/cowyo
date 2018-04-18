@@ -1,9 +1,0 @@
-version: "2"
-
-services:
-  cowyo:
-    build: .
-    ports:
-      - 8050:8050
-    volumes:
-      - ./data:/data

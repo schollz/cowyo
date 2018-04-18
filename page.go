@@ -54,7 +54,7 @@ func Open(name string) (p *Page) {
 }
 
 type DirectoryEntry struct {
-	Name       string
+	Path       string
 	Length     int
 	Numchanges int
 	LastEdited time.Time
@@ -64,21 +64,64 @@ func (d DirectoryEntry) LastEditTime() string {
 	return d.LastEdited.Format("Mon Jan 2 15:04:05 MST 2006")
 }
 
-func DirectoryList() []DirectoryEntry {
+func (d DirectoryEntry) Name() string {
+	return d.Path
+}
+
+func (d DirectoryEntry) Size() int64 {
+	return int64(d.Length)
+}
+
+func (d DirectoryEntry) Mode() os.FileMode {
+	return os.ModePerm
+}
+
+func (d DirectoryEntry) ModTime() time.Time {
+	return d.LastEdited
+}
+
+func (d DirectoryEntry) IsDir() bool {
+	return false
+}
+
+func (d DirectoryEntry) Sys() interface{} {
+	return nil
+}
+
+func DirectoryList() []os.FileInfo {
 	files, _ := ioutil.ReadDir(pathToData)
-	entries := make([]DirectoryEntry, len(files))
+	entries := make([]os.FileInfo, len(files))
 	for i, f := range files {
 		name := DecodeFileName(f.Name())
 		p := Open(name)
 		entries[i] = DirectoryEntry{
-			Name:       name,
+			Path:       name,
 			Length:     len(p.Text.GetCurrent()),
 			Numchanges: p.Text.NumEdits(),
 			LastEdited: time.Unix(p.Text.LastEditTime()/1000000000, 0),
 		}
 	}
-	sort.Slice(entries, func(i, j int) bool { return entries[i].LastEdited.After(entries[j].LastEdited) })
+	sort.Slice(entries, func(i, j int) bool { return entries[i].ModTime().After(entries[j].ModTime()) })
 	return entries
+}
+
+type UploadEntry struct {
+	os.FileInfo
+}
+
+func UploadList() ([]os.FileInfo, error) {
+	paths, err := filepath.Glob(path.Join(pathToData, "sha256*"))
+	if err != nil {
+		return nil, err
+	}
+	result := make([]os.FileInfo, len(paths))
+	for i := range paths {
+		result[i], err = os.Stat(paths[i])
+		if err != nil {
+			return result, err
+		}
+	}
+	return result, nil
 }
 
 func DecodeFileName(s string) string {

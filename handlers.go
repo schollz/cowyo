@@ -30,6 +30,7 @@ var debounceTime int
 var diaryMode bool
 var allowFileUploads bool
 var maxUploadMB uint
+var needSitemapUpdate = true
 
 func serve(
 	host,
@@ -55,6 +56,10 @@ func serve(
 	}
 
 	router := gin.Default()
+
+	router.SetFuncMap(template.FuncMap{
+		"sniffContentType": sniffContentType,
+	})
 
 	if hotTemplateReloading {
 		router.LoadHTMLGlob("templates/*.tmpl")
@@ -234,10 +239,13 @@ func getSetSessionID(c *gin.Context) (sid string) {
 
 func thread_SiteMap() {
 	for {
-		log.Info("Generating sitemap...")
-		ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
-		log.Info("..finished generating sitemap")
-		time.Sleep(24 * time.Hour)
+		if needSitemapUpdate {
+			log.Info("Generating sitemap...")
+			needSitemapUpdate = false
+			ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
+			log.Info("..finished generating sitemap")
+		}
+		time.Sleep(time.Second)
 	}
 }
 
@@ -256,12 +264,11 @@ func generateSiteMap() (sitemap string) {
 	}
 	names = names[:i]
 	lastEdited = lastEdited[:i]
-	sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-		<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
+	sitemap = ""
 	for i := range names {
 		sitemap += fmt.Sprintf(`
 	<url>
-	<loc>https://cowyo.com/%s/read</loc>
+	<loc>{{ .Request.Host }}/%s/read</loc>
 	<lastmod>%s</lastmod>
 	<changefreq>monthly</changefreq>
 	<priority>0.8</priority>
@@ -281,7 +288,8 @@ func handlePageRequest(c *gin.Context) {
 		if err != nil {
 			c.Data(http.StatusInternalServerError, contentType("sitemap.xml"), []byte(""))
 		} else {
-			c.Data(http.StatusOK, contentType("sitemap.xml"), siteMap)
+			fmt.Fprintln(c.Writer, `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+			template.Must(template.New("sitemap").Parse(string(siteMap))).Execute(c.Writer, c)
 		}
 		return
 	} else if page == "favicon.ico" {
@@ -303,23 +311,34 @@ func handlePageRequest(c *gin.Context) {
 		c.Data(http.StatusOK, contentType(filename), data)
 		return
 	} else if page == "uploads" {
-		pathname := path.Join(pathToData, command[1:]+".upload")
-
-		if allowInsecureHtml {
-			c.Header(
-				"Content-Disposition",
-				`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-			)
+		if len(command) == 0 || command == "/" || command == "/edit" {
+			if !allowFileUploads {
+				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
+				return
+			}
 		} else {
-			// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
-			c.Header("Content-Type", "text/plain")
-			c.Header(
-				"Content-Disposition",
-				`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-			)
+			command = command[1:]
+			if !strings.HasSuffix(command, ".upload") {
+				command = command + ".upload"
+			}
+			pathname := path.Join(pathToData, command)
+
+			if allowInsecureHtml {
+				c.Header(
+					"Content-Disposition",
+					`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+				)
+			} else {
+				// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
+				c.Header("Content-Type", "text/plain")
+				c.Header(
+					"Content-Disposition",
+					`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+				)
+			}
+			c.File(pathname)
+			return
 		}
-		c.File(pathname)
-		return
 	}
 
 	p := Open(page)
@@ -396,7 +415,7 @@ func handlePageRequest(c *gin.Context) {
 	}
 
 	if len(command) > 3 && command[0:3] == "/ra" {
-		c.Writer.Header().Set("Content-Type", contentType(p.Name))
+		c.Writer.Header().Set("Content-Type", "text/plain")
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
@@ -406,10 +425,19 @@ func handlePageRequest(c *gin.Context) {
 		return
 	}
 
-	var DirectoryEntries []DirectoryEntry
+	var DirectoryEntries []os.FileInfo
 	if page == "ls" {
 		command = "/view"
 		DirectoryEntries = DirectoryList()
+	}
+	if page == "uploads" {
+		command = "/view"
+		var err error
+		DirectoryEntries, err = UploadList()
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	// swap out /view for /read if it is published
@@ -428,7 +456,8 @@ func handlePageRequest(c *gin.Context) {
 			command[0:2] != "/l" &&
 			command[0:2] != "/r" &&
 			command[0:2] != "/h",
-		"DirectoryPage":      page == "ls",
+		"DirectoryPage":      page == "ls" || page == "uploads",
+		"UploadPage":         page == "uploads",
 		"DirectoryEntries":   DirectoryEntries,
 		"Page":               page,
 		"RenderedPage":       template.HTML([]byte(rawHTML)),
@@ -560,6 +589,9 @@ func handlePageUpdate(c *gin.Context) {
 		}
 		p.Save()
 		message = "Saved"
+		if p.IsPublished {
+			needSitemapUpdate = true
+		}
 		success = true
 	}
 	c.JSON(http.StatusOK, gin.H{"success": success, "message": message, "unix_time": time.Now().Unix()})

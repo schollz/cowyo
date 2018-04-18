@@ -6,7 +6,9 @@ import (
 	"encoding/hex"
 	"math/rand"
 	"net"
+	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -90,6 +92,25 @@ func contentType(filename string) string {
 		return "application/xml"
 	}
 	return "text/html"
+}
+
+func sniffContentType(name string) (string, error) {
+	file, err := os.Open(path.Join(pathToData, name))
+	if err != nil {
+		return "", err
+
+	}
+	defer file.Close()
+
+	// Only the first 512 bytes are used to sniff the content type.
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+
+	// Always returns a valid content-type and "application/octet-stream" if no others seemed to match.
+	return http.DetectContentType(buffer), nil
 }
 
 func timeTrack(start time.Time, name string) {

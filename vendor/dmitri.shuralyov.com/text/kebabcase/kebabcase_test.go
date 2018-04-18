@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"dmitri.shuralyov.com/kebabcase"
+	"dmitri.shuralyov.com/text/kebabcase"
 	"github.com/shurcooL/graphql/ident"
 )
 

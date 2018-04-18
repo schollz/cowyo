@@ -7,6 +7,8 @@ import "net/http"
 import "net/url"
 import "log"
 import "io"
+import "fmt"
+import "time"
 import "io/ioutil"
 import "testing"
 import "github.com/gin-gonic/gin"
@@ -73,9 +75,14 @@ func TestAuth(t *testing.T) {
 	mustStartWith("<h1>Login</h1>\n\n<form action=\"/enter-password/?return=%2Fprivate\"", readString(res.Body))
 
 	// Check entering a bad password gives you a message
+	allowedFinishTime := time.Now().Add(time.Second)
 	res, err = http.PostForm(ts.URL+"/enter-password/", url.Values{"secretAccessCode": []string{"wrong"}})
 	die(err)
 	mustStartWith("<h1>Login</h1>\n<h2>Wrong Password</h2>", readString(res.Body))
+	finishTime := time.Now()
+	if finishTime.Before(allowedFinishTime) {
+		die(fmt.Errorf("Expected failed login to take at least 1 second"))
+	}
 
 	// Check entering a good password lets you access things
 	res, err = http.PostForm(ts.URL+"/enter-password/?return=/private/", url.Values{"secretAccessCode": []string{"garden"}})
