@@ -165,7 +165,9 @@ func loadTemplates(list ...string) multitemplate.Render {
 			panic(err)
 		}
 
-		tmplMessage, err := template.New(x).Parse(string(templateString))
+		tmplMessage, err := template.New(x).Funcs(template.FuncMap{
+			"sniffContentType": sniffContentType,
+		}).Parse(string(templateString))
 		if err != nil {
 			panic(err)
 		}
