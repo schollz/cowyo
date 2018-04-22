@@ -6,12 +6,13 @@ package mongostore
 
 import (
 	"errors"
+	"net/http"
+	"time"
+
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"net/http"
-	"time"
 )
 
 var (
@@ -40,12 +41,14 @@ func NewMongoStore(c *mgo.Collection, maxAge int, ensureTTL bool,
 	store := &MongoStore{
 		Codecs: securecookie.CodecsFromPairs(keyPairs...),
 		Options: &sessions.Options{
-			Path: "/",
+			Path:   "/",
 			MaxAge: maxAge,
 		},
 		Token: &CookieToken{},
 		coll:  c,
 	}
+
+	store.MaxAge(maxAge)
 
 	if ensureTTL {
 		c.EnsureIndex(mgo.Index{
@@ -120,6 +123,20 @@ func (m *MongoStore) Save(r *http.Request, w http.ResponseWriter,
 
 	m.Token.SetToken(w, session.Name(), encoded, session.Options)
 	return nil
+}
+
+// MaxAge sets the maximum age for the store and the underlying cookie
+// implementation. Individual sessions can be deleted by setting Options.MaxAge
+// = -1 for that session.
+func (m *MongoStore) MaxAge(age int) {
+	m.Options.MaxAge = age
+
+	// Set the maxAge for each securecookie instance.
+	for _, codec := range m.Codecs {
+		if sc, ok := codec.(*securecookie.SecureCookie); ok {
+			sc.MaxAge(age)
+		}
+	}
 }
 
 func (m *MongoStore) load(session *sessions.Session) error {

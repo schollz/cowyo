@@ -36,8 +36,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func createMyRender() multitemplate.Render {
-	r := multitemplate.New()
+func createMyRender() multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
 	r.AddFromFiles("index", "templates/base.html", "templates/index.html")
 	r.AddFromFiles("article", "templates/base.html", "templates/index.html", "templates/article.html")
 	return r
@@ -86,8 +86,8 @@ func main() {
 	router.Run(":8080")
 }
 
-func loadTemplates(templatesDir string) multitemplate.Render {
-	r := multitemplate.New()
+func loadTemplates(templatesDir string) multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
 
 	layouts, err := filepath.Glob(templatesDir + "/layouts/*.tmpl")
 	if err != nil {

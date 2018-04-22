@@ -37,20 +37,20 @@
     "internal",
     "redis"
   ]
-  revision = "d1ed5c67e5794de818ea85e6b522fda02623a484"
-  version = "v1.4.0"
+  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
+  version = "v1.6.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/gin-contrib/multitemplate"
   packages = ["."]
-  revision = "bbc6daf6024bc4c48f334a0490321cd48a24da3d"
+  revision = "d2d1ac3f563eac04b11ba01db7ac9f0eb9dc3a94"
 
 [[projects]]
   branch = "master"
   name = "github.com/gin-contrib/sessions"
   packages = ["."]
-  revision = "cccdeef56346e7037ca92de250c2b55ef5e7ffe3"
+  revision = "fda3be6efa2da56e31a1a72bffd65279191e8009"
 
 [[projects]]
   branch = "master"
@@ -69,10 +69,10 @@
   version = "v1.2"
 
 [[projects]]
-  branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -83,8 +83,8 @@
 [[projects]]
   name = "github.com/gorilla/securecookie"
   packages = ["."]
-  revision = "667fe4e3466a040b780561fe9b51a83a3753eefc"
-  version = "v1.1"
+  revision = "e59506cc896acb7f7bf732d4fdf5e25f7ccd8983"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/gorilla/sessions"
@@ -102,7 +102,7 @@
   branch = "master"
   name = "github.com/kidstuff/mongostore"
   packages = ["."]
-  revision = "256d65ac5b0e35e7c5ebb3f175c0bed1e5c2b253"
+  revision = "db2a8b4fac1f737c75e7fb84cb3fdb07dfc8fbc9"
 
 [[projects]]
   name = "github.com/mattn/go-isatty"
@@ -114,13 +114,13 @@
   branch = "master"
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
-  revision = "542fd4642604d0d0c26112396ce5b1a9d01eee0b"
+  revision = "995366fdf961d03629cd17361bddd32745718e2c"
 
 [[projects]]
   name = "github.com/russross/blackfriday"
   packages = ["."]
-  revision = "4048872b16cc0fc2c5fd9eacf0ed2c2fedaa0c8c"
-  version = "v1.5"
+  revision = "55d61fa8aa702f59229e6cff85793c22e580eaf5"
+  version = "v1.5.1"
 
 [[projects]]
   branch = "master"
@@ -129,16 +129,16 @@
   revision = "dcd61c7d42a11660da3789311050e961c0a5be55"
 
 [[projects]]
-  branch = "master"
   name = "github.com/schollz/versionedtext"
   packages = ["."]
   revision = "1cef32a305b7272d4df0454533de5e4ba67adfc1"
+  version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/sergi/go-diff"
   packages = ["diffmatchpatch"]
   revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -155,7 +155,7 @@
     "reflectfind",
     "reflectsource"
   ]
-  revision = "004faa6b0118cf52635363b72b51cdcc297800a2"
+  revision = "47fa5b7ceee66c60ac3a281416089035bf526a3c"
 
 [[projects]]
   branch = "master"
@@ -167,7 +167,7 @@
   branch = "master"
   name = "github.com/shurcooL/graphql"
   packages = ["ident"]
-  revision = "d0549edd16dceb6939e538fdb1b4f2ec7ee816cc"
+  revision = "3d276b9dcc6b1e0adf19557a8de5cb8632c07697"
 
 [[projects]]
   branch = "master"
@@ -208,8 +208,8 @@
 [[projects]]
   name = "github.com/ugorji/go"
   packages = ["codec"]
-  revision = "9831f2c3ac1068a78f50999a30db84270f647af6"
-  version = "v1.1"
+  revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
+  version = "v1.1.1"
 
 [[projects]]
   branch = "master"
@@ -218,7 +218,7 @@
     "bcrypt",
     "blowfish"
   ]
-  revision = "39efaea5da11abd5e2b90a435b1f338cdb94619c"
+  revision = "e73bf333ef8920dbb52ad18d4bd38ad9d9bc76d7"
 
 [[projects]]
   branch = "master"
@@ -227,13 +227,13 @@
     "html",
     "html/atom"
   ]
-  revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
+  revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "af50095a40f9041b3b38960738837185c26e9419"
+  revision = "79b0c6888797020a994db17c8510466c72fe75d9"
 
 [[projects]]
   name = "gopkg.in/go-playground/validator.v8"
@@ -260,10 +260,10 @@
   version = "v1.20.0"
 
 [[projects]]
-  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"

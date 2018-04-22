@@ -140,3 +140,11 @@ func TestAddFromFilesFruncs(t *testing.T) {
 	assert.Equal(t, 200, w.Code)
 	assert.Equal(t, "Welcome to index template\n", w.Body.String())
 }
+
+func TestDuplicateTemplate(t *testing.T) {
+	assert.Panics(t, func() {
+		r := New()
+		r.AddFromString("index", "Welcome to {{ .name }} template")
+		r.AddFromString("index", "Welcome to {{ .name }} template")
+	})
+}

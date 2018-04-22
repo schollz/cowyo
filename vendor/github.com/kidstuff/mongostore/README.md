@@ -16,6 +16,7 @@ Depends on the [mgo](https://labix.org/v2/mgo) library.
 Available on [godoc.org](http://www.godoc.org/github.com/kidstuff/mongostore).
 
 ### Example
+```go
     func foo(rw http.ResponseWriter, req *http.Request) {
         // Fetch new store.
         dbsess, err := mgo.Dial("localhost")
@@ -43,3 +44,4 @@ Available on [godoc.org](http://www.godoc.org/github.com/kidstuff/mongostore).
 
         fmt.Fprintln(rw, "ok")
     }
+```

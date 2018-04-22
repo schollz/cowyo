@@ -81,11 +81,14 @@ func (c *Client) do(ctx context.Context, op operationType, v interface{}, variab
 	if err != nil {
 		return err
 	}
+	err = jsonutil.UnmarshalGraphQL(out.Data, v)
+	if err != nil {
+		return err
+	}
 	if len(out.Errors) > 0 {
 		return out.Errors
 	}
-	err = jsonutil.UnmarshalGraphQL(out.Data, v)
-	return err
+	return nil
 }
 
 // errors represents the "errors" array in a response from a GraphQL server.
