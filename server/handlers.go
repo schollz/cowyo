@@ -25,7 +25,6 @@ import (
 const minutesToUnlock = 10.0
 
 var defaultLock string
-var allowFileUploads bool
 var needSitemapUpdate = true
 var pathToData string
 var log *lumber.ConsoleLogger
@@ -103,7 +102,6 @@ func Serve(
 
 func (s Site) Router() *gin.Engine {
 	pathToData = s.PathToData
-	allowFileUploads = s.Fileuploads
 
 	log = s.Logger
 	if log == nil {
@@ -162,7 +160,7 @@ func (s Site) Router() *gin.Engine {
 		}
 	})
 
-	router.POST("/uploads", handleUpload)
+	router.POST("/uploads", s.handleUpload)
 
 	router.GET("/:page", func(c *gin.Context) {
 		page := c.Param("page")
@@ -351,7 +349,7 @@ func (s Site) handlePageRequest(c *gin.Context) {
 		return
 	} else if page == "uploads" {
 		if len(command) == 0 || command == "/" || command == "/edit" {
-			if !allowFileUploads {
+			if !s.Fileuploads {
 				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
 				return
 			}
@@ -517,7 +515,7 @@ func (s Site) handlePageRequest(c *gin.Context) {
 		"Date":               time.Now().Format("2006-01-02"),
 		"UnixTime":           time.Now().Unix(),
 		"ChildPageNames":     p.ChildPageNames(),
-		"AllowFileUploads":   allowFileUploads,
+		"AllowFileUploads":   s.Fileuploads,
 		"MaxUploadMB":        s.MaxUploadSize,
 	})
 }
@@ -737,8 +735,8 @@ func handlePublish(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
-func handleUpload(c *gin.Context) {
-	if !allowFileUploads {
+func (s Site) handleUpload(c *gin.Context) {
+	if !s.Fileuploads {
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
 		return
 	}
