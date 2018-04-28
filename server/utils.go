@@ -85,8 +85,8 @@ func contentType(filename string) string {
 	return "text/html"
 }
 
-func sniffContentType(name string) (string, error) {
-	file, err := os.Open(path.Join(pathToData, name))
+func (s *Site) sniffContentType(name string) (string, error) {
+	file, err := os.Open(path.Join(s.PathToData, name))
 	if err != nil {
 		return "", err
 

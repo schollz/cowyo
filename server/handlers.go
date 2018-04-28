@@ -24,8 +24,6 @@ import (
 
 const minutesToUnlock = 10.0
 
-var pathToData string
-
 type Site struct {
 	PathToData           string
 	Css                  []byte
@@ -108,8 +106,6 @@ func Serve(
 }
 
 func (s Site) Router() *gin.Engine {
-	pathToData = s.PathToData
-
 	if s.Logger == nil {
 		s.Logger = lumber.NewConsoleLogger(lumber.TRACE)
 	}
@@ -122,13 +118,13 @@ func (s Site) Router() *gin.Engine {
 
 	router := gin.Default()
 	router.SetFuncMap(template.FuncMap{
-		"sniffContentType": sniffContentType,
+		"sniffContentType": s.sniffContentType,
 	})
 
 	if s.HotTemplateReloading {
 		router.LoadHTMLGlob("templates/*.tmpl")
 	} else {
-		router.HTMLRender = loadTemplates("index.tmpl")
+		router.HTMLRender = s.loadTemplates("index.tmpl")
 	}
 
 	router.Use(sessions.Sessions(s.PathToData, s.SessionStore))
@@ -191,7 +187,7 @@ func (s Site) Router() *gin.Engine {
 	return router
 }
 
-func loadTemplates(list ...string) multitemplate.Render {
+func (s *Site) loadTemplates(list ...string) multitemplate.Render {
 	r := multitemplate.New()
 
 	for _, x := range list {
@@ -201,7 +197,7 @@ func loadTemplates(list ...string) multitemplate.Render {
 		}
 
 		tmplMessage, err := template.New(x).Funcs(template.FuncMap{
-			"sniffContentType": sniffContentType,
+			"sniffContentType": s.sniffContentType,
 		}).Parse(string(templateString))
 		if err != nil {
 			panic(err)
@@ -279,7 +275,7 @@ func (s *Site) thread_SiteMap() {
 		if !s.sitemapUpToDate {
 			s.Logger.Info("Generating sitemap...")
 			s.sitemapUpToDate = true
-			ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(s.generateSiteMap()), 0644)
+			ioutil.WriteFile(path.Join(s.PathToData, "sitemap.xml"), []byte(s.generateSiteMap()), 0644)
 			s.Logger.Info("..finished generating sitemap")
 		}
 		time.Sleep(time.Second)
@@ -287,7 +283,7 @@ func (s *Site) thread_SiteMap() {
 }
 
 func (s *Site) generateSiteMap() (sitemap string) {
-	files, _ := ioutil.ReadDir(pathToData)
+	files, _ := ioutil.ReadDir(s.PathToData)
 	lastEdited := make([]string, len(files))
 	names := make([]string, len(files))
 	i := 0
@@ -321,7 +317,7 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 	command := c.Param("command")
 
 	if page == "sitemap.xml" {
-		siteMap, err := ioutil.ReadFile(path.Join(pathToData, "sitemap.xml"))
+		siteMap, err := ioutil.ReadFile(path.Join(s.PathToData, "sitemap.xml"))
 		if err != nil {
 			c.Data(http.StatusInternalServerError, contentType("sitemap.xml"), []byte(""))
 		} else {
@@ -358,7 +354,7 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 			if !strings.HasSuffix(command, ".upload") {
 				command = command + ".upload"
 			}
-			pathname := path.Join(pathToData, command)
+			pathname := path.Join(s.PathToData, command)
 
 			if allowInsecureHtml {
 				c.Header(
@@ -470,7 +466,7 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 	if page == "uploads" {
 		command = "/view"
 		var err error
-		DirectoryEntries, err = UploadList()
+		DirectoryEntries, err = s.UploadList()
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -757,7 +753,7 @@ func (s *Site) handleUpload(c *gin.Context) {
 	newName := "sha256-" + encodeBytesToBase32(h.Sum(nil))
 
 	// Replaces any existing version, but sha256 collisions are rare as anything.
-	outfile, err := os.Create(path.Join(pathToData, newName+".upload"))
+	outfile, err := os.Create(path.Join(s.PathToData, newName+".upload"))
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return

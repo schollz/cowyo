@@ -45,7 +45,7 @@ func (s *Site) Open(name string) (p *Page) {
 	p.Name = name
 	p.Text = versionedtext.NewVersionedText("")
 	p.Render()
-	bJSON, err := ioutil.ReadFile(path.Join(pathToData, encodeToBase32(strings.ToLower(name))+".json"))
+	bJSON, err := ioutil.ReadFile(path.Join(s.PathToData, encodeToBase32(strings.ToLower(name))+".json"))
 	if err != nil {
 		return
 	}
@@ -92,7 +92,7 @@ func (d DirectoryEntry) Sys() interface{} {
 }
 
 func (s *Site) DirectoryList() []os.FileInfo {
-	files, _ := ioutil.ReadDir(pathToData)
+	files, _ := ioutil.ReadDir(s.PathToData)
 	entries := make([]os.FileInfo, len(files))
 	for i, f := range files {
 		name := DecodeFileName(f.Name())
@@ -112,8 +112,8 @@ type UploadEntry struct {
 	os.FileInfo
 }
 
-func UploadList() ([]os.FileInfo, error) {
-	paths, err := filepath.Glob(path.Join(pathToData, "sha256*"))
+func (s *Site) UploadList() ([]os.FileInfo, error) {
+	paths, err := filepath.Glob(path.Join(s.PathToData, "sha256*"))
 	if err != nil {
 		return nil, err
 	}
@@ -173,12 +173,12 @@ func (p *Page) Save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0644)
+	return ioutil.WriteFile(path.Join(p.Site.PathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0644)
 }
 
 func (p *Page) ChildPageNames() []string {
 	prefix := strings.ToLower(p.Name + ": ")
-	files, err := filepath.Glob(path.Join(pathToData, "*"))
+	files, err := filepath.Glob(path.Join(p.Site.PathToData, "*"))
 	if err != nil {
 		panic("Filepath pattern cannot be malformed")
 	}
@@ -197,12 +197,12 @@ func (p *Page) ChildPageNames() []string {
 }
 
 func (p *Page) IsNew() bool {
-	return !exists(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
+	return !exists(path.Join(p.Site.PathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
 }
 
 func (p *Page) Erase() error {
 	p.Site.Logger.Trace("Erasing " + p.Name)
-	return os.Remove(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
+	return os.Remove(path.Join(p.Site.PathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
 }
 
 func (p *Page) Published() bool {
