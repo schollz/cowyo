@@ -2,7 +2,7 @@
 # make -j4 release
 
 VERSION=$(shell git describe)
-LDFLAGS=-ldflags "-X main.version=${VERSION}" -o cowyo github.com/schollz/cowyo/cmd 
+LDFLAGS=-ldflags "-X main.version=${VERSION}"
 
 .PHONY: build
 build: server/bindata.go
