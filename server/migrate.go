@@ -1,12 +1,15 @@
-package main
+package server
 
 import (
 	"fmt"
 	"io/ioutil"
 	"path"
+
+	"github.com/jcelliott/lumber"
 )
 
-func migrate(pathToOldData, pathToData string) error {
+func Migrate(pathToOldData, pathToData string, logger *lumber.ConsoleLogger) error {
+	log = logger
 	files, err := ioutil.ReadDir(pathToOldData)
 	if len(files) == 0 {
 		return err

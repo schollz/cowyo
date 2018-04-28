@@ -2,10 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"time"
 
-	"gopkg.in/urfave/cli.v1"
+	"github.com/jcelliott/lumber"
+	"github.com/schollz/cowyo/server"
+
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 var version string
@@ -19,9 +23,7 @@ func main() {
 	app.Version = version
 	app.Compiled = time.Now()
 	app.Action = func(c *cli.Context) error {
-		if !c.GlobalBool("debug") {
-			turnOffDebugger()
-		}
+
 		pathToData = c.GlobalString("data")
 		os.MkdirAll(pathToData, 0755)
 		host := c.GlobalString("host")
@@ -40,10 +42,8 @@ func main() {
 			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
 		}
 
-		allowFileUploads = c.GlobalBool("allow-file-uploads")
-		maxUploadMB = c.GlobalUint("max-upload-mb")
-
-		serve(
+		server.Serve(
+			pathToData,
 			c.GlobalString("host"),
 			c.GlobalString("port"),
 			c.GlobalString("cert"),
@@ -58,6 +58,9 @@ func main() {
 			c.GlobalString("access-code"),
 			c.GlobalBool("allow-insecure-markup"),
 			hotTemplateReloading,
+			c.GlobalBool("allow-file-uploads"),
+			c.GlobalUint("max-upload-mb"),
+			logger(c.GlobalBool("debug")),
 		)
 		return nil
 	}
@@ -150,9 +153,6 @@ func main() {
 			Aliases: []string{"m"},
 			Usage:   "migrate from the old cowyo",
 			Action: func(c *cli.Context) error {
-				if !c.GlobalBool("debug") {
-					turnOffDebugger()
-				}
 				pathToData = c.GlobalString("data")
 				pathToOldData := c.GlobalString("olddata")
 				if len(pathToOldData) == 0 {
@@ -164,12 +164,44 @@ func main() {
 					fmt.Printf("Can not find '%s', does it exist?", pathToOldData)
 					return nil
 				}
-				migrate(pathToOldData, pathToData)
+				server.Migrate(pathToOldData, pathToData, logger(c.GlobalBool("debug")))
 				return nil
 			},
 		},
 	}
 
 	app.Run(os.Args)
+
+}
+
+// GetLocalIP returns the local ip address
+func GetLocalIP() string {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+	bestIP := ""
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return bestIP
+}
+
+// exists returns whether the given file or directory exists or not
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}
+
+func logger(debug bool) *lumber.ConsoleLogger {
+	if !debug {
+		return lumber.NewConsoleLogger(lumber.WARN)
+	}
+	return lumber.NewConsoleLogger(lumber.TRACE)
 
 }

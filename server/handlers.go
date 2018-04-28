@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"crypto/sha256"
@@ -19,6 +19,7 @@ import (
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/jcelliott/lumber"
 	"github.com/schollz/cowyo/encrypt"
 )
 
@@ -31,8 +32,11 @@ var diaryMode bool
 var allowFileUploads bool
 var maxUploadMB uint
 var needSitemapUpdate = true
+var pathToData string
+var log *lumber.ConsoleLogger
 
-func serve(
+func Serve(
+	filepathToData,
 	host,
 	port,
 	crt_path,
@@ -47,7 +51,17 @@ func serve(
 	secretCode string,
 	allowInsecure bool,
 	hotTemplateReloading bool,
+	fileuploads bool,
+	maxUploadSize uint,
+	logger *lumber.ConsoleLogger,
 ) {
+	pathToData = filepathToData
+	allowFileUploads = fileuploads
+	maxUploadMB = maxUploadSize
+	log = logger
+	if log == nil {
+		log = lumber.NewConsoleLogger(lumber.TRACE)
+	}
 
 	if hotTemplateReloading {
 		gin.SetMode(gin.DebugMode)
