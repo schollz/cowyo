@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/gin-contrib/static"
 	secretRequired "github.com/danielheath/gin-teeny-security"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/sessions"
@@ -34,6 +33,27 @@ var maxUploadMB uint
 var needSitemapUpdate = true
 var pathToData string
 var log *lumber.ConsoleLogger
+
+type Site struct {
+	PathToData           string
+	Host                 string
+	Port                 string
+	CertPath             string
+	KeyPath              string
+	TLS                  bool
+	CssFile              string
+	DefaultPage          string
+	DefaultPassword      string
+	Debounce             int
+	Diary                bool
+	Secret               string
+	SecretCode           string
+	AllowInsecure        bool
+	HotTemplateReloading bool
+	Fileuploads          bool
+	MaxUploadSize        uint
+	Logger               *lumber.ConsoleLogger
+}
 
 func Serve(
 	filepathToData,
@@ -55,15 +75,38 @@ func Serve(
 	maxUploadSize uint,
 	logger *lumber.ConsoleLogger,
 ) {
-	pathToData = filepathToData
-	allowFileUploads = fileuploads
-	maxUploadMB = maxUploadSize
-	log = logger
+	Site{
+		filepathToData,
+		host,
+		port,
+		crt_path,
+		key_path,
+		TLS,
+		cssFile,
+		defaultPage,
+		defaultPassword,
+		debounce,
+		diary,
+		secret,
+		secretCode,
+		allowInsecure,
+		hotTemplateReloading,
+		fileuploads,
+		maxUploadSize,
+		logger,
+	}.Serve()
+}
+
+func (s Site) Serve() {
+	pathToData = s.PathToData
+	allowFileUploads = s.Fileuploads
+	maxUploadMB = s.MaxUploadSize
+	log = s.Logger
 	if log == nil {
 		log = lumber.NewConsoleLogger(lumber.TRACE)
 	}
 
-	if hotTemplateReloading {
+	if s.HotTemplateReloading {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
@@ -75,17 +118,17 @@ func Serve(
 		"sniffContentType": sniffContentType,
 	})
 
-	if hotTemplateReloading {
+	if s.HotTemplateReloading {
 		router.LoadHTMLGlob("templates/*.tmpl")
 	} else {
 		router.HTMLRender = loadTemplates("index.tmpl")
 	}
 
-	store := sessions.NewCookieStore([]byte(secret))
+	store := sessions.NewCookieStore([]byte(s.Secret))
 	router.Use(sessions.Sessions("mysession", store))
-	if secretCode != "" {
+	if s.SecretCode != "" {
 		cfg := &secretRequired.Config{
-			Secret: secretCode,
+			Secret: s.SecretCode,
 			Path:   "/login/",
 			RequireAuth: func(c *gin.Context) bool {
 				page := c.Param("page")
@@ -110,8 +153,8 @@ func Serve(
 
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
-		if defaultPage != "" {
-			c.Redirect(302, "/"+defaultPage+"/read")
+		if s.DefaultPage != "" {
+			c.Redirect(302, "/"+s.DefaultPage+"/read")
 		} else {
 			c.Redirect(302, "/"+randomAlliterateCombo())
 		}
@@ -138,9 +181,9 @@ func Serve(
 	go thread_SiteMap()
 
 	// collect custom CSS
-	if len(cssFile) > 0 {
+	if len(s.CssFile) > 0 {
 		var errRead error
-		customCSS, errRead = ioutil.ReadFile(cssFile)
+		customCSS, errRead = ioutil.ReadFile(s.CssFile)
 		if errRead != nil {
 			fmt.Println(errRead.Error())
 			return
@@ -149,24 +192,24 @@ func Serve(
 	}
 
 	// lock all pages automatically
-	if defaultPassword != "" {
+	if s.DefaultPassword != "" {
 		fmt.Println("running with locked pages")
-		defaultLock = HashPassword(defaultPassword)
+		defaultLock = HashPassword(s.DefaultPassword)
 	}
 
 	// set the debounce time
-	debounceTime = debounce
+	debounceTime = s.Debounce
 
 	// set diary mode
-	diaryMode = diary
+	diaryMode = s.Diary
 
 	// Allow iframe/scripts in markup?
-	allowInsecureHtml = allowInsecure
+	allowInsecureHtml = s.AllowInsecure
 
-	if TLS {
-		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
+	if s.TLS {
+		http.ListenAndServeTLS(s.Host+":"+s.Port, s.CertPath, s.KeyPath, router)
 	} else {
-		panic(router.Run(host + ":" + port))
+		panic(router.Run(s.Host + ":" + s.Port))
 	}
 }
 

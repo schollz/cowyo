@@ -171,7 +171,6 @@ func main() {
 	}
 
 	app.Run(os.Args)
-
 }
 
 // GetLocalIP returns the local ip address
