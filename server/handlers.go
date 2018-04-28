@@ -28,7 +28,6 @@ var defaultLock string
 var debounceTime int
 var diaryMode bool
 var allowFileUploads bool
-var maxUploadMB uint
 var needSitemapUpdate = true
 var pathToData string
 var log *lumber.ConsoleLogger
@@ -107,7 +106,7 @@ func Serve(
 func (s Site) Router() *gin.Engine {
 	pathToData = s.PathToData
 	allowFileUploads = s.Fileuploads
-	maxUploadMB = s.MaxUploadSize
+
 	log = s.Logger
 	if log == nil {
 		log = lumber.NewConsoleLogger(lumber.TRACE)
@@ -527,7 +526,7 @@ func (s Site) handlePageRequest(c *gin.Context) {
 		"UnixTime":           time.Now().Unix(),
 		"ChildPageNames":     p.ChildPageNames(),
 		"AllowFileUploads":   allowFileUploads,
-		"MaxUploadMB":        maxUploadMB,
+		"MaxUploadMB":        s.MaxUploadSize,
 	})
 }
 
