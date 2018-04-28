@@ -24,7 +24,6 @@ import (
 
 const minutesToUnlock = 10.0
 
-var defaultLock string
 var needSitemapUpdate = true
 var pathToData string
 var log *lumber.ConsoleLogger
@@ -43,6 +42,13 @@ type Site struct {
 	Fileuploads          bool
 	MaxUploadSize        uint
 	Logger               *lumber.ConsoleLogger
+}
+
+func (s Site) defaultLock() string {
+	if s.DefaultPassword == "" {
+		return ""
+	}
+	return HashPassword(s.DefaultPassword)
 }
 
 func Serve(
@@ -171,7 +177,7 @@ func (s Site) Router() *gin.Engine {
 	router.POST("/relinquish", handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
 	router.POST("/exists", handlePageExists)
 	router.POST("/prime", handlePrime)
-	router.POST("/lock", handleLock)
+	router.POST("/lock", s.handleLock)
 	router.POST("/publish", handlePublish)
 	router.POST("/encrypt", handleEncrypt)
 	router.DELETE("/oldlist", handleClearOldListItems)
@@ -179,12 +185,6 @@ func (s Site) Router() *gin.Engine {
 
 	// start long-processes as threads
 	go thread_SiteMap()
-
-	// lock all pages automatically
-	if s.DefaultPassword != "" {
-		fmt.Println("running with locked pages")
-		defaultLock = HashPassword(s.DefaultPassword)
-	}
 
 	// Allow iframe/scripts in markup?
 	allowInsecureHtml = s.AllowInsecure
@@ -389,9 +389,9 @@ func (s Site) handlePageRequest(c *gin.Context) {
 	}
 
 	// use the default lock
-	if defaultLock != "" && p.IsNew() {
+	if s.defaultLock() != "" && p.IsNew() {
 		p.IsLocked = true
-		p.PassphraseToUnlock = defaultLock
+		p.PassphraseToUnlock = s.defaultLock()
 	}
 
 	version := c.DefaultQuery("version", "ajksldfjl")
@@ -657,7 +657,7 @@ func handlePrime(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Primed"})
 }
 
-func handleLock(c *gin.Context) {
+func (s Site) handleLock(c *gin.Context) {
 	type QueryJSON struct {
 		Page       string `json:"page"`
 		Passphrase string `json:"passphrase"`
@@ -669,9 +669,9 @@ func handleLock(c *gin.Context) {
 		return
 	}
 	p := Open(json.Page)
-	if defaultLock != "" && p.IsNew() {
+	if s.defaultLock() != "" && p.IsNew() {
 		p.IsLocked = true // IsLocked was replaced by variable wrt Context
-		p.PassphraseToUnlock = defaultLock
+		p.PassphraseToUnlock = s.defaultLock()
 	}
 
 	if p.IsEncrypted {
