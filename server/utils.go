@@ -104,11 +104,6 @@ func sniffContentType(name string) (string, error) {
 	return http.DetectContentType(buffer), nil
 }
 
-func timeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Debug("%s took %s", name, elapsed)
-}
-
 var src = rand.NewSource(time.Now().UnixNano())
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

@@ -25,7 +25,6 @@ import (
 const minutesToUnlock = 10.0
 
 var pathToData string
-var log *lumber.ConsoleLogger
 
 type Site struct {
 	PathToData           string
@@ -111,9 +110,8 @@ func Serve(
 func (s Site) Router() *gin.Engine {
 	pathToData = s.PathToData
 
-	log = s.Logger
-	if log == nil {
-		log = lumber.NewConsoleLogger(lumber.TRACE)
+	if s.Logger == nil {
+		s.Logger = lumber.NewConsoleLogger(lumber.TRACE)
 	}
 
 	if s.HotTemplateReloading {
@@ -147,7 +145,7 @@ func (s Site) Router() *gin.Engine {
 				}
 
 				if page != "" && cmd == "/read" {
-					p := Open(page)
+					p := s.Open(page)
 					fmt.Printf("p: '%+v'\n", p)
 					if p != nil && p.IsPublished {
 						return false // Published pages don't require auth.
@@ -176,14 +174,14 @@ func (s Site) Router() *gin.Engine {
 	})
 	router.GET("/:page/*command", s.handlePageRequest)
 	router.POST("/update", s.handlePageUpdate)
-	router.POST("/relinquish", handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
-	router.POST("/exists", handlePageExists)
-	router.POST("/prime", handlePrime)
+	router.POST("/relinquish", s.handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
+	router.POST("/exists", s.handlePageExists)
+	router.POST("/prime", s.handlePrime)
 	router.POST("/lock", s.handleLock)
-	router.POST("/publish", handlePublish)
-	router.POST("/encrypt", handleEncrypt)
-	router.DELETE("/oldlist", handleClearOldListItems)
-	router.DELETE("/listitem", deleteListItem)
+	router.POST("/publish", s.handlePublish)
+	router.POST("/encrypt", s.handleEncrypt)
+	router.DELETE("/oldlist", s.handleClearOldListItems)
+	router.DELETE("/listitem", s.deleteListItem)
 
 	// start long-processes as threads
 	go s.thread_SiteMap()
@@ -222,14 +220,14 @@ func pageIsLocked(p *Page, c *gin.Context) bool {
 	return !unlocked
 }
 
-func handlePageRelinquish(c *gin.Context) {
+func (s *Site) handlePageRelinquish(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
 	var json QueryJSON
 	err := c.BindJSON(&json)
 	if err != nil {
-		log.Trace(err.Error())
+		s.Logger.Trace(err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
 		return
 	}
@@ -238,7 +236,7 @@ func handlePageRelinquish(c *gin.Context) {
 		return
 	}
 	message := "Relinquished"
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	name := p.Meta
 	if name == "" {
 		name = json.Page
@@ -279,23 +277,23 @@ func getSetSessionID(c *gin.Context) (sid string) {
 func (s *Site) thread_SiteMap() {
 	for {
 		if !s.sitemapUpToDate {
-			log.Info("Generating sitemap...")
+			s.Logger.Info("Generating sitemap...")
 			s.sitemapUpToDate = true
-			ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
-			log.Info("..finished generating sitemap")
+			ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(s.generateSiteMap()), 0644)
+			s.Logger.Info("..finished generating sitemap")
 		}
 		time.Sleep(time.Second)
 	}
 }
 
-func generateSiteMap() (sitemap string) {
+func (s *Site) generateSiteMap() (sitemap string) {
 	files, _ := ioutil.ReadDir(pathToData)
 	lastEdited := make([]string, len(files))
 	names := make([]string, len(files))
 	i := 0
 	for _, f := range files {
 		names[i] = DecodeFileName(f.Name())
-		p := Open(names[i])
+		p := s.Open(names[i])
 		if p.IsPublished {
 			lastEdited[i] = time.Unix(p.Text.LastEditTime()/1000000000, 0).Format("2006-01-02")
 			i++
@@ -380,7 +378,7 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 		}
 	}
 
-	p := Open(page)
+	p := s.Open(page)
 	if len(command) < 2 {
 		if p.IsPublished {
 			c.Redirect(302, "/"+page+"/read")
@@ -467,7 +465,7 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 	var DirectoryEntries []os.FileInfo
 	if page == "ls" {
 		command = "/view"
-		DirectoryEntries = DirectoryList()
+		DirectoryEntries = s.DirectoryList()
 	}
 	if page == "uploads" {
 		command = "/view"
@@ -554,18 +552,18 @@ func getRecentlyEdited(title string, c *gin.Context) []string {
 	return editedThingsWithoutCurrent[:i]
 }
 
-func handlePageExists(c *gin.Context) {
+func (s *Site) handlePageExists(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
 	var json QueryJSON
 	err := c.BindJSON(&json)
 	if err != nil {
-		log.Trace(err.Error())
+		s.Logger.Trace(err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON", "exists": false})
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	if len(p.Text.GetCurrent()) > 0 {
 		c.JSON(http.StatusOK, gin.H{"success": true, "message": json.Page + " found", "exists": true})
 	} else {
@@ -586,7 +584,7 @@ func (s *Site) handlePageUpdate(c *gin.Context) {
 	var json QueryJSON
 	err := c.BindJSON(&json)
 	if err != nil {
-		log.Trace(err.Error())
+		s.Logger.Trace(err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
 		return
 	}
@@ -598,8 +596,8 @@ func (s *Site) handlePageUpdate(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Must specify `page`"})
 		return
 	}
-	log.Trace("Update: %v", json)
-	p := Open(json.Page)
+	s.Logger.Trace("Update: %v", json)
+	p := s.Open(json.Page)
 	var (
 		message       string
 		sinceLastEdit = time.Since(p.LastEditTime())
@@ -636,7 +634,7 @@ func (s *Site) handlePageUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": success, "message": message, "unix_time": time.Now().Unix()})
 }
 
-func handlePrime(c *gin.Context) {
+func (s *Site) handlePrime(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
@@ -645,8 +643,8 @@ func handlePrime(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	log.Trace("Update: %v", json)
-	p := Open(json.Page)
+	s.Logger.Trace("Update: %v", json)
+	p := s.Open(json.Page)
 	if pageIsLocked(p, c) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
 		return
@@ -670,7 +668,7 @@ func (s *Site) handleLock(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	if s.defaultLock() != "" && p.IsNew() {
 		p.IsLocked = true // IsLocked was replaced by variable wrt Context
 		p.PassphraseToUnlock = s.defaultLock()
@@ -716,7 +714,7 @@ func (s *Site) handleLock(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
-func handlePublish(c *gin.Context) {
+func (s *Site) handlePublish(c *gin.Context) {
 	type QueryJSON struct {
 		Page    string `json:"page"`
 		Publish bool   `json:"publish"`
@@ -727,7 +725,7 @@ func handlePublish(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	p.IsPublished = json.Publish
 	p.Save()
 	message := "Published"
@@ -776,7 +774,7 @@ func (s *Site) handleUpload(c *gin.Context) {
 	return
 }
 
-func handleEncrypt(c *gin.Context) {
+func (s *Site) handleEncrypt(c *gin.Context) {
 	type QueryJSON struct {
 		Page       string `json:"page"`
 		Passphrase string `json:"passphrase"`
@@ -787,12 +785,12 @@ func handleEncrypt(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	if pageIsLocked(p, c) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
 		return
 	}
-	q := Open(json.Page)
+	q := s.Open(json.Page)
 	var message string
 	if p.IsEncrypted {
 		decrypted, err2 := encrypt.DecryptString(p.Text.GetCurrent(), json.Passphrase)
@@ -801,7 +799,7 @@ func handleEncrypt(c *gin.Context) {
 			return
 		}
 		q.Erase()
-		q = Open(json.Page)
+		q = s.Open(json.Page)
 		q.Update(decrypted)
 		q.IsEncrypted = false
 		q.IsLocked = p.IsLocked
@@ -811,7 +809,7 @@ func handleEncrypt(c *gin.Context) {
 		currentText := p.Text.GetCurrent()
 		encrypted, _ := encrypt.EncryptString(currentText, json.Passphrase)
 		q.Erase()
-		q = Open(json.Page)
+		q = s.Open(json.Page)
 		q.Update(encrypted)
 		q.IsEncrypted = true
 		q.IsLocked = p.IsLocked
@@ -822,11 +820,11 @@ func handleEncrypt(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
-func deleteListItem(c *gin.Context) {
+func (s *Site) deleteListItem(c *gin.Context) {
 	lineNum, err := strconv.Atoi(c.DefaultQuery("lineNum", "None"))
 	page := c.Query("page") // shortcut for c.Request.URL.Query().Get("lastname")
 	if err == nil {
-		p := Open(page)
+		p := s.Open(page)
 
 		_, listItems := reorderList(p.Text.GetCurrent())
 		newText := p.Text.GetCurrent()
@@ -857,7 +855,7 @@ func deleteListItem(c *gin.Context) {
 	}
 }
 
-func handleClearOldListItems(c *gin.Context) {
+func (s *Site) handleClearOldListItems(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
@@ -867,7 +865,7 @@ func handleClearOldListItems(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	if p.IsEncrypted {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
 		return

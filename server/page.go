@@ -17,6 +17,8 @@ import (
 
 // Page is the basic struct
 type Page struct {
+	Site *Site
+
 	Name                    string
 	Text                    versionedtext.VersionedText
 	Meta                    string
@@ -37,8 +39,9 @@ func (p Page) LastEditUnixTime() int64 {
 	return p.Text.LastEditTime() / 1000000000
 }
 
-func Open(name string) (p *Page) {
+func (s *Site) Open(name string) (p *Page) {
 	p = new(Page)
+	p.Site = s
 	p.Name = name
 	p.Text = versionedtext.NewVersionedText("")
 	p.Render()
@@ -88,12 +91,12 @@ func (d DirectoryEntry) Sys() interface{} {
 	return nil
 }
 
-func DirectoryList() []os.FileInfo {
+func (s *Site) DirectoryList() []os.FileInfo {
 	files, _ := ioutil.ReadDir(pathToData)
 	entries := make([]os.FileInfo, len(files))
 	for i, f := range files {
 		name := DecodeFileName(f.Name())
-		p := Open(name)
+		p := s.Open(name)
 		entries[i] = DirectoryEntry{
 			Path:       name,
 			Length:     len(p.Text.GetCurrent()),
@@ -198,7 +201,7 @@ func (p *Page) IsNew() bool {
 }
 
 func (p *Page) Erase() error {
-	log.Trace("Erasing " + p.Name)
+	p.Site.Logger.Trace("Erasing " + p.Name)
 	return os.Remove(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
 }
 
