@@ -25,8 +25,6 @@ import (
 const minutesToUnlock = 10.0
 
 var defaultLock string
-var debounceTime int
-var diaryMode bool
 var allowFileUploads bool
 var needSitemapUpdate = true
 var pathToData string
@@ -189,12 +187,6 @@ func (s Site) Router() *gin.Engine {
 		fmt.Println("running with locked pages")
 		defaultLock = HashPassword(s.DefaultPassword)
 	}
-
-	// set the debounce time
-	debounceTime = s.Debounce
-
-	// set diary mode
-	diaryMode = s.Diary
 
 	// Allow iframe/scripts in markup?
 	allowInsecureHtml = s.AllowInsecure
@@ -520,8 +512,8 @@ func (s Site) handlePageRequest(c *gin.Context) {
 		"RecentlyEdited":     getRecentlyEdited(page, c),
 		"IsPublished":        p.IsPublished,
 		"CustomCSS":          len(s.Css) > 0,
-		"Debounce":           debounceTime,
-		"DiaryMode":          diaryMode,
+		"Debounce":           s.Debounce,
+		"DiaryMode":          s.Diary,
 		"Date":               time.Now().Format("2006-01-02"),
 		"UnixTime":           time.Now().Unix(),
 		"ChildPageNames":     p.ChildPageNames(),
