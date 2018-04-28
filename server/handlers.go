@@ -24,7 +24,6 @@ import (
 
 const minutesToUnlock = 10.0
 
-var customCSS []byte
 var defaultLock string
 var debounceTime int
 var diaryMode bool
@@ -36,12 +35,7 @@ var log *lumber.ConsoleLogger
 
 type Site struct {
 	PathToData           string
-	Host                 string
-	Port                 string
-	CertPath             string
-	KeyPath              string
-	TLS                  bool
-	CssFile              string
+	Css                  []byte
 	DefaultPage          string
 	DefaultPassword      string
 	Debounce             int
@@ -75,14 +69,21 @@ func Serve(
 	maxUploadSize uint,
 	logger *lumber.ConsoleLogger,
 ) {
-	Site{
+	var customCSS []byte
+	// collect custom CSS
+	if len(cssFile) > 0 {
+		var errRead error
+		customCSS, errRead = ioutil.ReadFile(cssFile)
+		if errRead != nil {
+			fmt.Println(errRead)
+			return
+		}
+		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
+	}
+
+	router := Site{
 		filepathToData,
-		host,
-		port,
-		crt_path,
-		key_path,
-		TLS,
-		cssFile,
+		customCSS,
 		defaultPage,
 		defaultPassword,
 		debounce,
@@ -94,10 +95,16 @@ func Serve(
 		fileuploads,
 		maxUploadSize,
 		logger,
-	}.Serve()
+	}.Router()
+
+	if TLS {
+		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
+	} else {
+		panic(router.Run(host + ":" + port))
+	}
 }
 
-func (s Site) Serve() {
+func (s Site) Router() *gin.Engine {
 	pathToData = s.PathToData
 	allowFileUploads = s.Fileuploads
 	maxUploadMB = s.MaxUploadSize
@@ -113,7 +120,6 @@ func (s Site) Serve() {
 	}
 
 	router := gin.Default()
-
 	router.SetFuncMap(template.FuncMap{
 		"sniffContentType": sniffContentType,
 	})
@@ -166,7 +172,7 @@ func (s Site) Serve() {
 		page := c.Param("page")
 		c.Redirect(302, "/"+page+"/")
 	})
-	router.GET("/:page/*command", handlePageRequest)
+	router.GET("/:page/*command", s.handlePageRequest)
 	router.POST("/update", handlePageUpdate)
 	router.POST("/relinquish", handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
 	router.POST("/exists", handlePageExists)
@@ -179,17 +185,6 @@ func (s Site) Serve() {
 
 	// start long-processes as threads
 	go thread_SiteMap()
-
-	// collect custom CSS
-	if len(s.CssFile) > 0 {
-		var errRead error
-		customCSS, errRead = ioutil.ReadFile(s.CssFile)
-		if errRead != nil {
-			fmt.Println(errRead.Error())
-			return
-		}
-		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
-	}
 
 	// lock all pages automatically
 	if s.DefaultPassword != "" {
@@ -205,12 +200,7 @@ func (s Site) Serve() {
 
 	// Allow iframe/scripts in markup?
 	allowInsecureHtml = s.AllowInsecure
-
-	if s.TLS {
-		http.ListenAndServeTLS(s.Host+":"+s.Port, s.CertPath, s.KeyPath, router)
-	} else {
-		panic(router.Run(s.Host + ":" + s.Port))
-	}
+	return router
 }
 
 func loadTemplates(list ...string) multitemplate.Render {
@@ -338,7 +328,7 @@ func generateSiteMap() (sitemap string) {
 	return
 }
 
-func handlePageRequest(c *gin.Context) {
+func (s Site) handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
 
@@ -359,7 +349,7 @@ func handlePageRequest(c *gin.Context) {
 		filename := page + command
 		var data []byte
 		if filename == "static/css/custom.css" {
-			data = customCSS
+			data = s.Css
 		} else {
 			var errAssset error
 			data, errAssset = Asset(filename)
@@ -531,7 +521,7 @@ func handlePageRequest(c *gin.Context) {
 		"HasDotInName":       strings.Contains(page, "."),
 		"RecentlyEdited":     getRecentlyEdited(page, c),
 		"IsPublished":        p.IsPublished,
-		"CustomCSS":          len(customCSS) > 0,
+		"CustomCSS":          len(s.Css) > 0,
 		"Debounce":           debounceTime,
 		"DiaryMode":          diaryMode,
 		"Date":               time.Now().Format("2006-01-02"),
