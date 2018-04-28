@@ -24,7 +24,6 @@ import (
 
 const minutesToUnlock = 10.0
 
-var needSitemapUpdate = true
 var pathToData string
 var log *lumber.ConsoleLogger
 
@@ -42,9 +41,11 @@ type Site struct {
 	Fileuploads          bool
 	MaxUploadSize        uint
 	Logger               *lumber.ConsoleLogger
+
+	sitemapUpToDate bool // TODO this makes everything use a pointer
 }
 
-func (s Site) defaultLock() string {
+func (s *Site) defaultLock() string {
 	if s.DefaultPassword == "" {
 		return ""
 	}
@@ -97,6 +98,7 @@ func Serve(
 		fileuploads,
 		maxUploadSize,
 		logger,
+		false,
 	}.Router()
 
 	if TLS {
@@ -173,7 +175,7 @@ func (s Site) Router() *gin.Engine {
 		c.Redirect(302, "/"+page+"/")
 	})
 	router.GET("/:page/*command", s.handlePageRequest)
-	router.POST("/update", handlePageUpdate)
+	router.POST("/update", s.handlePageUpdate)
 	router.POST("/relinquish", handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
 	router.POST("/exists", handlePageExists)
 	router.POST("/prime", handlePrime)
@@ -184,7 +186,7 @@ func (s Site) Router() *gin.Engine {
 	router.DELETE("/listitem", deleteListItem)
 
 	// start long-processes as threads
-	go thread_SiteMap()
+	go s.thread_SiteMap()
 
 	// Allow iframe/scripts in markup?
 	allowInsecureHtml = s.AllowInsecure
@@ -274,11 +276,11 @@ func getSetSessionID(c *gin.Context) (sid string) {
 	return sid
 }
 
-func thread_SiteMap() {
+func (s *Site) thread_SiteMap() {
 	for {
-		if needSitemapUpdate {
+		if !s.sitemapUpToDate {
 			log.Info("Generating sitemap...")
-			needSitemapUpdate = false
+			s.sitemapUpToDate = true
 			ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
 			log.Info("..finished generating sitemap")
 		}
@@ -316,7 +318,7 @@ func generateSiteMap() (sitemap string) {
 	return
 }
 
-func (s Site) handlePageRequest(c *gin.Context) {
+func (s *Site) handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
 
@@ -572,7 +574,7 @@ func handlePageExists(c *gin.Context) {
 
 }
 
-func handlePageUpdate(c *gin.Context) {
+func (s *Site) handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
 		Page        string `json:"page"`
 		NewText     string `json:"new_text"`
@@ -627,7 +629,7 @@ func handlePageUpdate(c *gin.Context) {
 		p.Save()
 		message = "Saved"
 		if p.IsPublished {
-			needSitemapUpdate = true
+			s.sitemapUpToDate = false
 		}
 		success = true
 	}
@@ -657,7 +659,7 @@ func handlePrime(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Primed"})
 }
 
-func (s Site) handleLock(c *gin.Context) {
+func (s *Site) handleLock(c *gin.Context) {
 	type QueryJSON struct {
 		Page       string `json:"page"`
 		Passphrase string `json:"passphrase"`
@@ -735,7 +737,7 @@ func handlePublish(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
-func (s Site) handleUpload(c *gin.Context) {
+func (s *Site) handleUpload(c *gin.Context) {
 	if !s.Fileuploads {
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
 		return
