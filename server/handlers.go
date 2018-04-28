@@ -12,6 +12,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	secretRequired "github.com/danielheath/gin-teeny-security"
@@ -39,6 +40,7 @@ type Site struct {
 	MaxUploadSize        uint
 	Logger               *lumber.ConsoleLogger
 
+	saveMut         sync.Mutex
 	sitemapUpToDate bool // TODO this makes everything use a pointer
 }
 
@@ -95,6 +97,7 @@ func Serve(
 		fileuploads,
 		maxUploadSize,
 		logger,
+		sync.Mutex{},
 		false,
 	}.Router()
 

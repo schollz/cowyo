@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/schollz/versionedtext"
@@ -164,11 +163,9 @@ func (p *Page) Render() {
 	p.RenderedPage = MarkdownToHtml(p.Text.GetCurrent())
 }
 
-var saveMut = sync.Mutex{}
-
 func (p *Page) Save() error {
-	saveMut.Lock()
-	defer saveMut.Unlock()
+	p.Site.saveMut.Lock()
+	defer p.Site.saveMut.Unlock()
 	bJSON, err := json.MarshalIndent(p, "", " ")
 	if err != nil {
 		return err
