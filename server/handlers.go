@@ -40,7 +40,7 @@ type Site struct {
 	DefaultPassword      string
 	Debounce             int
 	Diary                bool
-	Secret               string
+	SessionStore         sessions.Store
 	SecretCode           string
 	AllowInsecure        bool
 	HotTemplateReloading bool
@@ -88,7 +88,7 @@ func Serve(
 		defaultPassword,
 		debounce,
 		diary,
-		secret,
+		sessions.NewCookieStore([]byte(secret)),
 		secretCode,
 		allowInsecure,
 		hotTemplateReloading,
@@ -130,8 +130,7 @@ func (s Site) Router() *gin.Engine {
 		router.HTMLRender = loadTemplates("index.tmpl")
 	}
 
-	store := sessions.NewCookieStore([]byte(s.Secret))
-	router.Use(sessions.Sessions("mysession", store))
+	router.Use(sessions.Sessions(s.PathToData, s.SessionStore))
 	if s.SecretCode != "" {
 		cfg := &secretRequired.Config{
 			Secret: s.SecretCode,
