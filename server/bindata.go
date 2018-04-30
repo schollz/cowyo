@@ -51,7 +51,7 @@
 
 // +build !debug
 
-package main
+package server
 
 import (
 	"bytes"

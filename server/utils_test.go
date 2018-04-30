@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"testing"
@@ -23,7 +23,6 @@ func TestReverseList(t *testing.T) {
 
 func TestHashing(t *testing.T) {
 	p := HashPassword("1234")
-	log.Debug(p)
 	err := CheckPasswordHash("1234", p)
 	if err != nil {
 		t.Errorf("Should be correct password")

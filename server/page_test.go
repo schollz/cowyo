@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"os"
@@ -10,24 +10,25 @@ func TestListFiles(t *testing.T) {
 	pathToData = "testdata"
 	os.MkdirAll(pathToData, 0755)
 	defer os.RemoveAll(pathToData)
-	p := Open("testpage")
+	s := Site{PathToData: pathToData}
+	p := s.Open("testpage")
 	p.Update("Some data")
-	p = Open("testpage2")
+	p = s.Open("testpage2")
 	p.Update("A different bunch of data")
-	p = Open("testpage3")
+	p = s.Open("testpage3")
 	p.Update("Not much else")
-	n := DirectoryList()
+	n := s.DirectoryList()
 	if len(n) != 3 {
 		t.Error("Expected three directory entries")
 		t.FailNow()
 	}
-	if n[0].Name != "testpage" {
+	if n[0].Name() != "testpage" {
 		t.Error("Expected testpage to be first")
 	}
-	if n[1].Name != "testpage2" {
+	if n[1].Name() != "testpage2" {
 		t.Error("Expected testpage2 to be second")
 	}
-	if n[2].Name != "testpage3" {
+	if n[2].Name() != "testpage3" {
 		t.Error("Expected testpage3 to be last")
 	}
 }
@@ -36,7 +37,8 @@ func TestGeneral(t *testing.T) {
 	pathToData = "testdata"
 	os.MkdirAll(pathToData, 0755)
 	defer os.RemoveAll(pathToData)
-	p := Open("testpage")
+	s := Site{PathToData: pathToData}
+	p := s.Open("testpage")
 	err := p.Update("**bold**")
 	if err != nil {
 		t.Error(err)
@@ -50,12 +52,12 @@ func TestGeneral(t *testing.T) {
 	}
 	p.Save()
 
-	p2 := Open("testpage")
+	p2 := s.Open("testpage")
 	if strings.TrimSpace(p2.RenderedPage) != "<p><strong>bold</strong> and <em>italic</em></p>" {
 		t.Errorf("Did not render: '%s'", p2.RenderedPage)
 	}
 
-	p3 := Open("testpage: childpage")
+	p3 := s.Open("testpage: childpage")
 	err = p3.Update("**child content**")
 	if err != nil {
 		t.Error(err)

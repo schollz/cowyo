@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/schollz/versionedtext"
@@ -17,6 +16,8 @@ import (
 
 // Page is the basic struct
 type Page struct {
+	Site *Site
+
 	Name                    string
 	Text                    versionedtext.VersionedText
 	Meta                    string
@@ -37,12 +38,13 @@ func (p Page) LastEditUnixTime() int64 {
 	return p.Text.LastEditTime() / 1000000000
 }
 
-func Open(name string) (p *Page) {
+func (s *Site) Open(name string) (p *Page) {
 	p = new(Page)
+	p.Site = s
 	p.Name = name
 	p.Text = versionedtext.NewVersionedText("")
 	p.Render()
-	bJSON, err := ioutil.ReadFile(path.Join(pathToData, encodeToBase32(strings.ToLower(name))+".json"))
+	bJSON, err := ioutil.ReadFile(path.Join(s.PathToData, encodeToBase32(strings.ToLower(name))+".json"))
 	if err != nil {
 		return
 	}
@@ -88,12 +90,12 @@ func (d DirectoryEntry) Sys() interface{} {
 	return nil
 }
 
-func DirectoryList() []os.FileInfo {
-	files, _ := ioutil.ReadDir(pathToData)
+func (s *Site) DirectoryList() []os.FileInfo {
+	files, _ := ioutil.ReadDir(s.PathToData)
 	entries := make([]os.FileInfo, len(files))
 	for i, f := range files {
 		name := DecodeFileName(f.Name())
-		p := Open(name)
+		p := s.Open(name)
 		entries[i] = DirectoryEntry{
 			Path:       name,
 			Length:     len(p.Text.GetCurrent()),
@@ -109,8 +111,8 @@ type UploadEntry struct {
 	os.FileInfo
 }
 
-func UploadList() ([]os.FileInfo, error) {
-	paths, err := filepath.Glob(path.Join(pathToData, "sha256*"))
+func (s *Site) UploadList() ([]os.FileInfo, error) {
+	paths, err := filepath.Glob(path.Join(s.PathToData, "sha256*"))
 	if err != nil {
 		return nil, err
 	}
@@ -161,21 +163,19 @@ func (p *Page) Render() {
 	p.RenderedPage = MarkdownToHtml(p.Text.GetCurrent())
 }
 
-var saveMut = sync.Mutex{}
-
 func (p *Page) Save() error {
-	saveMut.Lock()
-	defer saveMut.Unlock()
+	p.Site.saveMut.Lock()
+	defer p.Site.saveMut.Unlock()
 	bJSON, err := json.MarshalIndent(p, "", " ")
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0644)
+	return ioutil.WriteFile(path.Join(p.Site.PathToData, encodeToBase32(strings.ToLower(p.Name))+".json"), bJSON, 0644)
 }
 
 func (p *Page) ChildPageNames() []string {
 	prefix := strings.ToLower(p.Name + ": ")
-	files, err := filepath.Glob(path.Join(pathToData, "*"))
+	files, err := filepath.Glob(path.Join(p.Site.PathToData, "*"))
 	if err != nil {
 		panic("Filepath pattern cannot be malformed")
 	}
@@ -194,12 +194,12 @@ func (p *Page) ChildPageNames() []string {
 }
 
 func (p *Page) IsNew() bool {
-	return !exists(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
+	return !exists(path.Join(p.Site.PathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
 }
 
 func (p *Page) Erase() error {
-	log.Trace("Erasing " + p.Name)
-	return os.Remove(path.Join(pathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
+	p.Site.Logger.Trace("Erasing " + p.Name)
+	return os.Remove(path.Join(p.Site.PathToData, encodeToBase32(strings.ToLower(p.Name))+".json"))
 }
 
 func (p *Page) Published() bool {

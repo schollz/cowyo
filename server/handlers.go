@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"crypto/sha256"
@@ -12,27 +12,47 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
-	// "github.com/gin-contrib/static"
 	secretRequired "github.com/danielheath/gin-teeny-security"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/jcelliott/lumber"
 	"github.com/schollz/cowyo/encrypt"
 )
 
 const minutesToUnlock = 10.0
 
-var customCSS []byte
-var defaultLock string
-var debounceTime int
-var diaryMode bool
-var allowFileUploads bool
-var maxUploadMB uint
-var needSitemapUpdate = true
+type Site struct {
+	PathToData           string
+	Css                  []byte
+	DefaultPage          string
+	DefaultPassword      string
+	Debounce             int
+	Diary                bool
+	SessionStore         sessions.Store
+	SecretCode           string
+	AllowInsecure        bool
+	HotTemplateReloading bool
+	Fileuploads          bool
+	MaxUploadSize        uint
+	Logger               *lumber.ConsoleLogger
 
-func serve(
+	saveMut         sync.Mutex
+	sitemapUpToDate bool // TODO this makes everything use a pointer
+}
+
+func (s *Site) defaultLock() string {
+	if s.DefaultPassword == "" {
+		return ""
+	}
+	return HashPassword(s.DefaultPassword)
+}
+
+func Serve(
+	filepathToData,
 	host,
 	port,
 	crt_path,
@@ -47,31 +67,73 @@ func serve(
 	secretCode string,
 	allowInsecure bool,
 	hotTemplateReloading bool,
+	fileuploads bool,
+	maxUploadSize uint,
+	logger *lumber.ConsoleLogger,
 ) {
+	var customCSS []byte
+	// collect custom CSS
+	if len(cssFile) > 0 {
+		var errRead error
+		customCSS, errRead = ioutil.ReadFile(cssFile)
+		if errRead != nil {
+			fmt.Println(errRead)
+			return
+		}
+		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
+	}
 
-	if hotTemplateReloading {
+	router := Site{
+		filepathToData,
+		customCSS,
+		defaultPage,
+		defaultPassword,
+		debounce,
+		diary,
+		sessions.NewCookieStore([]byte(secret)),
+		secretCode,
+		allowInsecure,
+		hotTemplateReloading,
+		fileuploads,
+		maxUploadSize,
+		logger,
+		sync.Mutex{},
+		false,
+	}.Router()
+
+	if TLS {
+		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
+	} else {
+		panic(router.Run(host + ":" + port))
+	}
+}
+
+func (s Site) Router() *gin.Engine {
+	if s.Logger == nil {
+		s.Logger = lumber.NewConsoleLogger(lumber.TRACE)
+	}
+
+	if s.HotTemplateReloading {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	router := gin.Default()
-
 	router.SetFuncMap(template.FuncMap{
-		"sniffContentType": sniffContentType,
+		"sniffContentType": s.sniffContentType,
 	})
 
-	if hotTemplateReloading {
+	if s.HotTemplateReloading {
 		router.LoadHTMLGlob("templates/*.tmpl")
 	} else {
-		router.HTMLRender = loadTemplates("index.tmpl")
+		router.HTMLRender = s.loadTemplates("index.tmpl")
 	}
 
-	store := sessions.NewCookieStore([]byte(secret))
-	router.Use(sessions.Sessions("mysession", store))
-	if secretCode != "" {
+	router.Use(sessions.Sessions(s.PathToData, s.SessionStore))
+	if s.SecretCode != "" {
 		cfg := &secretRequired.Config{
-			Secret: secretCode,
+			Secret: s.SecretCode,
 			Path:   "/login/",
 			RequireAuth: func(c *gin.Context) bool {
 				page := c.Param("page")
@@ -82,7 +144,7 @@ func serve(
 				}
 
 				if page != "" && cmd == "/read" {
-					p := Open(page)
+					p := s.Open(page)
 					fmt.Printf("p: '%+v'\n", p)
 					if p != nil && p.IsPublished {
 						return false // Published pages don't require auth.
@@ -96,67 +158,39 @@ func serve(
 
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
-		if defaultPage != "" {
-			c.Redirect(302, "/"+defaultPage+"/read")
+		if s.DefaultPage != "" {
+			c.Redirect(302, "/"+s.DefaultPage+"/read")
 		} else {
 			c.Redirect(302, "/"+randomAlliterateCombo())
 		}
 	})
 
-	router.POST("/uploads", handleUpload)
+	router.POST("/uploads", s.handleUpload)
 
 	router.GET("/:page", func(c *gin.Context) {
 		page := c.Param("page")
 		c.Redirect(302, "/"+page+"/")
 	})
-	router.GET("/:page/*command", handlePageRequest)
-	router.POST("/update", handlePageUpdate)
-	router.POST("/relinquish", handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
-	router.POST("/exists", handlePageExists)
-	router.POST("/prime", handlePrime)
-	router.POST("/lock", handleLock)
-	router.POST("/publish", handlePublish)
-	router.POST("/encrypt", handleEncrypt)
-	router.DELETE("/oldlist", handleClearOldListItems)
-	router.DELETE("/listitem", deleteListItem)
+	router.GET("/:page/*command", s.handlePageRequest)
+	router.POST("/update", s.handlePageUpdate)
+	router.POST("/relinquish", s.handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
+	router.POST("/exists", s.handlePageExists)
+	router.POST("/prime", s.handlePrime)
+	router.POST("/lock", s.handleLock)
+	router.POST("/publish", s.handlePublish)
+	router.POST("/encrypt", s.handleEncrypt)
+	router.DELETE("/oldlist", s.handleClearOldListItems)
+	router.DELETE("/listitem", s.deleteListItem)
 
 	// start long-processes as threads
-	go thread_SiteMap()
-
-	// collect custom CSS
-	if len(cssFile) > 0 {
-		var errRead error
-		customCSS, errRead = ioutil.ReadFile(cssFile)
-		if errRead != nil {
-			fmt.Println(errRead.Error())
-			return
-		}
-		fmt.Printf("Loaded CSS file, %d bytes\n", len(customCSS))
-	}
-
-	// lock all pages automatically
-	if defaultPassword != "" {
-		fmt.Println("running with locked pages")
-		defaultLock = HashPassword(defaultPassword)
-	}
-
-	// set the debounce time
-	debounceTime = debounce
-
-	// set diary mode
-	diaryMode = diary
+	go s.thread_SiteMap()
 
 	// Allow iframe/scripts in markup?
-	allowInsecureHtml = allowInsecure
-
-	if TLS {
-		http.ListenAndServeTLS(host+":"+port, crt_path, key_path, router)
-	} else {
-		panic(router.Run(host + ":" + port))
-	}
+	allowInsecureHtml = s.AllowInsecure
+	return router
 }
 
-func loadTemplates(list ...string) multitemplate.Render {
+func (s *Site) loadTemplates(list ...string) multitemplate.Render {
 	r := multitemplate.New()
 
 	for _, x := range list {
@@ -166,7 +200,7 @@ func loadTemplates(list ...string) multitemplate.Render {
 		}
 
 		tmplMessage, err := template.New(x).Funcs(template.FuncMap{
-			"sniffContentType": sniffContentType,
+			"sniffContentType": s.sniffContentType,
 		}).Parse(string(templateString))
 		if err != nil {
 			panic(err)
@@ -185,14 +219,14 @@ func pageIsLocked(p *Page, c *gin.Context) bool {
 	return !unlocked
 }
 
-func handlePageRelinquish(c *gin.Context) {
+func (s *Site) handlePageRelinquish(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
 	var json QueryJSON
 	err := c.BindJSON(&json)
 	if err != nil {
-		log.Trace(err.Error())
+		s.Logger.Trace(err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
 		return
 	}
@@ -201,7 +235,7 @@ func handlePageRelinquish(c *gin.Context) {
 		return
 	}
 	message := "Relinquished"
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	name := p.Meta
 	if name == "" {
 		name = json.Page
@@ -239,26 +273,26 @@ func getSetSessionID(c *gin.Context) (sid string) {
 	return sid
 }
 
-func thread_SiteMap() {
+func (s *Site) thread_SiteMap() {
 	for {
-		if needSitemapUpdate {
-			log.Info("Generating sitemap...")
-			needSitemapUpdate = false
-			ioutil.WriteFile(path.Join(pathToData, "sitemap.xml"), []byte(generateSiteMap()), 0644)
-			log.Info("..finished generating sitemap")
+		if !s.sitemapUpToDate {
+			s.Logger.Info("Generating sitemap...")
+			s.sitemapUpToDate = true
+			ioutil.WriteFile(path.Join(s.PathToData, "sitemap.xml"), []byte(s.generateSiteMap()), 0644)
+			s.Logger.Info("..finished generating sitemap")
 		}
 		time.Sleep(time.Second)
 	}
 }
 
-func generateSiteMap() (sitemap string) {
-	files, _ := ioutil.ReadDir(pathToData)
+func (s *Site) generateSiteMap() (sitemap string) {
+	files, _ := ioutil.ReadDir(s.PathToData)
 	lastEdited := make([]string, len(files))
 	names := make([]string, len(files))
 	i := 0
 	for _, f := range files {
 		names[i] = DecodeFileName(f.Name())
-		p := Open(names[i])
+		p := s.Open(names[i])
 		if p.IsPublished {
 			lastEdited[i] = time.Unix(p.Text.LastEditTime()/1000000000, 0).Format("2006-01-02")
 			i++
@@ -281,12 +315,12 @@ func generateSiteMap() (sitemap string) {
 	return
 }
 
-func handlePageRequest(c *gin.Context) {
+func (s *Site) handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
 
 	if page == "sitemap.xml" {
-		siteMap, err := ioutil.ReadFile(path.Join(pathToData, "sitemap.xml"))
+		siteMap, err := ioutil.ReadFile(path.Join(s.PathToData, "sitemap.xml"))
 		if err != nil {
 			c.Data(http.StatusInternalServerError, contentType("sitemap.xml"), []byte(""))
 		} else {
@@ -302,7 +336,7 @@ func handlePageRequest(c *gin.Context) {
 		filename := page + command
 		var data []byte
 		if filename == "static/css/custom.css" {
-			data = customCSS
+			data = s.Css
 		} else {
 			var errAssset error
 			data, errAssset = Asset(filename)
@@ -314,7 +348,7 @@ func handlePageRequest(c *gin.Context) {
 		return
 	} else if page == "uploads" {
 		if len(command) == 0 || command == "/" || command == "/edit" {
-			if !allowFileUploads {
+			if !s.Fileuploads {
 				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
 				return
 			}
@@ -323,7 +357,7 @@ func handlePageRequest(c *gin.Context) {
 			if !strings.HasSuffix(command, ".upload") {
 				command = command + ".upload"
 			}
-			pathname := path.Join(pathToData, command)
+			pathname := path.Join(s.PathToData, command)
 
 			if allowInsecureHtml {
 				c.Header(
@@ -343,7 +377,7 @@ func handlePageRequest(c *gin.Context) {
 		}
 	}
 
-	p := Open(page)
+	p := s.Open(page)
 	if len(command) < 2 {
 		if p.IsPublished {
 			c.Redirect(302, "/"+page+"/read")
@@ -354,9 +388,9 @@ func handlePageRequest(c *gin.Context) {
 	}
 
 	// use the default lock
-	if defaultLock != "" && p.IsNew() {
+	if s.defaultLock() != "" && p.IsNew() {
 		p.IsLocked = true
-		p.PassphraseToUnlock = defaultLock
+		p.PassphraseToUnlock = s.defaultLock()
 	}
 
 	version := c.DefaultQuery("version", "ajksldfjl")
@@ -430,12 +464,12 @@ func handlePageRequest(c *gin.Context) {
 	var DirectoryEntries []os.FileInfo
 	if page == "ls" {
 		command = "/view"
-		DirectoryEntries = DirectoryList()
+		DirectoryEntries = s.DirectoryList()
 	}
 	if page == "uploads" {
 		command = "/view"
 		var err error
-		DirectoryEntries, err = UploadList()
+		DirectoryEntries, err = s.UploadList()
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -474,14 +508,14 @@ func handlePageRequest(c *gin.Context) {
 		"HasDotInName":       strings.Contains(page, "."),
 		"RecentlyEdited":     getRecentlyEdited(page, c),
 		"IsPublished":        p.IsPublished,
-		"CustomCSS":          len(customCSS) > 0,
-		"Debounce":           debounceTime,
-		"DiaryMode":          diaryMode,
+		"CustomCSS":          len(s.Css) > 0,
+		"Debounce":           s.Debounce,
+		"DiaryMode":          s.Diary,
 		"Date":               time.Now().Format("2006-01-02"),
 		"UnixTime":           time.Now().Unix(),
 		"ChildPageNames":     p.ChildPageNames(),
-		"AllowFileUploads":   allowFileUploads,
-		"MaxUploadMB":        maxUploadMB,
+		"AllowFileUploads":   s.Fileuploads,
+		"MaxUploadMB":        s.MaxUploadSize,
 	})
 }
 
@@ -517,18 +551,18 @@ func getRecentlyEdited(title string, c *gin.Context) []string {
 	return editedThingsWithoutCurrent[:i]
 }
 
-func handlePageExists(c *gin.Context) {
+func (s *Site) handlePageExists(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
 	var json QueryJSON
 	err := c.BindJSON(&json)
 	if err != nil {
-		log.Trace(err.Error())
+		s.Logger.Trace(err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON", "exists": false})
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	if len(p.Text.GetCurrent()) > 0 {
 		c.JSON(http.StatusOK, gin.H{"success": true, "message": json.Page + " found", "exists": true})
 	} else {
@@ -537,7 +571,7 @@ func handlePageExists(c *gin.Context) {
 
 }
 
-func handlePageUpdate(c *gin.Context) {
+func (s *Site) handlePageUpdate(c *gin.Context) {
 	type QueryJSON struct {
 		Page        string `json:"page"`
 		NewText     string `json:"new_text"`
@@ -549,7 +583,7 @@ func handlePageUpdate(c *gin.Context) {
 	var json QueryJSON
 	err := c.BindJSON(&json)
 	if err != nil {
-		log.Trace(err.Error())
+		s.Logger.Trace(err.Error())
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
 		return
 	}
@@ -561,8 +595,8 @@ func handlePageUpdate(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Must specify `page`"})
 		return
 	}
-	log.Trace("Update: %v", json)
-	p := Open(json.Page)
+	s.Logger.Trace("Update: %v", json)
+	p := s.Open(json.Page)
 	var (
 		message       string
 		sinceLastEdit = time.Since(p.LastEditTime())
@@ -592,14 +626,14 @@ func handlePageUpdate(c *gin.Context) {
 		p.Save()
 		message = "Saved"
 		if p.IsPublished {
-			needSitemapUpdate = true
+			s.sitemapUpToDate = false
 		}
 		success = true
 	}
 	c.JSON(http.StatusOK, gin.H{"success": success, "message": message, "unix_time": time.Now().Unix()})
 }
 
-func handlePrime(c *gin.Context) {
+func (s *Site) handlePrime(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
@@ -608,8 +642,8 @@ func handlePrime(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	log.Trace("Update: %v", json)
-	p := Open(json.Page)
+	s.Logger.Trace("Update: %v", json)
+	p := s.Open(json.Page)
 	if pageIsLocked(p, c) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
 		return
@@ -622,7 +656,7 @@ func handlePrime(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Primed"})
 }
 
-func handleLock(c *gin.Context) {
+func (s *Site) handleLock(c *gin.Context) {
 	type QueryJSON struct {
 		Page       string `json:"page"`
 		Passphrase string `json:"passphrase"`
@@ -633,10 +667,10 @@ func handleLock(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
-	if defaultLock != "" && p.IsNew() {
+	p := s.Open(json.Page)
+	if s.defaultLock() != "" && p.IsNew() {
 		p.IsLocked = true // IsLocked was replaced by variable wrt Context
-		p.PassphraseToUnlock = defaultLock
+		p.PassphraseToUnlock = s.defaultLock()
 	}
 
 	if p.IsEncrypted {
@@ -679,7 +713,7 @@ func handleLock(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
-func handlePublish(c *gin.Context) {
+func (s *Site) handlePublish(c *gin.Context) {
 	type QueryJSON struct {
 		Page    string `json:"page"`
 		Publish bool   `json:"publish"`
@@ -690,7 +724,7 @@ func handlePublish(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	p.IsPublished = json.Publish
 	p.Save()
 	message := "Published"
@@ -700,8 +734,8 @@ func handlePublish(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
-func handleUpload(c *gin.Context) {
-	if !allowFileUploads {
+func (s *Site) handleUpload(c *gin.Context) {
+	if !s.Fileuploads {
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
 		return
 	}
@@ -722,7 +756,7 @@ func handleUpload(c *gin.Context) {
 	newName := "sha256-" + encodeBytesToBase32(h.Sum(nil))
 
 	// Replaces any existing version, but sha256 collisions are rare as anything.
-	outfile, err := os.Create(path.Join(pathToData, newName+".upload"))
+	outfile, err := os.Create(path.Join(s.PathToData, newName+".upload"))
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -739,7 +773,7 @@ func handleUpload(c *gin.Context) {
 	return
 }
 
-func handleEncrypt(c *gin.Context) {
+func (s *Site) handleEncrypt(c *gin.Context) {
 	type QueryJSON struct {
 		Page       string `json:"page"`
 		Passphrase string `json:"passphrase"`
@@ -750,12 +784,12 @@ func handleEncrypt(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	if pageIsLocked(p, c) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Locked"})
 		return
 	}
-	q := Open(json.Page)
+	q := s.Open(json.Page)
 	var message string
 	if p.IsEncrypted {
 		decrypted, err2 := encrypt.DecryptString(p.Text.GetCurrent(), json.Passphrase)
@@ -764,7 +798,7 @@ func handleEncrypt(c *gin.Context) {
 			return
 		}
 		q.Erase()
-		q = Open(json.Page)
+		q = s.Open(json.Page)
 		q.Update(decrypted)
 		q.IsEncrypted = false
 		q.IsLocked = p.IsLocked
@@ -774,7 +808,7 @@ func handleEncrypt(c *gin.Context) {
 		currentText := p.Text.GetCurrent()
 		encrypted, _ := encrypt.EncryptString(currentText, json.Passphrase)
 		q.Erase()
-		q = Open(json.Page)
+		q = s.Open(json.Page)
 		q.Update(encrypted)
 		q.IsEncrypted = true
 		q.IsLocked = p.IsLocked
@@ -785,11 +819,11 @@ func handleEncrypt(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
-func deleteListItem(c *gin.Context) {
+func (s *Site) deleteListItem(c *gin.Context) {
 	lineNum, err := strconv.Atoi(c.DefaultQuery("lineNum", "None"))
 	page := c.Query("page") // shortcut for c.Request.URL.Query().Get("lastname")
 	if err == nil {
-		p := Open(page)
+		p := s.Open(page)
 
 		_, listItems := reorderList(p.Text.GetCurrent())
 		newText := p.Text.GetCurrent()
@@ -820,7 +854,7 @@ func deleteListItem(c *gin.Context) {
 	}
 }
 
-func handleClearOldListItems(c *gin.Context) {
+func (s *Site) handleClearOldListItems(c *gin.Context) {
 	type QueryJSON struct {
 		Page string `json:"page"`
 	}
@@ -830,7 +864,7 @@ func handleClearOldListItems(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Problem binding keys")
 		return
 	}
-	p := Open(json.Page)
+	p := s.Open(json.Page)
 	if p.IsEncrypted {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Encrypted"})
 		return

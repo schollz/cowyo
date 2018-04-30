@@ -1,18 +1,16 @@
-package main
+package server
 
 import (
 	"encoding/base32"
 	"encoding/binary"
 	"encoding/hex"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/jcelliott/lumber"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
 	"github.com/shurcooL/github_flavored_markdown"
@@ -24,19 +22,12 @@ var adjectives []string
 var aboutPageText string
 var allowInsecureHtml bool
 
-var log *lumber.ConsoleLogger
-
 func init() {
 	rand.Seed(time.Now().Unix())
 	animalsText, _ := Asset("static/text/animals")
 	animals = strings.Split(string(animalsText), ",")
 	adjectivesText, _ := Asset("static/text/adjectives")
 	adjectives = strings.Split(string(adjectivesText), "\n")
-	log = lumber.NewConsoleLogger(lumber.TRACE)
-}
-
-func turnOffDebugger() {
-	log = lumber.NewConsoleLogger(lumber.WARN)
 }
 
 func randomAnimal() string {
@@ -94,8 +85,8 @@ func contentType(filename string) string {
 	return "text/html"
 }
 
-func sniffContentType(name string) (string, error) {
-	file, err := os.Open(path.Join(pathToData, name))
+func (s *Site) sniffContentType(name string) (string, error) {
+	file, err := os.Open(path.Join(s.PathToData, name))
 	if err != nil {
 		return "", err
 
@@ -111,11 +102,6 @@ func sniffContentType(name string) (string, error) {
 
 	// Always returns a valid content-type and "application/octet-stream" if no others seemed to match.
 	return http.DetectContentType(buffer), nil
-}
-
-func timeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Debug("%s took %s", name, elapsed)
 }
 
 var src = rand.NewSource(time.Now().UnixNano())
@@ -146,24 +132,6 @@ func RandStringBytesMaskImprSrc(n int) string {
 	return string(b)
 }
 
-// GetLocalIP returns the local ip address
-func GetLocalIP() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
-	}
-	bestIP := ""
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return bestIP
-}
-
 // HashPassword generates a bcrypt hash of the password using work factor 14.
 // https://github.com/gtank/cryptopasta/blob/master/hash.go
 func HashPassword(password string) string {
@@ -185,13 +153,7 @@ func CheckPasswordHash(password, hashedString string) error {
 // exists returns whether the given file or directory exists or not
 func exists(path string) bool {
 	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 func MarkdownToHtml(s string) string {

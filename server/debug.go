@@ -1,6 +1,6 @@
 // +build debug
 
-package main
+package server
 
 func init() {
 	hotTemplateReloading = true
