@@ -26,19 +26,18 @@ import (
 const minutesToUnlock = 10.0
 
 type Site struct {
-	PathToData           string
-	Css                  []byte
-	DefaultPage          string
-	DefaultPassword      string
-	Debounce             int
-	Diary                bool
-	SessionStore         sessions.Store
-	SecretCode           string
-	AllowInsecure        bool
-	HotTemplateReloading bool
-	Fileuploads          bool
-	MaxUploadSize        uint
-	Logger               *lumber.ConsoleLogger
+	PathToData      string
+	Css             []byte
+	DefaultPage     string
+	DefaultPassword string
+	Debounce        int
+	Diary           bool
+	SessionStore    sessions.Store
+	SecretCode      string
+	AllowInsecure   bool
+	Fileuploads     bool
+	MaxUploadSize   uint
+	Logger          *lumber.ConsoleLogger
 
 	saveMut         sync.Mutex
 	sitemapUpToDate bool // TODO this makes everything use a pointer
@@ -50,6 +49,8 @@ func (s *Site) defaultLock() string {
 	}
 	return HashPassword(s.DefaultPassword)
 }
+
+var hotTemplateReloading bool
 
 func Serve(
 	filepathToData,
@@ -66,7 +67,6 @@ func Serve(
 	secret string,
 	secretCode string,
 	allowInsecure bool,
-	hotTemplateReloading bool,
 	fileuploads bool,
 	maxUploadSize uint,
 	logger *lumber.ConsoleLogger,
@@ -93,7 +93,6 @@ func Serve(
 		sessions.NewCookieStore([]byte(secret)),
 		secretCode,
 		allowInsecure,
-		hotTemplateReloading,
 		fileuploads,
 		maxUploadSize,
 		logger,
@@ -113,7 +112,7 @@ func (s Site) Router() *gin.Engine {
 		s.Logger = lumber.NewConsoleLogger(lumber.TRACE)
 	}
 
-	if s.HotTemplateReloading {
+	if hotTemplateReloading {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
@@ -124,7 +123,7 @@ func (s Site) Router() *gin.Engine {
 		"sniffContentType": s.sniffContentType,
 	})
 
-	if s.HotTemplateReloading {
+	if hotTemplateReloading {
 		router.LoadHTMLGlob("templates/*.tmpl")
 	} else {
 		router.HTMLRender = s.loadTemplates("index.tmpl")

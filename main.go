@@ -13,7 +13,6 @@ import (
 )
 
 var version string
-var hotTemplateReloading bool
 var pathToData string
 
 func main() {
@@ -23,7 +22,6 @@ func main() {
 	app.Version = version
 	app.Compiled = time.Now()
 	app.Action = func(c *cli.Context) error {
-
 		pathToData = c.GlobalString("data")
 		os.MkdirAll(pathToData, 0755)
 		host := c.GlobalString("host")
@@ -57,7 +55,6 @@ func main() {
 			c.GlobalString("cookie-secret"),
 			c.GlobalString("access-code"),
 			c.GlobalBool("allow-insecure-markup"),
-			hotTemplateReloading,
 			c.GlobalBool("allow-file-uploads"),
 			c.GlobalUint("max-upload-mb"),
 			logger(c.GlobalBool("debug")),
