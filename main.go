@@ -57,6 +57,7 @@ func main() {
 			c.GlobalBool("allow-insecure-markup"),
 			c.GlobalBool("allow-file-uploads"),
 			c.GlobalUint("max-upload-mb"),
+			c.GlobalUint("max-document-length"),
 			logger(c.GlobalBool("debug")),
 		)
 		return nil
@@ -142,6 +143,11 @@ func main() {
 			Name:  "max-upload-mb",
 			Value: 2,
 			Usage: "Largest file upload (in mb) allowed",
+		},
+		cli.UintFlag{
+			Name:  "max-document-length",
+			Value: 100000000,
+			Usage: "Largest wiki page (in characters) allowed",
 		},
 	}
 	app.Commands = []cli.Command{

@@ -38,7 +38,7 @@ type Site struct {
 	Fileuploads     bool
 	MaxUploadSize   uint
 	Logger          *lumber.ConsoleLogger
-
+	MaxDocumentSize uint // in runes; about a 10mb limit by default
 	saveMut         sync.Mutex
 	sitemapUpToDate bool // TODO this makes everything use a pointer
 }
@@ -69,6 +69,7 @@ func Serve(
 	allowInsecure bool,
 	fileuploads bool,
 	maxUploadSize uint,
+	maxDocumentSize uint,
 	logger *lumber.ConsoleLogger,
 ) {
 	var customCSS []byte
@@ -84,20 +85,19 @@ func Serve(
 	}
 
 	router := Site{
-		filepathToData,
-		customCSS,
-		defaultPage,
-		defaultPassword,
-		debounce,
-		diary,
-		sessions.NewCookieStore([]byte(secret)),
-		secretCode,
-		allowInsecure,
-		fileuploads,
-		maxUploadSize,
-		logger,
-		sync.Mutex{},
-		false,
+		PathToData:      filepathToData,
+		Css:             customCSS,
+		DefaultPage:     defaultPage,
+		DefaultPassword: defaultPassword,
+		Debounce:        debounce,
+		Diary:           diary,
+		SessionStore:    sessions.NewCookieStore([]byte(secret)),
+		SecretCode:      secretCode,
+		AllowInsecure:   allowInsecure,
+		Fileuploads:     fileuploads,
+		MaxUploadSize:   maxUploadSize,
+		Logger:          logger,
+		MaxDocumentSize: maxDocumentSize,
 	}.Router()
 
 	if TLS {
@@ -586,7 +586,7 @@ func (s *Site) handlePageUpdate(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Wrong JSON"})
 		return
 	}
-	if len(json.NewText) > 100000000 {
+	if uint(len(json.NewText)) > s.MaxDocumentSize {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "Too much"})
 		return
 	}
