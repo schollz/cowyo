@@ -1,0 +1,40 @@
+[default]
+dataDir = "root_data/${HOST}"
+maxDocumentLength = 100000000
+
+# Specify multiple times to change keys without expiring sessions
+[[default.CookieKeys]]
+authenticateBase64 = "RpW4LjGCPNOx75G8DrywmzlEHLB/ISXCAAayZ47Ifkc="
+encryptBase64 = "ofCKkrfosQb5T4cvz7R5IMP4BQUDHOPsLSMZZy2CUOA="
+
+[[sites]]
+host = "nerdy.party"
+dataDir = "somewhere else"
+# theme = "custom.css" # TODO: Theme support. Would prefer to move to a complete directory replacement.
+defaultPage = "welcome"
+allowInsecureMarkup = true
+lock = "1234"
+debounceSave = 600
+diary = true
+accessCode = "correct horse battery staple"
+fileUploadsAllowed = true
+maxFileUploadMb = 6
+port = 8090
+
+#[sites.TLS]
+# TODO: ACME support eg letsencrypt
+#certPath = "path.crt"
+#keyPath = "path.key"
+#port = 8443
+
+[[sites]]
+host = "cowyo.com"
+allowInsecureMarkup = false
+fileUploadsAllowed = false
+port = 8090
+
+# Catchall config
+[[sites]]
+host = "*"
+port = 8100
+cookieSecret = "ASADFGKLJSH+4t4cC2X3f7GzsLZ+wtST67qoLuErpugJz06ZIpdDHEjcMxR+XOLM"

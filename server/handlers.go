@@ -51,6 +51,7 @@ func (s *Site) defaultLock() string {
 }
 
 var hotTemplateReloading bool
+var LogLevel int = lumber.WARN
 
 func Serve(
 	filepathToData,
