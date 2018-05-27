@@ -16,7 +16,6 @@ func main() {
 		Debounce:             500,
 		SessionStore:         store,
 		AllowInsecure:        true,
-		HotTemplateReloading: true,
 		Fileuploads:          true,
 		MaxUploadSize:        2,
 	}.Router()
@@ -26,7 +25,6 @@ func main() {
 		Debounce:             500,
 		SessionStore:         store,
 		AllowInsecure:        true,
-		HotTemplateReloading: true,
 		Fileuploads:          true,
 		MaxUploadSize:        2,
 	}.Router()
