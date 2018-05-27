@@ -129,7 +129,7 @@ func (s Site) Router() *gin.Engine {
 		router.HTMLRender = s.loadTemplates("index.tmpl")
 	}
 
-	router.Use(sessions.Sessions(s.PathToData, s.SessionStore))
+	router.Use(sessions.Sessions("_session", s.SessionStore))
 	if s.SecretCode != "" {
 		cfg := &secretRequired.Config{
 			Secret: s.SecretCode,
