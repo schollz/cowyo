@@ -144,7 +144,6 @@ func (s Site) Router() *gin.Engine {
 
 				if page != "" && cmd == "/read" {
 					p := s.Open(page)
-					fmt.Printf("p: '%+v'\n", p)
 					if p != nil && p.IsPublished {
 						return false // Published pages don't require auth.
 					}
