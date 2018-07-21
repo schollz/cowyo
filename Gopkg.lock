@@ -8,6 +8,12 @@
   revision = "40e40b42552a9cb37d6e98f4ad31f63ae53ea43a"
 
 [[projects]]
+  name = "github.com/BurntSushi/toml"
+  packages = ["."]
+  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
+  version = "v0.3.0"
+
+[[projects]]
   name = "github.com/boj/redistore"
   packages = ["."]
   revision = "fc113767cd6b051980f260d6dbe84b2740c46ab0"
@@ -129,10 +135,10 @@
   revision = "dcd61c7d42a11660da3789311050e961c0a5be55"
 
 [[projects]]
+  branch = "master"
   name = "github.com/schollz/versionedtext"
   packages = ["."]
-  revision = "1cef32a305b7272d4df0454533de5e4ba67adfc1"
-  version = "v1.0.0"
+  revision = "d8ce0957c2542486eee221e5ced163c0437b84d3"
 
 [[projects]]
   name = "github.com/sergi/go-diff"
@@ -268,6 +274,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "aad079402a0a87842f679dbee25dcf75b91057be588d8a27dc7bc35eb996014c"
+  inputs-digest = "bba58de7dff48236cb5072c4b9168d65215929b3194bef8bb0f6fe155b77192e"
   solver-name = "gps-cdcl"
   solver-version = 1

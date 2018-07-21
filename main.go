@@ -13,7 +13,6 @@ import (
 )
 
 var version string
-var hotTemplateReloading bool
 var pathToData string
 
 func main() {
@@ -23,7 +22,6 @@ func main() {
 	app.Version = version
 	app.Compiled = time.Now()
 	app.Action = func(c *cli.Context) error {
-
 		pathToData = c.GlobalString("data")
 		os.MkdirAll(pathToData, 0755)
 		host := c.GlobalString("host")
@@ -57,9 +55,9 @@ func main() {
 			c.GlobalString("cookie-secret"),
 			c.GlobalString("access-code"),
 			c.GlobalBool("allow-insecure-markup"),
-			hotTemplateReloading,
 			c.GlobalBool("allow-file-uploads"),
 			c.GlobalUint("max-upload-mb"),
+			c.GlobalUint("max-document-length"),
 			logger(c.GlobalBool("debug")),
 		)
 		return nil
@@ -145,6 +143,11 @@ func main() {
 			Name:  "max-upload-mb",
 			Value: 2,
 			Usage: "Largest file upload (in mb) allowed",
+		},
+		cli.UintFlag{
+			Name:  "max-document-length",
+			Value: 100000000,
+			Usage: "Largest wiki page (in characters) allowed",
 		},
 	}
 	app.Commands = []cli.Command{
