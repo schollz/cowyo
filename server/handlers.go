@@ -730,6 +730,7 @@ func (s *Site) handlePublish(c *gin.Context) {
 	if !p.IsPublished {
 		message = "Unpublished"
 	}
+	s.sitemapUpToDate = false
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": message})
 }
 
