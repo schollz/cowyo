@@ -18,6 +18,7 @@ import (
 	secretRequired "github.com/danielheath/gin-teeny-security"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/jcelliott/lumber"
 	"github.com/schollz/cowyo/encrypt"
@@ -32,7 +33,7 @@ type Site struct {
 	DefaultPassword string
 	Debounce        int
 	Diary           bool
-	SessionStore    sessions.Store
+	SessionStore    cookie.Store
 	SecretCode      string
 	AllowInsecure   bool
 	Fileuploads     bool
@@ -92,7 +93,7 @@ func Serve(
 		DefaultPassword: defaultPassword,
 		Debounce:        debounce,
 		Diary:           diary,
-		SessionStore:    sessions.NewCookieStore([]byte(secret)),
+		SessionStore:    cookie.NewStore([]byte(secret)),
 		SecretCode:      secretCode,
 		AllowInsecure:   allowInsecure,
 		Fileuploads:     fileuploads,

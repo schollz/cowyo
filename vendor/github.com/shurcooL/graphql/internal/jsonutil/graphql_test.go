@@ -313,7 +313,7 @@ func TestUnmarshalGraphQL_union(t *testing.T) {
 	}
 }
 
-// Issue https://github.com/shurcooL/githubql/issues/18.
+// Issue https://github.com/shurcooL/githubv4/issues/18.
 func TestUnmarshalGraphQL_arrayInsideInlineFragment(t *testing.T) {
 	/*
 		query {

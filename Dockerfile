@@ -1,5 +1,5 @@
 # First build step
-FROM golang:1.9-alpine as builder
+FROM golang:1.10-alpine as builder
 
 WORKDIR /go/src/cowyo
 COPY . .

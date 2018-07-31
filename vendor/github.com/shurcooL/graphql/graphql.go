@@ -73,7 +73,7 @@ func (c *Client) do(ctx context.Context, op operationType, v interface{}, variab
 		return fmt.Errorf("unexpected status: %v", resp.Status)
 	}
 	var out struct {
-		Data   json.RawMessage
+		Data   *json.RawMessage
 		Errors errors
 		//Extensions interface{} // Unused.
 	}
@@ -81,9 +81,11 @@ func (c *Client) do(ctx context.Context, op operationType, v interface{}, variab
 	if err != nil {
 		return err
 	}
-	err = jsonutil.UnmarshalGraphQL(out.Data, v)
-	if err != nil {
-		return err
+	if out.Data != nil {
+		err := jsonutil.UnmarshalGraphQL(*out.Data, v)
+		if err != nil {
+			return err
+		}
 	}
 	if len(out.Errors) > 0 {
 		return out.Errors
