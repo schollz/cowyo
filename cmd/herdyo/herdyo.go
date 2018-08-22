@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	store := sessions.NewCookieStore([]byte("secret"))
+	store := sessions.NewStore([]byte("secret"))
 
 	first := server.Site{
 		PathToData:           "site1",
