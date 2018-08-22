@@ -79,7 +79,7 @@ func (s SiteConfig) sessionStore() sessions.Store {
     }
       keys = append(keys, key)
   }
-  return sessions.NewCookieStore(keys...)
+  return sessions.NewStore(keys...)
 }
 
 func (s SiteConfig) Handle(rw http.ResponseWriter, r *http.Request) {
