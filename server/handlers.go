@@ -167,59 +167,10 @@ func (s Site) Router() *gin.Engine {
 
 	router.POST("/uploads", s.handleUpload)
 
-	router.GET("/favicon.ico", func(c *gin.Context) {
-		data, _ := Asset("/static/img/cowyo/favicon.ico")
-		c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
-	})
-
-	router.GET("/static/*staticPage", func(c *gin.Context) {
-		staticPage := c.Param("staticPage")
-		filename := "static" + staticPage
-		var data []byte
-		if filename == "static/css/custom.css" {
-			data = s.Css
-		} else {
-			fmt.Printf("Looking for %s\n", filename)
-			var errAssset error
-			data, errAssset = Asset(filename)
-			if errAssset != nil {
-				c.String(http.StatusInternalServerError, fmt.Sprintf("Could not find data: %s", errAssset))
-			}
-		}
-		c.Data(http.StatusOK, contentType(filename), data)
-	})
-
-	router.GET("/uploads/*upload", func(c *gin.Context) {
-		upload := c.Param("upload")
-		if len(upload) == 0 || upload == "/" || upload == "/edit" {
-			if !s.Fileuploads {
-				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
-				return
-			}
-		} else {
-			upload = upload[1:]
-			if !strings.HasSuffix(upload, ".upload") {
-				upload = upload + ".upload"
-			}
-			pathname := path.Join(s.PathToData, upload)
-
-			if allowInsecureHtml {
-				c.Header(
-					"Content-Disposition",
-					`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-				)
-			} else {
-				// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
-				c.Header("Content-Type", "text/plain")
-				c.Header(
-					"Content-Disposition",
-					`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-				)
-			}
-			c.File(pathname)
-			return
-		}
-	})
+	router.GET("/sitemap.xml", s.handleSitemapRequest)
+	router.GET("/favicon.ico", s.handleFaviconRequest)
+	router.GET("/static/*staticPage", s.handleStaticRequest)
+	router.GET("/uploads/*upload", s.handleUploadRequest)
 
 	router.GET("/new", func(c *gin.Context) {
 		c.Redirect(302, "/page/"+randomAlliterateCombo())
@@ -372,67 +323,73 @@ func (s *Site) generateSiteMap() (sitemap string) {
 	return
 }
 
+func (s *Site) handleSitemapRequest(c *gin.Context) {
+	siteMap, err := ioutil.ReadFile(path.Join(s.PathToData, "sitemap.xml"))
+	if err != nil {
+		c.Data(http.StatusInternalServerError, contentType("sitemap.xml"), []byte(""))
+	} else {
+		fmt.Fprintln(c.Writer, `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
+		template.Must(template.New("sitemap").Parse(string(siteMap))).Execute(c.Writer, c)
+	}
+}
+
+func (s *Site) handleFaviconRequest(c *gin.Context) {
+	data, _ := Asset("/static/img/cowyo/favicon.ico")
+	c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
+}
+
+func (s *Site) handleStaticRequest(c *gin.Context) {
+	staticPage := c.Param("staticPage")
+	filename := "static" + staticPage
+	var data []byte
+	if filename == "static/css/custom.css" {
+		data = s.Css
+	} else {
+		fmt.Printf("Looking for %s\n", filename)
+		var errAssset error
+		data, errAssset = Asset(filename)
+		if errAssset != nil {
+			c.String(http.StatusInternalServerError, fmt.Sprintf("Could not find data: %s", errAssset))
+		}
+	}
+	c.Data(http.StatusOK, contentType(filename), data)
+}
+
+func (s *Site) handleUploadRequest(c *gin.Context) {
+upload := c.Param("upload")
+	if len(upload) == 0 || upload == "/" || upload == "/edit" {
+		if !s.Fileuploads {
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
+			return
+		}
+	} else {
+		upload = upload[1:]
+		if !strings.HasSuffix(upload, ".upload") {
+			upload = upload + ".upload"
+		}
+		pathname := path.Join(s.PathToData, upload)
+
+		if allowInsecureHtml {
+			c.Header(
+				"Content-Disposition",
+				`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+			)
+		} else {
+			// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
+			c.Header("Content-Type", "text/plain")
+			c.Header(
+				"Content-Disposition",
+				`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+			)
+		}
+		c.File(pathname)
+		return
+	}
+}
+
 func (s *Site) handlePageRequest(c *gin.Context) {
 	page := c.Param("page")
 	command := c.Param("command")
-
-	if page == "sitemap.xml" {
-		siteMap, err := ioutil.ReadFile(path.Join(s.PathToData, "sitemap.xml"))
-		if err != nil {
-			c.Data(http.StatusInternalServerError, contentType("sitemap.xml"), []byte(""))
-		} else {
-			fmt.Fprintln(c.Writer, `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
-			template.Must(template.New("sitemap").Parse(string(siteMap))).Execute(c.Writer, c)
-		}
-		return
-	} else if page == "favicon.ico" {
-		data, _ := Asset("/static/img/cowyo/favicon.ico")
-		c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
-		return
-	} else if page == "static" {
-		filename := page + command
-		var data []byte
-		if filename == "static/css/custom.css" {
-			data = s.Css
-		} else {
-			var errAssset error
-			data, errAssset = Asset(filename)
-			if errAssset != nil {
-				c.String(http.StatusInternalServerError, "Could not find data")
-			}
-		}
-		c.Data(http.StatusOK, contentType(filename), data)
-		return
-	} else if page == "uploads" {
-		if len(command) == 0 || command == "/" || command == "/edit" {
-			if !s.Fileuploads {
-				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
-				return
-			}
-		} else {
-			command = command[1:]
-			if !strings.HasSuffix(command, ".upload") {
-				command = command + ".upload"
-			}
-			pathname := path.Join(s.PathToData, command)
-
-			if allowInsecureHtml {
-				c.Header(
-					"Content-Disposition",
-					`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-				)
-			} else {
-				// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
-				c.Header("Content-Type", "text/plain")
-				c.Header(
-					"Content-Disposition",
-					`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
-				)
-			}
-			c.File(pathname)
-			return
-		}
-	}
 
 	p := s.Open(page)
 	if len(command) < 2 {

@@ -131,7 +131,7 @@ func staticCssBaseMinCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/base-min.css", size: 2195, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/css/base-min.css", size: 2195, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -151,7 +151,7 @@ func staticCssDefaultCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/default.css", size: 2476, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/css/default.css", size: 2476, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -171,7 +171,7 @@ func staticCssDropzoneCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/dropzone.css", size: 12587, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/css/dropzone.css", size: 12587, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -191,7 +191,7 @@ func staticCssGithubMarkdownCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/github-markdown.css", size: 11557, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/css/github-markdown.css", size: 11557, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -211,7 +211,7 @@ func staticCssHighlightCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/highlight.css", size: 776, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/css/highlight.css", size: 776, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -231,7 +231,7 @@ func staticCssMenusMinCss() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/css/menus-min.css", size: 2471, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/css/menus-min.css", size: 2471, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -251,7 +251,7 @@ func staticImgCowyoAndroidIcon144x144Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/android-icon-144x144.png", size: 6819, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/android-icon-144x144.png", size: 6819, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -271,7 +271,7 @@ func staticImgCowyoAndroidIcon192x192Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/android-icon-192x192.png", size: 8200, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/android-icon-192x192.png", size: 8200, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -291,7 +291,7 @@ func staticImgCowyoAndroidIcon36x36Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/android-icon-36x36.png", size: 1952, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/android-icon-36x36.png", size: 1952, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -311,7 +311,7 @@ func staticImgCowyoAndroidIcon48x48Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/android-icon-48x48.png", size: 2451, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/android-icon-48x48.png", size: 2451, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -331,7 +331,7 @@ func staticImgCowyoAndroidIcon72x72Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/android-icon-72x72.png", size: 3317, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/android-icon-72x72.png", size: 3317, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -351,7 +351,7 @@ func staticImgCowyoAndroidIcon96x96Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/android-icon-96x96.png", size: 4296, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/android-icon-96x96.png", size: 4296, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -371,7 +371,7 @@ func staticImgCowyoAppleIcon114x114Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-114x114.png", size: 5015, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-114x114.png", size: 5015, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -391,7 +391,7 @@ func staticImgCowyoAppleIcon120x120Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-120x120.png", size: 5365, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-120x120.png", size: 5365, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -411,7 +411,7 @@ func staticImgCowyoAppleIcon144x144Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-144x144.png", size: 6819, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-144x144.png", size: 6819, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -431,7 +431,7 @@ func staticImgCowyoAppleIcon152x152Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-152x152.png", size: 7402, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-152x152.png", size: 7402, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -451,7 +451,7 @@ func staticImgCowyoAppleIcon180x180Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-180x180.png", size: 9390, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-180x180.png", size: 9390, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -471,7 +471,7 @@ func staticImgCowyoAppleIcon57x57Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-57x57.png", size: 2792, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-57x57.png", size: 2792, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -491,7 +491,7 @@ func staticImgCowyoAppleIcon60x60Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-60x60.png", size: 2900, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-60x60.png", size: 2900, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -511,7 +511,7 @@ func staticImgCowyoAppleIcon72x72Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-72x72.png", size: 3317, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-72x72.png", size: 3317, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -531,7 +531,7 @@ func staticImgCowyoAppleIcon76x76Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-76x76.png", size: 3474, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-76x76.png", size: 3474, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -551,7 +551,7 @@ func staticImgCowyoAppleIconPrecomposedPng() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-precomposed.png", size: 8684, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon-precomposed.png", size: 8684, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -571,7 +571,7 @@ func staticImgCowyoAppleIconPng() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/apple-icon.png", size: 8684, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/apple-icon.png", size: 8684, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -591,7 +591,7 @@ func staticImgCowyoBrowserconfigXml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/browserconfig.xml", size: 281, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/browserconfig.xml", size: 281, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -611,7 +611,7 @@ func staticImgCowyoFavicon16x16Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/favicon-16x16.png", size: 381, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/favicon-16x16.png", size: 381, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -631,7 +631,7 @@ func staticImgCowyoFavicon32x32Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/favicon-32x32.png", size: 1793, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/favicon-32x32.png", size: 1793, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -651,7 +651,7 @@ func staticImgCowyoFavicon96x96Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/favicon-96x96.png", size: 4296, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/favicon-96x96.png", size: 4296, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -671,7 +671,7 @@ func staticImgCowyoFaviconIco() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/favicon.ico", size: 1150, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/favicon.ico", size: 1150, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -691,7 +691,7 @@ func staticImgCowyoManifestJson() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/manifest.json", size: 720, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/manifest.json", size: 720, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -711,7 +711,7 @@ func staticImgCowyoMsIcon144x144Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-144x144.png", size: 6819, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-144x144.png", size: 6819, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -731,7 +731,7 @@ func staticImgCowyoMsIcon150x150Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-150x150.png", size: 7255, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-150x150.png", size: 7255, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -751,7 +751,7 @@ func staticImgCowyoMsIcon310x310Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-310x310.png", size: 22194, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-310x310.png", size: 22194, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -771,7 +771,7 @@ func staticImgCowyoMsIcon70x70Png() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-70x70.png", size: 3245, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/cowyo/ms-icon-70x70.png", size: 3245, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -791,7 +791,7 @@ func staticImgLogoPng() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/img/logo.png", size: 1962, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/img/logo.png", size: 1962, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -811,7 +811,7 @@ func staticJsCowyoJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/cowyo.js", size: 13588, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/js/cowyo.js", size: 13588, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -831,7 +831,7 @@ func staticJsDropzoneJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/dropzone.js", size: 120533, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/js/dropzone.js", size: 120533, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -851,7 +851,7 @@ func staticJsHighlightMinJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/highlight.min.js", size: 45164, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/js/highlight.min.js", size: 45164, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -871,7 +871,7 @@ func staticJsHighlightPackJs() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/highlight.pack.js", size: 45229, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/js/highlight.pack.js", size: 45229, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -891,7 +891,7 @@ func staticJsJquery183Js() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/js/jquery-1.8.3.js", size: 266057, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/js/jquery-1.8.3.js", size: 266057, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -911,7 +911,7 @@ func staticTextAdjectives() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/text/adjectives", size: 153332, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/text/adjectives", size: 153332, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -931,7 +931,7 @@ func staticTextAdjectivesOld() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/text/adjectives.old", size: 3316, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/text/adjectives.old", size: 3316, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -951,7 +951,7 @@ func staticTextAnimals() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/text/animals", size: 7533, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/text/animals", size: 7533, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -971,7 +971,7 @@ func staticTextAnimalsAll() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/text/animals.all", size: 47655, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/text/animals.all", size: 47655, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -991,7 +991,7 @@ func staticTextHowmanyPy() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/text/howmany.py", size: 639, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/text/howmany.py", size: 639, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1011,7 +1011,7 @@ func staticTextRobotsTxt() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/text/robots.txt", size: 64, mode: os.FileMode(420), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/text/robots.txt", size: 64, mode: os.FileMode(420), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1031,7 +1031,7 @@ func staticTextSitemapXml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "static/text/sitemap.xml", size: 293, mode: os.FileMode(493), modTime: time.Unix(1548964952, 0)}
+	info := bindataFileInfo{name: "static/text/sitemap.xml", size: 293, mode: os.FileMode(493), modTime: time.Unix(1548991541, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1051,7 +1051,7 @@ func templatesIndexTmpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/index.tmpl", size: 13572, mode: os.FileMode(493), modTime: time.Unix(1548967546, 0)}
+	info := bindataFileInfo{name: "templates/index.tmpl", size: 13572, mode: os.FileMode(493), modTime: time.Unix(1548991937, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
