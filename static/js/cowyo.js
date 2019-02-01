@@ -129,10 +129,10 @@ $(window).load(function() {
                 }
                 $('#saveEditButton').text(data.message);
                 if (data.success == true && $('#lockPage').text() == "Lock") {
-                    window.location = "/" + window.cowyo.pageName + "/view";
+                    window.location = "/page/" + window.cowyo.pageName + "/view";
                 }
                 if (data.success == true && $('#lockPage').text() == "Unlock") {
-                    window.location = "/" + window.cowyo.pageName + "/edit";
+                    window.location = "/page/" + window.cowyo.pageName + "/edit";
                 }
             },
             error: function(xhr, error) {
@@ -195,10 +195,10 @@ $(window).load(function() {
                 $('#saveEditButton').text(data.message);
 
                 if (data.success == true && $('#encryptPage').text() == "Encrypt") {
-                    window.location = "/" + window.cowyo.pageName + "/view";
+                    window.location = "/page/" + window.cowyo.pageName + "/view";
                 }
                 if (data.success == true && $('#encryptPage').text() == "Decrypt") {
-                    window.location = "/" + window.cowyo.pageName + "/edit";
+                    window.location = "/page/" + window.cowyo.pageName + "/edit";
                 }
             },
             error: function(xhr, error) {
@@ -227,7 +227,7 @@ $(window).load(function() {
                 }
                 $('#saveEditButton').text(data.message);
                 if (data.success == true) {
-                    window.location = "/" + window.cowyo.pageName + "/list";
+                    window.location = "/page/" + window.cowyo.pageName + "/list";
                 }
             },
             error: function(xhr, error) {
@@ -252,7 +252,7 @@ $(window).load(function() {
         e.preventDefault();
         var r = confirm("Are you sure you want to erase?");
         if (r == true) {
-            window.location = "/" + window.cowyo.pageName + "/erase";
+            window.location = "/page/" + window.cowyo.pageName + "/erase";
         } else {
             x = "You pressed Cancel!";
         }
