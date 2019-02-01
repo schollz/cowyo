@@ -71,9 +71,9 @@
                             <a href="#" id="menuLink1" class="pure-menu-link">{{ .Page }}</a>
                             <ul class="pure-menu-children">
                                 {{ if .DiaryMode }}
-                                <li class="pure-menu-item"><a href="/{{ .Date }}/edit" class="pure-menu-link">New</a></li>
+                                <li class="pure-menu-item"><a href="/page/{{ .Date }}/edit" class="pure-menu-link">New</a></li>
                                 {{ else }}
-                                <li class="pure-menu-item"><a href="/" class="pure-menu-link">New</a></li>
+                                <li class="pure-menu-item"><a href="/new" class="pure-menu-link">New</a></li>
                                 {{ end }}
                                 <li class="pure-menu-item"><a href="https://github.com/schollz/cowyo" class="pure-menu-link">Source</a></li>
                                 {{ if .EditPage }}
@@ -90,7 +90,7 @@
                                 {{ else }}
                                 <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="encryptPage">{{ if .IsEncrypted }}Decrypt{{ else }}Encrypt{{end}}</a></li>
                                 <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="lockPage">{{ if .IsLocked }}Unlock{{ else }}Lock{{end}}</a></li>
-                                <li class="pure-menu-item"><a href="/{{ .Page }}/history" class="pure-menu-link">History</a></li>
+                                <li class="pure-menu-item"><a href="/page/{{ .Page }}/history" class="pure-menu-link">History</a></li>
                                 <hr>
                                 <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="selfDestructPage">Self-destruct</a></li>
                                 <li class="pure-menu-item"><a href="#" class="pure-menu-link" id="erasePage">Erase</a></li>
@@ -99,10 +99,10 @@
                         </li>
 
                         <li class="pure-menu-item pure-menu-has-children pure-menu-allow-hover  {{ with .ViewPage }}pure-menu-selected{{ end }}">
-                            <a href="/{{ .Page }}/view"  class="pure-menu-link">View</a>
+                            <a href="/page/{{ .Page }}/view"  class="pure-menu-link">View</a>
                             <ul class="pure-menu-children">
                             <li class="pure-menu-item">
-                        <a href="/{{ .Page }}/read" class="pure-menu-link">Current</a>
+                        <a href="/page/{{ .Page }}/read" class="pure-menu-link">Current</a>
                             </li>
                             {{ range .RecentlyEdited}}
                                 <li class="pure-menu-item"><a  class="pure-menu-link" href="/{{.}}/read">{{.}}</a></li>
@@ -122,9 +122,9 @@
                         {{ if .ListPage }}
                         <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="#" class="pure-menu-link" id="clearOld">Clear done</a></li>
                         {{ else }}
-                        <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/list" class="pure-menu-link">List</a></li>
+                        <li class="pure-menu-item {{ with .ListPage }}pure-menu-selected{{ end }}"><a href="/page/{{ .Page }}/list" class="pure-menu-link">List</a></li>
                         {{ end }}
-                        <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
+                        <li class="pure-menu-item {{ with .EditPage }}pure-menu-selected{{ end }}"><a href="/page/{{ .Page }}/edit" class="pure-menu-link"><span id="saveEditButton">Edit</span></a></li>
                         {{end}}
                     </ul>
                 </div>
@@ -183,11 +183,11 @@
                         <ul>
                             {{range $i, $e := .Versions}}
                                 <li style="list-style: none;">
-                                <a href="/{{ $.Page }}/view?version={{$e}}">View</a>
+                                <a href="/page/{{ $.Page }}/view?version={{$e}}">View</a>
                                 &nbsp;&nbsp;
-                                <a href="/{{ $.Page }}/list?version={{$e}}">List</a>
+                                <a href="/page/{{ $.Page }}/list?version={{$e}}">List</a>
                                 &nbsp;&nbsp;
-                                <a href="/{{ $.Page }}/raw?version={{$e}}">Raw</a>
+                                <a href="/page/{{ $.Page }}/raw?version={{$e}}">Raw</a>
                                 &nbsp;&nbsp;
                                 {{index $.VersionsText $i}}&nbsp;({{if lt (index $.VersionsChangeSums $i) 0}}<span style="color:red">{{else}}<span style="color:green">+{{end}}{{index $.VersionsChangeSums $i}}</span>)</li>
                             {{end}}

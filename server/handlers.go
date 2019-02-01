@@ -159,19 +159,76 @@ func (s Site) Router() *gin.Engine {
 	// router.Use(static.Serve("/static/", static.LocalFile("./static", true)))
 	router.GET("/", func(c *gin.Context) {
 		if s.DefaultPage != "" {
-			c.Redirect(302, "/"+s.DefaultPage+"/read")
+			c.Redirect(302, "/page/"+s.DefaultPage+"/read")
 		} else {
-			c.Redirect(302, "/"+randomAlliterateCombo())
+			c.Redirect(302, "/page/"+randomAlliterateCombo())
 		}
 	})
 
 	router.POST("/uploads", s.handleUpload)
 
-	router.GET("/:page", func(c *gin.Context) {
-		page := c.Param("page")
-		c.Redirect(302, "/"+page+"/")
+	router.GET("/favicon.ico", func(c *gin.Context) {
+		data, _ := Asset("/static/img/cowyo/favicon.ico")
+		c.Data(http.StatusOK, contentType("/static/img/cowyo/favicon.ico"), data)
 	})
-	router.GET("/:page/*command", s.handlePageRequest)
+
+	router.GET("/static/*staticPage", func(c *gin.Context) {
+		staticPage := c.Param("staticPage")
+		filename := "static" + staticPage
+		var data []byte
+		if filename == "static/css/custom.css" {
+			data = s.Css
+		} else {
+			fmt.Printf("Looking for %s\n", filename)
+			var errAssset error
+			data, errAssset = Asset(filename)
+			if errAssset != nil {
+				c.String(http.StatusInternalServerError, fmt.Sprintf("Could not find data: %s", errAssset))
+			}
+		}
+		c.Data(http.StatusOK, contentType(filename), data)
+	})
+
+	router.GET("/uploads/*upload", func(c *gin.Context) {
+		upload := c.Param("upload")
+		if len(upload) == 0 || upload == "/" || upload == "/edit" {
+			if !s.Fileuploads {
+				c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("Uploads are disabled on this server"))
+				return
+			}
+		} else {
+			upload = upload[1:]
+			if !strings.HasSuffix(upload, ".upload") {
+				upload = upload + ".upload"
+			}
+			pathname := path.Join(s.PathToData, upload)
+
+			if allowInsecureHtml {
+				c.Header(
+					"Content-Disposition",
+					`inline; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+				)
+			} else {
+				// Prevent malicious html uploads by forcing type to plaintext and 'download-instead-of-view'
+				c.Header("Content-Type", "text/plain")
+				c.Header(
+					"Content-Disposition",
+					`attachment; filename="`+c.DefaultQuery("filename", "upload")+`"`,
+				)
+			}
+			c.File(pathname)
+			return
+		}
+	})
+
+	router.GET("/new", func(c *gin.Context) {
+		c.Redirect(302, "/page/"+randomAlliterateCombo())
+	})
+	router.GET("/page/:page", func(c *gin.Context) {
+		page := c.Param("page")
+		c.Redirect(302, "/page/"+page+"/")
+	})
+	router.GET("/page/:page/*command", s.handlePageRequest)
 	router.POST("/update", s.handlePageUpdate)
 	router.POST("/relinquish", s.handlePageRelinquish) // relinquish returns the page no matter what (and destroys if nessecary)
 	router.POST("/exists", s.handlePageExists)
@@ -380,9 +437,9 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 	p := s.Open(page)
 	if len(command) < 2 {
 		if p.IsPublished {
-			c.Redirect(302, "/"+page+"/read")
+			c.Redirect(302, "/page/"+page+"/read")
 		} else {
-			c.Redirect(302, "/"+page+"/edit")
+			c.Redirect(302, "/page/"+page+"/edit")
 		}
 		return
 	}
@@ -399,7 +456,7 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 	// Disallow anything but viewing locked/encrypted pages
 	if (p.IsEncrypted || isLocked) &&
 		(command[0:2] != "/v" && command[0:2] != "/r") {
-		c.Redirect(302, "/"+page+"/view")
+		c.Redirect(302, "/page/"+page+"/view")
 		return
 	}
 
@@ -416,9 +473,9 @@ func (s *Site) handlePageRequest(c *gin.Context) {
 	if command == "/erase" {
 		if !isLocked && !p.IsEncrypted {
 			p.Erase()
-			c.Redirect(302, "/"+page+"/edit")
+			c.Redirect(302, "/page/"+page+"/edit")
 		} else {
-			c.Redirect(302, "/"+page+"/view")
+			c.Redirect(302, "/page/"+page+"/view")
 		}
 		return
 	}
