@@ -1,26 +1,13 @@
-# First build step
-FROM golang:1.10-alpine as builder
+FROM golang:1.12-alpine as builder
+RUN apk add --no-cache git make 
+RUN go get -v github.com/jteeuwen/go-bindata/go-bindata
+WORKDIR /go/cowyo
+COPY . .
+RUN make build
 
-#WORKDIR /go/src/github.com/schollz/cowyo
-#COPY . .
-# Disable crosscompiling
-ENV CGO_ENABLED=0
-
-# Install git and make, compile and cleanup
-RUN apk add --no-cache git make \
-    && go get -u -v github.com/jteeuwen/go-bindata/... \
-    && go get -u -v -d github.com/schollz/cowyo \
-	&& cd /go/src/github.com/schollz/cowyo \
-    && make \
-    && apk del --purge git make \
-    && rm -rf /var/cache/apk*
-
-# Second build step uses the minimal scratch Docker image
-FROM scratch
-# Copy the binary from the first step
-COPY --from=builder /go/src/github.com/schollz/cowyo/cowyo /usr/local/bin/cowyo
-# Expose data folder
+FROM alpine:latest 
 VOLUME /data
-EXPOSE 8050
-# Start cowyo listening on any host
-CMD ["cowyo", "--host", "0.0.0.0"]
+EXPOSE 8152
+COPY --from=builder /go/cowyo/cowyo /cowyo
+ENTRYPOINT ["/cowyo"]
+CMD ["--data","/data"]
