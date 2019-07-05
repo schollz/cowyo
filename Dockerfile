@@ -10,4 +10,4 @@ VOLUME /data
 EXPOSE 8152
 COPY --from=builder /go/cowyo/cowyo /cowyo
 ENTRYPOINT ["/cowyo"]
-CMD ["--data","/data"]
+CMD ["--data","/data","--allow-file-uploads","--max-upload-mb","10"]
