@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday"
+	"github.com/russross/blackfriday/v2"
 	"github.com/shurcooL/github_flavored_markdown"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -157,8 +157,7 @@ func exists(path string) bool {
 }
 
 func MarkdownToHtml(s string) string {
-	unsafe := blackfriday.MarkdownCommon([]byte(s))
-
+	unsafe := blackfriday.Run([]byte(s))
 	if allowInsecureHtml {
 		return string(unsafe)
 	}
