@@ -1,0 +1,44 @@
+module github.com/schollz/cowyo
+
+go 1.12
+
+require (
+	dmitri.shuralyov.com/text/kebabcase v0.0.0-20180217051803-40e40b42552a
+	github.com/BurntSushi/toml v0.3.0
+	github.com/danielheath/gin-teeny-security v0.0.0-20180331042316-bb11804dd0e2
+	github.com/gin-contrib/multitemplate v0.0.0-20180607024123-41d1d62d1df3
+	github.com/gin-contrib/sessions v0.0.0-20180724132311-854e10e72056
+	github.com/gin-contrib/sse v0.0.0-20170109093832-22d885f9ecc7
+	github.com/gin-gonic/gin v1.3.0
+	github.com/golang/protobuf v1.2.0
+	github.com/gorilla/context v1.1.1
+	github.com/gorilla/securecookie v1.1.1
+	github.com/gorilla/sessions v1.1.1
+	github.com/jcelliott/lumber v0.0.0-20160324203708-dd349441af25
+	github.com/json-iterator/go v1.1.5
+	github.com/mattn/go-isatty v0.0.3
+	github.com/microcosm-cc/bluemonday v1.0.1
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
+	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
+	github.com/russross/blackfriday v1.5.1
+	github.com/schollz/cryptopasta v0.0.0-20170217152710-dcd61c7d42a1
+	github.com/schollz/versionedtext v0.0.0-20180523061923-d8ce0957c254
+	github.com/sergi/go-diff v1.0.0
+	github.com/shurcooL/github_flavored_markdown v0.0.0-20180602233135-8913699a52e3
+	github.com/shurcooL/go v0.0.0-20180423040247-9e1955d9fb6e
+	github.com/shurcooL/go-goon v0.0.0-20170922171312-37c2f522c041
+	github.com/shurcooL/graphql v0.0.0-20180514000029-62c9ce094e75
+	github.com/shurcooL/highlight_diff v0.0.0-20170515013008-09bb4053de1b
+	github.com/shurcooL/highlight_go v0.0.0-20170515013102-78fb10f4a5f8
+	github.com/shurcooL/octicon v0.0.0-20180602230221-c42b0e3b24d9
+	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95
+	github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d
+	github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e
+	github.com/ugorji/go v1.1.1
+	golang.org/x/crypto v0.0.0-20180820150726-614d502a4dac
+	golang.org/x/net v0.0.0-20180821023952-922f4815f713
+	golang.org/x/sys v0.0.0-20180821140842-3b58ed4ad339
+	gopkg.in/go-playground/validator.v8 v8.18.2
+	gopkg.in/urfave/cli.v1 v1.20.0
+	gopkg.in/yaml.v2 v2.2.1
+)
