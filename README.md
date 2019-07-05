@@ -55,7 +55,7 @@ cowyo --cert "/path/to/server.crt" --key "/p/t/server.key"
 You can easily get started with Docker. First pull the latest image and create the volume with:
 
 ```
-docker run -d --name cowyo -p 8050:8050 schollz/cowyo
+docker run -d -v /directory/to/data:/data -p 8050:8050 schollz/cowyo
 ```
 
 Then you can stop it with `docker stop cowyo` and start it again with `docker start cowyo`.
