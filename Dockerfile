@@ -7,7 +7,7 @@ RUN make build
 
 FROM alpine:latest 
 VOLUME /data
-EXPOSE 8152
+EXPOSE 8050
 COPY --from=builder /go/cowyo/cowyo /cowyo
 ENTRYPOINT ["/cowyo"]
-CMD ["--data","/data","--allow-file-uploads","--max-upload-mb","10"]
+CMD ["--data","/data","--allow-file-uploads","--max-upload-mb","10","--host","0.0.0.0"]
