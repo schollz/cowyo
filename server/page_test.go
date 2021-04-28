@@ -7,7 +7,7 @@ import (
 )
 
 func TestListFiles(t *testing.T) {
-	pathToData = "testdata"
+	pathToData := "testdata"
 	os.MkdirAll(pathToData, 0755)
 	defer os.RemoveAll(pathToData)
 	s := Site{PathToData: pathToData}
@@ -34,7 +34,7 @@ func TestListFiles(t *testing.T) {
 }
 
 func TestGeneral(t *testing.T) {
-	pathToData = "testdata"
+	pathToData := "testdata"
 	os.MkdirAll(pathToData, 0755)
 	defer os.RemoveAll(pathToData)
 	s := Site{PathToData: pathToData}
