@@ -272,9 +272,7 @@ $(window).load(function() {
         e.preventDefault();
 
         var passphrase;
-        if ($('#lockPage').text() == "Lock")
-            passphrase = prompt("Please enter a passphrase to lock", "");
-        else
+        if ($('#lockPage').text() != "Lock")
             passphrase = prompt("Please enter a passphrase to unlock", "");
 
         if (passphrase != null) {
