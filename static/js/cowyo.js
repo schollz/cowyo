@@ -371,7 +371,7 @@ function onUploadFinished(file) {
     if (file.type.startsWith("image")) {
         prefix = '!';
     }
-    console.log(file.xhr);
+
     var extraText = prefix+'['+file.xhr.getResponseHeader("Location").split('filename=')[1]+'](' +
         file.xhr.getResponseHeader("Location") +
         ')\n\n';
