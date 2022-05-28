@@ -371,9 +371,11 @@ function onUploadFinished(file) {
     if (file.type.startsWith("image")) {
         prefix = '!';
     }
+    console.log(file.xhr);
     var extraText = prefix+'['+file.xhr.getResponseHeader("Location").split('filename=')[1]+'](' +
         file.xhr.getResponseHeader("Location") +
-        ')';
+        ')\n\n';
+
 
     $('#userInput').val(
         textBefore +
@@ -382,7 +384,7 @@ function onUploadFinished(file) {
     );
 
     // Select the newly-inserted link
-    $('#userInput').prop('selectionStart', cursorPos);
+    $('#userInput').prop('selectionStart', cursorPos + extraText.length);
     $('#userInput').prop('selectionEnd', cursorPos + extraText.length);
     $('#userInput').trigger('keyup'); // trigger a save
 }
