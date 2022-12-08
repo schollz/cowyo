@@ -1,11 +1,15 @@
 FROM golang:1.12-alpine as builder
-RUN apk add --no-cache git make 
+
+RUN apk --no-cache update \
+&& apk --no-cache upgrade \ 
+&& apk add --no-cache gcc \
+&& apk add --no-cache  musl-dev \
+&& apk add --no-cache git make 
+
 RUN go get -v github.com/jteeuwen/go-bindata/go-bindata
 WORKDIR /go/cowyo
 COPY . .
 
-RUN apk add gcc
-RUN apk add musl-dev
 RUN make build
 
 FROM alpine:latest 
