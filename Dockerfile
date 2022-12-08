@@ -3,6 +3,9 @@ RUN apk add --no-cache git make
 RUN go get -v github.com/jteeuwen/go-bindata/go-bindata
 WORKDIR /go/cowyo
 COPY . .
+
+RUN apk add gcc
+RUN apk add musl-dev
 RUN make build
 
 FROM alpine:latest 
