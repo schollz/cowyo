@@ -270,7 +270,11 @@ $(window).load(function() {
 
     $("#lockPage").click(function(e) {
         e.preventDefault();
-        var passphrase = prompt("Please enter a passphrase to lock", "");
+
+        var passphrase;
+        if ($('#lockPage').text() != "Lock")
+            passphrase = prompt("Please enter a passphrase to unlock", "");
+
         if (passphrase != null) {
             if ($('#lockPage').text() == "Lock") {
                 $('#saveEditButton').removeClass();
