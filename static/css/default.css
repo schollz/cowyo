@@ -59,15 +59,20 @@ body#pad.HasDotInName textarea {
     font-family: "Lucida Console", Monaco, monospace;
 }
 
-.markdown-body ul, .markdown-body ol {
+
+/* .markdown-body ul, .markdown-body ol {
     padding-left: 0em;
+} */
+
+div#menu, div#rendered, .ChildPageNames, body#pad textarea {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    max-width: 30em;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 @media (min-width: 5em) {
-    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
-        padding-left: 2%;
-        padding-right: 2%;
-    }
     .pure-menu .pure-menu-horizontal {
         max-width: 300px;
     }
@@ -80,10 +85,6 @@ body#pad.HasDotInName textarea {
     }
 }
 @media (min-width: 50em) {
-    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
-        padding-left: 10%;
-        padding-right: 10%;
-    }
     .pure-menu-disabled, .pure-menu-heading, .pure-menu-link {
         padding: .5em 1em;
     }
@@ -92,20 +93,12 @@ body#pad.HasDotInName textarea {
     }
 }
 @media (min-width: 70em) {
-    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
-        padding-left: 15%;
-        padding-right: 15%;
-    }
     .ChildPageNames ul {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @media (min-width: 100em) {
-    div#menu, div#rendered, .ChildPageNames, body#pad textarea {
-        padding-left: 20%;
-        padding-right: 20%;
-    }
     .ChildPageNames ul {
         grid-template-columns: repeat(4, 1fr);
     }

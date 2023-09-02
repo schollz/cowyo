@@ -10,10 +10,12 @@ build: server/bindata.go
 
 STATICFILES := $(wildcard static/*)
 TEMPLATES := $(wildcard templates/*)
+.PHONY: server/bindata.go
 server/bindata.go: $(STATICFILES) $(TEMPLATES)
 	go-bindata -pkg server -tags '!debug' -o server/bindata.go static/... templates/...
 	go fmt
 
+.PHONY: server/bindata-debug.go
 server/bindata-debug.go: $(STATICFILES) $(TEMPLATES)
 	go-bindata -pkg server -tags 'debug' -o server/bindata-debug.go -debug static/... templates/...
 	go fmt
