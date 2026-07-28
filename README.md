@@ -8,6 +8,21 @@
 
 <p align="center">A pastebin for minimalists</p>
 
+<p align="center">
+  <a href="https://github.com/schollz/cowyo/actions/workflows/ci.yml">
+    <img
+      src="https://github.com/schollz/cowyo/actions/workflows/ci.yml/badge.svg?branch=main"
+      alt="CI status"
+    >
+  </a>
+  <a href="https://github.com/schollz/cowyo/releases/latest">
+    <img
+      src="https://img.shields.io/github/v/release/schollz/cowyo"
+      alt="Latest release"
+    >
+  </a>
+</p>
+
 *cowyo2* is a self-contained shared scratchpad that makes jotting notes easy
 and fast. Open a page, type, and it saves automatically. Share the URL to edit
 with other people in real time.
@@ -21,7 +36,7 @@ Build and run:
 
 ```sh
 make build
-./cowyo2
+./cowyo
 ```
 
 Then open [localhost:8001](http://localhost:8001). Use `-port` to choose a

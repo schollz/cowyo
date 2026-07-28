@@ -22,8 +22,8 @@ COPY --from=frontend /src/internal/site/build ./internal/site/build
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -trimpath \
     -ldflags="-s -w" \
-    -o /out/cowyo2 \
-    ./cmd/cowyo2
+    -o /out/cowyo \
+    ./cmd/cowyo
 
 FROM alpine:3.23
 
@@ -33,7 +33,7 @@ RUN apk add --no-cache ca-certificates \
     && mkdir -p /data \
     && chown cowyo:cowyo /data
 
-COPY --from=backend /out/cowyo2 /usr/local/bin/cowyo2
+COPY --from=backend /out/cowyo /usr/local/bin/cowyo
 
 ENV SQLITE_PATH=/data/cowyo2.sqlite3
 
@@ -41,4 +41,4 @@ USER cowyo
 
 EXPOSE 8001
 
-CMD ["/usr/local/bin/cowyo2"]
+CMD ["/usr/local/bin/cowyo"]

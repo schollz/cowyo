@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
 cmd = "make build"
-entrypoint = ["./cowyo2", "-log", "debug"]
+entrypoint = ["./cowyo", "-log", "debug"]
 include_ext = ["go", "html", "js", "css", "json", "xml", "png", "ico", "woff"]
 include_file = ["Makefile"]
 exclude_dir = [".git", "internal/site/build", "web/node_modules", "tmp"]

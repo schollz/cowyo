@@ -1,4 +1,4 @@
-BINARY := cowyo2
+BINARY := cowyo
 WEB_DIR := web
 NODE_MODULES_LOCK := $(WEB_DIR)/node_modules/.package-lock.json
 AIR_VERSION := v1.65.1
@@ -7,7 +7,7 @@ SQLC_VERSION := v1.31.1
 .PHONY: build frontend generate migrate serve test
 
 build: frontend
-	go build -trimpath -ldflags="-s -w" -o $(BINARY) ./cmd/cowyo2
+	go build -trimpath -ldflags="-s -w" -o $(BINARY) ./cmd/cowyo
 
 frontend: $(NODE_MODULES_LOCK)
 	npm --prefix $(WEB_DIR) run build

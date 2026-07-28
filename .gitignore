@@ -3,7 +3,7 @@
 !.env.example
 .DS_Store
 internal/site/build/
-/cowyo2
+/cowyo
 *.db
 *.db-shm
 *.db-wal

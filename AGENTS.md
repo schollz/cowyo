@@ -22,13 +22,15 @@ Vite-built browser client. The optimized frontend is generated into
 
 Important paths:
 
-- `cmd/cowyo2/`: production server command entrypoint.
+- `cmd/cowyo/`: production server command entrypoint.
 - `internal/cowyo/server.go`: server startup, routing, browser rendering, curl
   plaintext responses, and WebSocket editing.
 - `Dockerfile`: multi-stage Disco image build for the Vite frontend and Go
   server.
 - `disco.json`: Disco web-service, health-check, and persistent SQLite-volume
   configuration.
+- `.github/workflows/ci.yml`: GitHub Actions test workflow for pushes to
+  `main` and pull requests.
 - `cmd/migrate/`: migration-only command used by `make migrate`.
 - `internal/cowyo/post.go`: curl POST handling, the 16 KiB body limit,
   per-client rate limiting, random-page allocation, and returned URLs.
@@ -64,7 +66,7 @@ make build
 1. Runs `npm ci` in `web/` when `web/node_modules/.package-lock.json` is absent
    or stale.
 2. Runs the optimized Vite build into `internal/site/build/`.
-3. Builds `cmd/cowyo2` as the `cowyo2` binary with the generated frontend
+3. Builds `cmd/cowyo` as the `cowyo` binary with the generated frontend
    embedded.
 
 The Go embed requires `internal/site/build/` to exist, so use the Make targets
@@ -83,7 +85,7 @@ npm --prefix web run dev  # Vite development server
 
 `make serve` runs the pinned Air version declared in `Makefile`. Air performs a
 complete `make build` initially and whenever Go files, Vite frontend sources,
-or public website assets change, then runs or restarts cowyo2 on its default
+or public website assets change, then runs or restarts `cowyo` on its default
 port (`8001`) with `-log debug`. Generated `internal/site/build/`,
 `web/node_modules/`, and `tmp/` content is excluded from watching to prevent
 rebuild loops.
@@ -283,6 +285,11 @@ make test
 make build
 ```
 
+GitHub Actions runs `make test` on Ubuntu for every pull request and push to
+`main`, using the Go version declared in `go.mod` and Node.js 24. The README
+shows the workflow status for `main` and the repository's latest GitHub
+release.
+
 For changes touching concurrency, storage, dependencies, security, or build
 behavior, also run:
 
@@ -305,7 +312,7 @@ Do not commit local build/runtime artifacts:
 
 - `.env` and local `.env.*` variants (except `.env.example`)
 - `internal/site/build/`
-- `cowyo2`
+- `cowyo`
 - `web/node_modules/`
 - SQLite database (`*.db`, `*.sqlite`, or `*.sqlite3`), WAL, or shared-memory
   files
