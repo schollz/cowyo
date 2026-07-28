@@ -1,13 +1,13 @@
 FROM node:24-alpine AS frontend
 
-WORKDIR /src
+WORKDIR /src/web
 
-COPY package.json package-lock.json ./
+COPY web/package.json web/package-lock.json ./
 RUN npm ci
 
-COPY index.html vite.config.js ./
-COPY public ./public
-COPY src ./src
+COPY web/index.html web/vite.config.js ./
+COPY web/public ./public
+COPY web/src ./src
 RUN npm run build
 
 FROM golang:1.26.5-alpine AS backend
@@ -18,12 +18,12 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY --from=frontend /src/build ./build
+COPY --from=frontend /src/internal/site/build ./internal/site/build
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -trimpath \
     -ldflags="-s -w" \
     -o /out/cowyo2 \
-    .
+    ./cmd/cowyo2
 
 FROM alpine:3.23
 

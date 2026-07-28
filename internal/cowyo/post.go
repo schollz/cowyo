@@ -1,4 +1,4 @@
-package main
+package cowyo
 
 import (
 	"crypto/sha256"

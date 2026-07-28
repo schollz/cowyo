@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   publicDir: "public",
   build: {
-    outDir: "build",
+    outDir: "../internal/site/build",
     assetsDir: "static",
     emptyOutDir: true,
   },

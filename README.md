@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="public/static/logo.jpg"
+    src="web/public/static/logo.jpg"
     width="454"
     alt="cowyo logo: a cow beside a speech bubble saying yo"
   >

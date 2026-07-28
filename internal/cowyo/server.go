@@ -1,14 +1,12 @@
-package main
+package cowyo
 
 import (
 	"context"
-	"embed"
 	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
 	"html"
-	"io/fs"
 	"math/rand"
 	"net/http"
 	"os"
@@ -22,6 +20,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/schollz/cowyo2/internal/database"
+	"github.com/schollz/cowyo2/internal/site"
 	log "github.com/schollz/logger"
 )
 
@@ -35,9 +34,7 @@ var pageMutationMu sync.Mutex
 
 const googleTagEnvironment = "GOOGLE_TAG"
 
-//go:embed build/*
-var content embed.FS
-var siteContent = mustSubFS(content, "build")
+var siteContent = site.Content()
 var policy *bluemonday.Policy
 
 type Connection struct {
@@ -50,7 +47,8 @@ func init() {
 	flag.StringVar(&flagLog, "log", "info", "log level")
 }
 
-func main() {
+// Main runs the cowyo server command.
+func Main() {
 	flag.Parse()
 	log.SetLevel(flagLog)
 
@@ -304,14 +302,6 @@ func handleRobots(w http.ResponseWriter, r *http.Request) error {
 
 func isCurlRequest(r *http.Request) bool {
 	return strings.HasPrefix(strings.ToLower(r.UserAgent()), "curl/")
-}
-
-func mustSubFS(fsys fs.FS, dir string) fs.FS {
-	sub, err := fs.Sub(fsys, dir)
-	if err != nil {
-		panic(err)
-	}
-	return sub
 }
 
 var upgrader = websocket.Upgrader{} // use default options

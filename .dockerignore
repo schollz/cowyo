@@ -3,8 +3,8 @@
 .env
 .env.*
 .DS_Store
-build/
-cowyo2
+internal/site/build/
+/cowyo2
 *.db
 *.db-shm
 *.db-wal
@@ -14,6 +14,6 @@ cowyo2
 *.sqlite3
 *.sqlite3-shm
 *.sqlite3-wal
-node_modules/
+web/node_modules/
 npm-debug.log*
 tmp/

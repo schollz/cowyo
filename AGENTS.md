@@ -17,33 +17,37 @@ pull request only when the owner explicitly asks for one.
 ## Repository overview
 
 cowyo2 is a minimalist pastebin with a Go HTTP/WebSocket server and a
-Vite-built browser client. The optimized frontend is generated into `build/`
-and embedded into the Go binary with `//go:embed`.
+Vite-built browser client. The optimized frontend is generated into
+`internal/site/build/` and embedded into the Go binary with `//go:embed`.
 
 Important paths:
 
-- `main.go`: server startup, routing, browser rendering, curl plaintext
-  responses, and WebSocket editing.
+- `cmd/cowyo2/`: production server command entrypoint.
+- `internal/cowyo/server.go`: server startup, routing, browser rendering, curl
+  plaintext responses, and WebSocket editing.
 - `Dockerfile`: multi-stage Disco image build for the Vite frontend and Go
   server.
 - `disco.json`: Disco web-service, health-check, and persistent SQLite-volume
   configuration.
 - `cmd/migrate/`: migration-only command used by `make migrate`.
-- `post.go`: curl POST handling, the 16 KiB body limit, per-client rate
-  limiting, random-page allocation, and returned URLs.
-- `page_lock.go`: scrypt page-lock verifier creation and checking.
-- `names.go`: adjective and animal lists plus the alliterative random-name
-  generator.
-- `index.html`: the Go-compatible HTML template and frontend UI structure.
-- `src/main.js`: editor synchronization, save/cow menu, password modal,
+- `internal/cowyo/post.go`: curl POST handling, the 16 KiB body limit,
+  per-client rate limiting, random-page allocation, and returned URLs.
+- `internal/cowyo/page_lock.go`: scrypt page-lock verifier creation and
+  checking.
+- `internal/cowyo/names.go`: adjective and animal lists plus the alliterative
+  random-name generator.
+- `internal/site/assets.go`: optimized frontend embedding and filesystem access.
+- `web/index.html`: the Go-compatible HTML template and frontend UI structure.
+- `web/src/main.js`: editor synchronization, save/cow menu, password modal,
   theme selection, encryption actions, and page lock/unlock interactions.
-- `src/theme.js`: system theme detection and locally cached light/dark
+- `web/src/theme.js`: system theme detection and locally cached light/dark
   overrides.
-- `src/encryption.js`: versioned client-side encrypted-block format.
-- `src/links.js`: URL detection and link-overlay rendering.
-- `src/style.css`: editor, menu, and modal styling.
-- `public/static/`: static icons, manifest, font, the vendored cowyo logo, and
+- `web/src/encryption.js`: versioned client-side encrypted-block format.
+- `web/src/links.js`: URL detection and link-overlay rendering.
+- `web/src/style.css`: editor, menu, and modal styling.
+- `web/public/static/`: static icons, manifest, font, the vendored cowyo logo, and
   its derived social-preview image copied into the Vite output.
+- `web/tests/`: Node tests for browser-side modules.
 - `internal/database/`: storage abstraction, migrations, queries, and
   sqlc-generated packages.
 
@@ -57,12 +61,14 @@ make build
 
 `make build`:
 
-1. Runs `npm install` when `node_modules/.package-lock.json` is absent or stale.
-2. Runs the optimized Vite build into `build/`.
-3. Builds the `cowyo2` Go binary with the generated frontend embedded.
+1. Runs `npm ci` in `web/` when `web/node_modules/.package-lock.json` is absent
+   or stale.
+2. Runs the optimized Vite build into `internal/site/build/`.
+3. Builds `cmd/cowyo2` as the `cowyo2` binary with the generated frontend
+   embedded.
 
-The Go embed requires `build/` to exist, so use the Make targets on a clean
-checkout instead of invoking `go build` first.
+The Go embed requires `internal/site/build/` to exist, so use the Make targets
+on a clean checkout instead of invoking `go build` first.
 
 Other commands:
 
@@ -72,17 +78,18 @@ make frontend   # build only the optimized Vite frontend
 make generate   # regenerate both sqlc query packages
 make migrate    # apply pending database migrations without starting the server
 make serve      # watch frontend/Go files, rebuild, and restart the server
-npm run dev     # Vite development server
+npm --prefix web run dev  # Vite development server
 ```
 
 `make serve` runs the pinned Air version declared in `Makefile`. Air performs a
 complete `make build` initially and whenever Go files, Vite frontend sources,
 or public website assets change, then runs or restarts cowyo2 on its default
-port (`8001`) with `-log debug`. Generated `build/`, `node_modules/`, and
-`tmp/` content is excluded from watching to prevent rebuild loops.
+port (`8001`) with `-log debug`. Generated `internal/site/build/`,
+`web/node_modules/`, and `tmp/` content is excluded from watching to prevent
+rebuild loops.
 
 The sqlc version is pinned in `Makefile`. Go and npm dependency versions are
-declared in `go.mod`, `package.json`, and `package-lock.json`.
+declared in `go.mod`, `web/package.json`, and `web/package-lock.json`.
 
 ## Runtime configuration and storage
 
@@ -167,7 +174,7 @@ When changing the schema or query behavior:
 
 Random POST creation uses an atomic database insert and retries name
 collisions. Keep browser and POST random naming on the shared generator in
-`names.go`.
+`internal/cowyo/names.go`.
 
 ## Frontend behavior and encryption
 
@@ -263,10 +270,11 @@ Page self destruct is persisted separately from content:
 
 Tests are organized as follows:
 
-- `*_test.go`: server, storage, curl, WebSocket, naming, page locking, limits,
-  and build integration tests.
+- `internal/cowyo/*_test.go`: server, curl, WebSocket, naming, page locking,
+  limits, and build integration tests.
 - `internal/database/*_test.go`: backend-neutral storage tests.
-- `tests/*.test.js`: frontend URL, encryption, theme, and save-activity tests.
+- `web/tests/*.test.js`: frontend URL, encryption, theme, and save-activity
+  tests.
 
 For normal changes, run:
 
@@ -279,7 +287,7 @@ For changes touching concurrency, storage, dependencies, security, or build
 behavior, also run:
 
 ```sh
-npm audit
+npm --prefix web audit
 go mod verify
 go vet ./...
 go test -race ./...
@@ -296,17 +304,17 @@ input, and tampering as applicable.
 Do not commit local build/runtime artifacts:
 
 - `.env` and local `.env.*` variants (except `.env.example`)
-- `build/`
+- `internal/site/build/`
 - `cowyo2`
-- `node_modules/`
+- `web/node_modules/`
 - SQLite database (`*.db`, `*.sqlite`, or `*.sqlite3`), WAL, or shared-memory
   files
 - npm debug logs
 - macOS `.DS_Store` metadata
 - `tmp/`
 
-`build/` is deliberately ignored even though it is embedded into the binary;
-the Makefile recreates it before compiling Go.
+`internal/site/build/` is deliberately ignored even though it is embedded into
+the binary; the Makefile recreates it before compiling Go.
 
 ## Disco deployment
 
