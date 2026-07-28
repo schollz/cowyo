@@ -1,0 +1,22 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "make build"
+entrypoint = ["./cowyo2", "-log", "debug"]
+include_ext = ["go", "html", "js", "css", "json", "xml", "png", "ico", "woff"]
+include_file = ["Makefile"]
+exclude_dir = [".git", "build", "node_modules", "tmp"]
+exclude_unchanged = true
+delay = 300
+stop_on_error = true
+
+[log]
+time = true
+
+[misc]
+clean_on_exit = true
+
+[screen]
+clear_on_rebuild = false
+keep_scroll = true

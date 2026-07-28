@@ -1,0 +1,496 @@
+@font-face {
+  font-family: "MonaspaceKrypton";
+  src: url("/static/MonaspaceKrypton-Regular.woff") format("woff");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+  --page-background: #f0f0f0;
+  --text-color: #333;
+  --control-color: #111;
+  --control-inverse: #f0f0f0;
+  --cow-color: #777;
+  --muted-color: #555;
+  --disabled-color: #999;
+  --field-background: #fff;
+  --error-color: #8b1a1a;
+  color: var(--text-color);
+  background: var(--page-background);
+  font-family: "MonaspaceKrypton", "Courier New", monospace;
+  font-synthesis: none;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page-background: #171717;
+  --text-color: #d8d8d8;
+  --control-color: #eee;
+  --control-inverse: #171717;
+  --cow-color: #aaa;
+  --muted-color: #b9b9b9;
+  --disabled-color: #777;
+  --field-background: #242424;
+  --error-color: #ff8f8f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --page-background: #171717;
+    --text-color: #d8d8d8;
+    --control-color: #eee;
+    --control-inverse: #171717;
+    --cow-color: #aaa;
+    --muted-color: #b9b9b9;
+    --disabled-color: #777;
+    --field-background: #242424;
+    --error-color: #ff8f8f;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--page-background);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--control-color);
+  outline-offset: 2px;
+}
+
+.editor {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+}
+
+textarea,
+#linkOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 1em;
+  overflow: auto;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: 1.2em;
+  line-height: normal;
+  tab-size: 8;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+textarea {
+  z-index: 1;
+  resize: none;
+  color: var(--text-color);
+  background: var(--page-background);
+  box-shadow: none;
+}
+
+.editor.is-locked textarea {
+  cursor: default;
+}
+
+#linkOverlay {
+  z-index: 2;
+  color: transparent;
+  background: transparent;
+  pointer-events: none;
+}
+
+#linkOverlay a {
+  color: var(--text-color);
+  background: var(--page-background);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+#linkOverlay a:hover,
+#linkOverlay a:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+.save-actions {
+  position: fixed;
+  top: 14px;
+  right: 18px;
+  z-index: 20;
+  width: 22px;
+  height: 22px;
+}
+
+.save-status {
+  position: relative;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: var(--cow-color);
+  background: transparent;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.save-status .cow-icon {
+  width: 19px;
+  height: 19px;
+  opacity: 0.55;
+  transition: opacity 160ms ease;
+}
+
+.save-status[data-state="saved"] {
+  color: var(--cow-color);
+}
+
+.save-status.is-save-active .cow-icon {
+  opacity: 1;
+}
+
+.save-actions.is-open .save-status {
+  color: var(--control-color);
+}
+
+.save-actions.is-open .save-status .cow-icon {
+  opacity: 1;
+}
+
+.save-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-50%);
+  border: 1px solid var(--control-color);
+  color: var(--control-color);
+  background: var(--page-background);
+}
+
+.save-menu[hidden] {
+  display: none;
+}
+
+.save-menu-action {
+  position: relative;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: var(--control-color);
+  background: var(--page-background);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.save-menu-action + .save-menu-action {
+  border-top: 1px solid var(--control-color);
+}
+
+.save-menu-action:hover,
+.save-menu-action:focus-visible {
+  color: var(--control-inverse);
+  background: var(--control-color);
+}
+
+.save-menu-action.is-success {
+  color: var(--control-inverse);
+  background: var(--control-color);
+}
+
+.save-menu-action.is-active {
+  color: var(--control-inverse);
+  background: var(--control-color);
+}
+
+.save-menu-action:disabled,
+.save-menu-action:disabled:hover,
+.save-menu-action:disabled:focus-visible {
+  color: var(--disabled-color);
+  background: var(--page-background);
+  cursor: not-allowed;
+}
+
+.save-menu-action svg {
+  width: 17px;
+  height: 17px;
+}
+
+.save-menu-action svg[hidden] {
+  display: none;
+}
+
+[data-tooltip]::before,
+[data-tooltip]::after {
+  position: absolute;
+  top: 50%;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(3px, -50%);
+  transition:
+    opacity 60ms ease,
+    transform 60ms ease;
+}
+
+[data-tooltip]::before {
+  right: calc(100% + 4px);
+  z-index: 31;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+  border-top: 1px solid var(--control-color);
+  border-right: 1px solid var(--control-color);
+  background: var(--page-background);
+  content: "";
+  transform: translate(3px, -50%) rotate(45deg);
+}
+
+[data-tooltip]::after {
+  right: calc(100% + 8px);
+  padding: 5px 7px;
+  border: 1px solid var(--control-color);
+  color: var(--control-color);
+  background: var(--page-background);
+  content: attr(data-tooltip);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::before,
+[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translate(0, -50%);
+  transition-delay: 100ms;
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before {
+  transform: translate(0, -50%) rotate(45deg);
+}
+
+.crypto-dialog {
+  position: fixed;
+  top: var(--crypto-dialog-viewport-center, 50%);
+  right: 0;
+  bottom: auto;
+  left: 0;
+  width: min(410px, calc(100vw - 32px));
+  max-height: var(
+    --crypto-dialog-viewport-max-height,
+    calc(100dvh - 32px)
+  );
+  margin: 0 auto;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--control-color);
+  border-radius: 0;
+  color: var(--control-color);
+  background: var(--page-background);
+  box-shadow: none;
+  transform: translateY(-50%);
+}
+
+.crypto-dialog::backdrop {
+  background: rgb(0 0 0 / 35%);
+}
+
+.crypto-dialog form {
+  display: grid;
+  margin: 0;
+}
+
+.crypto-dialog-body {
+  display: grid;
+  gap: 9px;
+  padding: 18px 15px 20px;
+}
+
+.crypto-dialog-body p {
+  margin: 0 0 7px;
+  color: var(--muted-color);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.crypto-dialog-body label {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.crypto-password-fields {
+  display: grid;
+  gap: 9px;
+}
+
+.crypto-dialog-body input {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 10px;
+  border: 1px solid var(--control-color);
+  border-radius: 0;
+  color: var(--control-color);
+  background: var(--field-background);
+}
+
+.crypto-password-control {
+  position: relative;
+}
+
+.crypto-dialog-body .crypto-password-control input {
+  padding-right: 51px;
+}
+
+.crypto-password-toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  display: grid;
+  width: 41px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-left: 1px solid var(--control-color);
+  color: var(--control-color);
+  background: var(--field-background);
+  cursor: pointer;
+}
+
+.crypto-password-toggle:hover:not(:disabled),
+.crypto-password-toggle:focus-visible:not(:disabled) {
+  color: var(--control-inverse);
+  background: var(--control-color);
+}
+
+.crypto-password-toggle svg {
+  width: 17px;
+  height: 17px;
+}
+
+.crypto-password-toggle svg[hidden] {
+  display: none;
+}
+
+.crypto-dialog-body .crypto-error {
+  margin: 2px 0 0;
+  color: var(--error-color);
+}
+
+.crypto-error:empty {
+  display: none;
+}
+
+.crypto-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--control-color);
+}
+
+.crypto-dialog-actions button {
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 0;
+  color: var(--control-color);
+  background: var(--page-background);
+  cursor: pointer;
+}
+
+.crypto-dialog-actions button + button {
+  border-left: 1px solid var(--control-color);
+}
+
+.crypto-dialog-actions button:hover:not(:disabled),
+.crypto-dialog-actions button:focus-visible:not(:disabled),
+.crypto-dialog-actions .crypto-submit {
+  color: var(--control-inverse);
+  background: var(--control-color);
+}
+
+.crypto-dialog-actions .crypto-submit:hover:not(:disabled),
+.crypto-dialog-actions .crypto-submit:focus-visible:not(:disabled) {
+  color: var(--control-color);
+  background: var(--page-background);
+}
+
+.crypto-dialog button:disabled,
+.crypto-dialog input:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.remote-update-status {
+  position: fixed;
+  top: 25px;
+  right: 51px;
+  z-index: 10;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #8ddf37;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.remote-update-status.is-visible {
+  opacity: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  textarea,
+  #linkOverlay {
+    font-size: 1em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .save-status,
+  .save-status .cow-icon,
+  .remote-update-status {
+    transition: none;
+  }
+}

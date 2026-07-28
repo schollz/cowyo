@@ -1,13 +1,44 @@
-FROM golang:1.12-alpine as builder
-RUN apk add --no-cache git make 
-RUN go get -v github.com/jteeuwen/go-bindata/go-bindata
-WORKDIR /go/cowyo
-COPY . .
-RUN make build
+FROM node:24-alpine AS frontend
 
-FROM alpine:latest 
-VOLUME /data
-EXPOSE 8050
-COPY --from=builder /go/cowyo/cowyo /cowyo
-ENTRYPOINT ["/cowyo"]
-CMD ["--data","/data","--allow-file-uploads","--max-upload-mb","10","--host","0.0.0.0"]
+WORKDIR /src
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY index.html vite.config.js ./
+COPY public ./public
+COPY src ./src
+RUN npm run build
+
+FROM golang:1.26.5-alpine AS backend
+
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+COPY --from=frontend /src/build ./build
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -trimpath \
+    -ldflags="-s -w" \
+    -o /out/cowyo2 \
+    .
+
+FROM alpine:3.23
+
+RUN apk add --no-cache ca-certificates \
+    && addgroup -S cowyo \
+    && adduser -S -G cowyo cowyo \
+    && mkdir -p /data \
+    && chown cowyo:cowyo /data
+
+COPY --from=backend /out/cowyo2 /usr/local/bin/cowyo2
+
+ENV SQLITE_PATH=/data/cowyo2.sqlite3
+
+USER cowyo
+
+EXPOSE 8001
+
+CMD ["/usr/local/bin/cowyo2"]

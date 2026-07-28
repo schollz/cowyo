@@ -1,6 +1,7 @@
+.git
+.gitignore
 .env
 .env.*
-!.env.example
 .DS_Store
 build/
 cowyo2

@@ -1,140 +1,113 @@
-
 <p align="center">
-<img
-    src="/static/img/logo.png"
-    width="260" height="80" border="0" alt="linkcrawler">
-<br>
-<a href="https://travis-ci.org/schollz/cowyo"><img
-src="https://img.shields.io/travis/schollz/cowyo.svg?style=flat-square"
-alt="Build Status"></a> <a
-href="https://github.com/schollz/cowyo/releases/latest"><img
-src="https://img.shields.io/badge/version-2.11.0-brightgreen.svg?style=flat-square"
-alt="Version"></a> </p>
+  <img
+    src="public/static/logo.jpg"
+    width="454"
+    alt="cowyo logo: a cow beside a speech bubble saying yo"
+  >
+</p>
 
-<p align="center">A feature-rich wiki for minimalists</a></p>
+<p align="center">A pastebin for minimalists</p>
 
-*cowyo* is a self-contained wiki server that makes jotting notes easy and _fast_. The most important feature here is _simplicity_. Other features include versioning, page locking, self-destructing messages, encryption, and listifying. You can [download *cowyo* as a single executable](https://github.com/schollz/cowyo/releases/latest) or install it with Go. Try it out at https://cowyo.com.
+*cowyo2* is a self-contained shared scratchpad that makes jotting notes easy
+and fast. Open a page, type, and it saves automatically. Share the URL to edit
+with other people in real time.
 
-There is now [a command-line tool, *cowyodel*](https://github.com/schollz/cowyodel) to interact with *cowyo* and transfer information between computers with only a code phrase: [schollz/cowyodel](https://github.com/schollz/cowyodel).
+It is a simpler rewrite of [the original cowyo](https://github.com/schollz/cowyo).
+Try it at [cowyo.com](https://cowyo.com).
 
-Getting Started
-===============
+## Getting started
 
-## Install
+Build and run:
 
-If you have go
-
-```
-go get -u github.com/schollz/cowyo/...
+```sh
+make build
+./cowyo2
 ```
 
-or just [download the latest release](https://github.com/schollz/cowyo/releases/latest).
+Then open [localhost:8001](http://localhost:8001). Use `-port` to choose a
+different port.
 
-## Run
+cowyo2 uses SQLite by default. To use PostgreSQL, set `DATABASE_URL` as shown
+in `.env.example`. In production, set `SITE_URL` to the site's public origin
+(for example, `https://cowyo.com`) so canonical links, social previews,
+returned paste URLs, `robots.txt`, and the sitemap always use the authoritative
+domain.
 
-To run just double click or from the command line:
+### Docker
 
-```
-cowyo
-```
-
-and it will start a server listening  on `0.0.0.0:8050`. To view it, just go to http://localhost:8050 (the server prints out the local IP for your info if you want to do LAN networking). You can change the port with `-port X`, and you can listen *only* on localhost using `-host localhost`.
-
-**Running with TLS**
-
-Specify a matching pair of SSL Certificate and Key to run cowyo using https. *cowyo* will now run in a secure session. 
-
-*N.B. Let's Encrypt is a CA that signs free and signed certificates.*
-
-```
-cowyo --cert "/path/to/server.crt" --key "/p/t/server.key"
+```sh
+docker build -t cowyo2 .
+docker run --name cowyo2 -p 8001:8001 -v cowyo2-data:/data cowyo2
 ```
 
-**Running with Docker**
+The repository also includes `disco.json` for deployment with Disco.
 
-You can easily get started with Docker. First pull the latest image and create the volume with:
-
-```
-docker run -d -v /directory/to/data:/data -p 8050:8050 schollz/cowyo
-```
-
-Then you can stop it with `docker stop cowyo` and start it again with `docker start cowyo`.
-
-## Server customization
-
-There are a couple of command-line flags that you can use to make *cowyo* your own micro-CMS. 
-
-```
-cowyo -lock 123 -default-page index.html -css mystyle.css -diary
-```
-
-The `-lock` flag will automatically lock every page with the passphrase "123". Also, the default behavior will be to redirect `/` to `/index.html`. Also, every page that is published will automatically redirect to `/mypage/read` which will show the custom CSS file if it is supplied with `-css`. The `-diary` flag allows you to generate a time-stamped page instead of a random named page when you select "New".
-
-## Usage
-
-*cowyo* is straightforward to use. Here are some of the basic features:
-
-### Publishing 
-
-If you hover the the top left button (the name of the page) you will see the option "Publish". Publishing will add the page to the `sitemap.xml` for crawlers to find. It will also default that page to go to the `/read` route so it can be easily viewed as a single page.
-
-### View all the pages
-
-To view the current list of all the pages goto to `/ls`.
+## Features
 
 ### Editing
 
-When you open a document you'll be directed to an alliterative animal (which is supposed to be easy to remember). You can write in Markdown. Saving is performed as soon as you stop writing. You can easily link pages using [[PageName]] as you edit.
-
-![Editing](http://i.imgur.com/vEs2U8z.gif)
-
-### History
-
-You can easily see previous versions of your documents.
-
-![History](http://i.imgur.com/CxhRkyo.gif)
-
-### Lists
-
-You can easily make lists and check them off.
-
-![Lists](http://i.imgur.com/7xbauy8.gif)
-
-### Locking
-
-Locking prevents other users from editing your pages without a passphrase.
-
-![Locking](http://i.imgur.com/xwUFV8b.gif)
+Pages save automatically, and people viewing the same page see edits in real
+time. Visiting `/` creates a page with a memorable alliterative name such as
+`calm-cat`.
 
 ### Encryption
 
-Encryption is performed using AES-256.
+Encryption happens entirely in the browser. The password is never sent to the
+server, and encrypted text cannot be recovered if the password is lost.
+Password fields are hidden by default and have an eye button to reveal them.
+On mobile, the password dialog stays inside the visible area as the on-screen
+keyboard opens.
 
-![Encryption](http://i.imgur.com/rWoqoLB.gif)
+### Page locking
+
+A page lock prevents editing without hiding the page's contents. Anyone with
+the URL can still read it.
+
+### Publishing
+
+Pages are unpublished by default and excluded from the sitemap. Publishing
+makes a page discoverable to search engines and gives it a unique search
+description based on its plaintext content. Unpublishing removes the content
+from search and social-preview metadata, but does not make its URL private.
 
 ### Self-destructing pages
 
-Just like in mission impossible.
+A self-destructing page is returned one final time on its next browser or curl
+GET, then deleted.
 
-![Self-destructing](http://i.imgur.com/upMxFQh.gif)
+### Other conveniences
 
+The cow menu can copy the page text and switch between light and dark themes.
+Web addresses in the text are clickable.
+
+See [About cowyo](ABOUT.md) for a more complete guide.
+
+## Using curl
+
+curl receives and sends plain text:
+
+```sh
+curl https://cowyo.com/my-notes
+curl --data-binary @notes.txt https://cowyo.com/
+curl --data-binary @notes.txt https://cowyo.com/my-notes
+```
 
 ## Development
 
-You can run the tests using
+Run the development server:
 
+```sh
+make serve
 ```
-$ cd $GOPATH/src/github.com/schollz/cowyo
-$ go test ./...
+
+Run the tests:
+
+```sh
+make test
 ```
 
-Any contributions are welcome.
-
-## Thanks
-
-...to [DanielHeath](https://github.com/DanielHeath) who has introduced some stellar improvements into cowyo including supporting category pages, hot-template reloading, preventing out-of-order updates, added password access, fade-out on deleting list items, and image upload support!
+Pull requests are welcome.
 
 ## License
 
 MIT
-

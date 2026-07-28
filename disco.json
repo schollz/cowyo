@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "services": {
+    "web": {
+      "port": 8001,
+      "health": {
+        "command": "wget -q -O /dev/null http://127.0.0.1:8001/robots.txt"
+      },
+      "volumes": [
+        {
+          "name": "cowyo2-data",
+          "destinationPath": "/data"
+        }
+      ]
+    }
+  }
+}

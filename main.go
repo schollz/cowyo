@@ -1,209 +1,621 @@
 package main
 
 import (
+	"context"
+	"embed"
+	"encoding/xml"
+	"errors"
+	"flag"
 	"fmt"
-	"net"
+	"html"
+	"io/fs"
+	"math/rand"
+	"net/http"
 	"os"
+	"regexp"
+	"strings"
+	"sync"
+	"text/template"
 	"time"
 
-	"github.com/jcelliott/lumber"
-	"github.com/schollz/cowyo/server"
-
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/schollz/cowyo2/internal/database"
+	log "github.com/schollz/logger"
 )
 
-var version string
-var pathToData string
+// flag for port
+var flagPort string
+var flagLog string
+var pageStore *database.Store
+var connections map[string]Connection
+var mu sync.Mutex
+var pageMutationMu sync.Mutex
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "cowyo"
-	app.Usage = "a simple wiki"
-	app.Version = version
-	app.Compiled = time.Now()
-	app.Action = func(c *cli.Context) error {
-		pathToData = c.GlobalString("data")
-		os.MkdirAll(pathToData, 0755)
-		host := c.GlobalString("host")
-		crt_f := c.GlobalString("cert") // crt flag
-		key_f := c.GlobalString("key")  // key flag
-		if host == "" {
-			host = GetLocalIP()
-		}
-		TLS := false
-		if crt_f != "" && key_f != "" {
-			TLS = true
-		}
-		if TLS {
-			fmt.Printf("\nRunning cowyo server (version %s) at https://%s:%s\n\n", version, host, c.GlobalString("port"))
-		} else {
-			fmt.Printf("\nRunning cowyo server (version %s) at http://%s:%s\n\n", version, host, c.GlobalString("port"))
-		}
+const googleTagEnvironment = "GOOGLE_TAG"
 
-		server.Serve(
-			pathToData,
-			c.GlobalString("host"),
-			c.GlobalString("port"),
-			c.GlobalString("cert"),
-			c.GlobalString("key"),
-			TLS,
-			c.GlobalString("css"),
-			c.GlobalString("default-page"),
-			c.GlobalString("lock"),
-			c.GlobalInt("debounce"),
-			c.GlobalBool("diary"),
-			c.GlobalString("cookie-secret"),
-			c.GlobalString("access-code"),
-			c.GlobalBool("allow-insecure-markup"),
-			c.GlobalBool("allow-file-uploads"),
-			c.GlobalUint("max-upload-mb"),
-			c.GlobalUint("max-document-length"),
-			logger(c.GlobalBool("debug")),
-		)
-		return nil
-	}
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "data",
-			Value: "data",
-			Usage: "data folder to use",
-		},
-		cli.StringFlag{
-			Name:  "olddata",
-			Value: "",
-			Usage: "data folder for migrating",
-		},
-		cli.StringFlag{
-			Name:  "host",
-			Value: "",
-			Usage: "host to use",
-		},
-		cli.StringFlag{
-			Name:  "port,p",
-			Value: "8050",
-			Usage: "port to use",
-		},
-		cli.StringFlag{
-			Name:  "cert",
-			Value: "",
-			Usage: "absolute path to SSL public sertificate",
-		},
-		cli.StringFlag{
-			Name:  "key",
-			Value: "",
-			Usage: "absolute path to SSL private key",
-		},
-		cli.StringFlag{
-			Name:  "css",
-			Value: "",
-			Usage: "use a custom CSS file",
-		},
-		cli.StringFlag{
-			Name:  "default-page",
-			Value: "",
-			Usage: "show default-page/read instead of editing (default: show random editing)",
-		},
-		cli.BoolFlag{
-			Name:  "allow-insecure-markup",
-			Usage: "Skip HTML sanitization",
-		},
-		cli.StringFlag{
-			Name:  "lock",
-			Value: "",
-			Usage: "password to lock editing all files (default: all pages unlocked)",
-		},
-		cli.IntFlag{
-			Name:  "debounce",
-			Value: 500,
-			Usage: "debounce time for saving data, in milliseconds",
-		},
-		cli.BoolFlag{
-			Name:  "debug, d",
-			Usage: "turn on debugging",
-		},
-		cli.BoolFlag{
-			Name:  "diary",
-			Usage: "turn diary mode (doing New will give a timestamped page)",
-		},
-		cli.StringFlag{
-			Name:  "access-code",
-			Value: "",
-			Usage: "Secret code to login with before accessing any wiki stuff",
-		},
-		cli.StringFlag{
-			Name:  "cookie-secret",
-			Value: "secret",
-			Usage: "random data to use for cookies; changing it will invalidate all sessions",
-		},
-		cli.BoolFlag{
-			Name:  "allow-file-uploads",
-			Usage: "Enable file uploads",
-		},
-		cli.UintFlag{
-			Name:  "max-upload-mb",
-			Value: 2,
-			Usage: "Largest file upload (in mb) allowed",
-		},
-		cli.UintFlag{
-			Name:  "max-document-length",
-			Value: 100000000,
-			Usage: "Largest wiki page (in characters) allowed",
-		},
-	}
-	app.Commands = []cli.Command{
-		{
-			Name:    "migrate",
-			Aliases: []string{"m"},
-			Usage:   "migrate from the old cowyo",
-			Action: func(c *cli.Context) error {
-				pathToData = c.GlobalString("data")
-				pathToOldData := c.GlobalString("olddata")
-				if len(pathToOldData) == 0 {
-					fmt.Printf("You need to specify folder with -olddata")
-					return nil
-				}
-				os.MkdirAll(pathToData, 0755)
-				if !exists(pathToOldData) {
-					fmt.Printf("Can not find '%s', does it exist?", pathToOldData)
-					return nil
-				}
-				server.Migrate(pathToOldData, pathToData, logger(c.GlobalBool("debug")))
-				return nil
-			},
-		},
-	}
+//go:embed build/*
+var content embed.FS
+var siteContent = mustSubFS(content, "build")
+var policy *bluemonday.Policy
 
-	app.Run(os.Args)
+type Connection struct {
+	conn  *websocket.Conn
+	place string
 }
 
-// GetLocalIP returns the local ip address
-func GetLocalIP() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
+func init() {
+	flag.StringVar(&flagPort, "port", "8001", "port to run the server on")
+	flag.StringVar(&flagLog, "log", "info", "log level")
+}
+
+func main() {
+	flag.Parse()
+	log.SetLevel(flagLog)
+
+	if err := loadEnvironment(); err != nil {
+		log.Errorf("loading .env: %s", err)
+		os.Exit(1)
 	}
-	bestIP := ""
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
+
+	connections = make(map[string]Connection)
+
+	policy = bluemonday.UGCPolicy()
+
+	var err error
+	pageStore, err = database.Open(context.Background(), database.ConfigFromEnv())
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
+	defer pageStore.Close()
+	log.Infof("using %s database", pageStore.Backend())
+
+	// start server
+	Serve()
+}
+
+func loadEnvironment(filenames ...string) error {
+	err := godotenv.Load(filenames...)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return err
+}
+
+var indexTemplate *template.Template
+
+func Serve() {
+	// load go template from index.html
+	// parse template from embed
+	indexTemplate = template.Must(template.ParseFS(siteContent, "index.html"))
+
+	log.Infof("listening on :%s", flagPort)
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(fmt.Sprintf(":%s", flagPort), nil)
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	t := time.Now().UTC()
+	// Redirect URLs with trailing slashes (except for the root "/")
+	if r.URL.Path != "/" && strings.HasSuffix(r.URL.Path, "/") {
+		http.Redirect(w, r, strings.TrimRight(r.URL.Path, "/"), http.StatusPermanentRedirect)
+		return
+	}
+	err := handle(w, r)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	log.Infof("%v %v %v %s\n", r.RemoteAddr, r.Method, r.URL.Path, time.Since(t))
+}
+
+type Page struct {
+	Title        string `json:"title"`
+	Text         string `json:"text"`
+	CursorStart  int64  `json:"cursor_start"`
+	CursorEnd    int64  `json:"cursor_end"`
+	Published    bool   `json:"published"`
+	SelfDestruct bool   `json:"self_destruct"`
+	Locked       bool   `json:"locked"`
+	Operation    string `json:"operation,omitempty"`
+	Password     string `json:"password,omitempty"`
+	Error        string `json:"error,omitempty"`
+	Current      bool   `json:"current,omitempty"`
+}
+
+type pageTemplateData struct {
+	Page
+	GoogleTag string
+	SEO       seoTemplateData
+}
+
+type sitemapURLSet struct {
+	XMLName xml.Name     `xml:"urlset"`
+	XMLNS   string       `xml:"xmlns,attr"`
+	URLs    []sitemapURL `xml:"url"`
+}
+
+type sitemapURL struct {
+	Location string `xml:"loc"`
+}
+
+func handle(w http.ResponseWriter, r *http.Request) (err error) {
+	if r.URL.Path == "/ws" {
+		return handleWebsocket(w, r)
+	} else if r.URL.Path == "/sitemap.xml" {
+		return handleSitemap(w, r)
+	} else if r.URL.Path == "/robots.txt" {
+		return handleRobots(w, r)
+	} else if strings.HasPrefix(r.URL.Path, "/static") {
+		// serve static file from embed
+		w.Header().Set("Cache-Control", "max-age=86400")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Cache-Control", "must-revalidate")
+		w.Header().Set("Cache-Control", "proxy-revalidate")
+		w.Header().Set("Pragma", "no-cache")
+		w.Header().Set("Expires", "0")
+		http.FileServer(http.FS(siteContent)).ServeHTTP(w, r)
+		return
+	} else if r.Method == http.MethodPost {
+		return handlePost(w, r)
+	} else if r.URL.Path == "/" {
+		name, err := randomDocumentName()
+		if err != nil {
+			return fmt.Errorf("generate random paste name: %w", err)
+		}
+		http.Redirect(w, r, "/"+name, http.StatusFound)
+		return nil
+	}
+	key := r.URL.Path[1:]
+	p := Page{Title: key}
+	var storedPage database.Page
+	consumeOnLoad := r.Method == http.MethodGet
+	if consumeOnLoad {
+		pageMutationMu.Lock()
+		storedPage, err = pageStore.ConsumePage(r.Context(), key)
+		pageMutationMu.Unlock()
+	} else {
+		storedPage, err = pageStore.GetPage(r.Context(), key)
+	}
+	if err != nil && !errors.Is(err, database.ErrPageNotFound) {
+		return err
+	}
+	if err == nil {
+		p = Page{
+			Title:        storedPage.Title,
+			Text:         storedPage.Text,
+			CursorStart:  storedPage.CursorStart,
+			CursorEnd:    storedPage.CursorEnd,
+			Published:    storedPage.Published,
+			SelfDestruct: storedPage.SelfDestruct,
+			Locked:       storedPage.Locked,
+		}
+		if p.SelfDestruct {
+			p.Published = false
+			if consumeOnLoad {
+				logPageEdit(key, "http-get", operationSelfDestruct, len(p.Text))
 			}
 		}
 	}
-	return bestIP
-}
-
-// exists returns whether the given file or directory exists or not
-func exists(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
-}
-
-func logger(debug bool) *lumber.ConsoleLogger {
-	if !debug {
-		return lumber.NewConsoleLogger(lumber.WARN)
+	log.Tracef("loading: %+v", p)
+	w.Header().Set("Vary", "User-Agent")
+	if p.SelfDestruct {
+		w.Header().Set("Cache-Control", "no-store")
 	}
-	return lumber.NewConsoleLogger(lumber.TRACE)
+	if p.Published {
+		w.Header().Set("X-Robots-Tag", robotsDirective(true))
+	} else {
+		w.Header().Set("X-Robots-Tag", robotsDirective(false))
+	}
+	seo, err := buildPageSEO(r, p)
+	if err != nil {
+		return fmt.Errorf("build page metadata: %w", err)
+	}
+	w.Header().Set("Content-Language", "en-US")
+	w.Header().Set(
+		"Link",
+		fmt.Sprintf("<%s>; rel=\"canonical\"", postedDocumentURL(r, p.Title)),
+	)
+	if isCurlRequest(r) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		_, err = fmt.Fprint(w, p.Text)
+		return
+	}
+	p.Text = html.EscapeString(p.Text)
+	p.Text = policy.Sanitize(p.Text)
+	return indexTemplate.Execute(w, pageTemplateData{
+		Page:      p,
+		GoogleTag: configuredGoogleTag(),
+		SEO:       seo,
+	})
+}
 
+var googleTagPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,100}$`)
+
+func configuredGoogleTag() string {
+	tag := strings.TrimSpace(os.Getenv(googleTagEnvironment))
+	if !googleTagPattern.MatchString(tag) {
+		return ""
+	}
+	return tag
+}
+
+func handleSitemap(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+
+	titles, err := pageStore.ListPublishedPageTitles(r.Context())
+	if err != nil {
+		return fmt.Errorf("list published pages: %w", err)
+	}
+
+	urls := make([]sitemapURL, 0, len(titles))
+	for _, title := range titles {
+		urls = append(urls, sitemapURL{
+			Location: postedDocumentURL(r, title),
+		})
+	}
+
+	w.Header().Set("Cache-Control", "public, max-age=300")
+	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	if r.Method == http.MethodHead {
+		return nil
+	}
+
+	if _, err := fmt.Fprint(w, xml.Header); err != nil {
+		return err
+	}
+	encoder := xml.NewEncoder(w)
+	encoder.Indent("", "  ")
+	return encoder.Encode(sitemapURLSet{
+		XMLNS: "http://www.sitemaps.org/schemas/sitemap/0.9",
+		URLs:  urls,
+	})
+}
+
+func handleRobots(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+
+	w.Header().Set("Cache-Control", "public, max-age=300")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	if r.Method == http.MethodHead {
+		return nil
+	}
+	_, err := fmt.Fprintf(
+		w,
+		"User-agent: *\nAllow: /\nSitemap: %s\n",
+		postedDocumentURL(r, "sitemap.xml"),
+	)
+	return err
+}
+
+func isCurlRequest(r *http.Request) bool {
+	return strings.HasPrefix(strings.ToLower(r.UserAgent()), "curl/")
+}
+
+func mustSubFS(fsys fs.FS, dir string) fs.FS {
+	sub, err := fs.Sub(fsys, dir)
+	if err != nil {
+		panic(err)
+	}
+	return sub
+}
+
+var upgrader = websocket.Upgrader{} // use default options
+
+func handleWebsocket(w http.ResponseWriter, r *http.Request) (err error) {
+	// get the place from the query parameter
+	query := r.URL.Query()
+	log.Tracef("query: %+v", query)
+	if _, ok := query["place"]; !ok {
+		err = fmt.Errorf("no place")
+		log.Error(err)
+		return
+	}
+	place := query["place"][0]
+
+	// use gorilla to open websocket
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+
+	// generate random string
+	// this is used to identify the websocket connection
+	// so that we can send updates to the correct websocket
+	// connection
+	idCurrent := RandStringBytesMaskImprSrc(32)
+	mu.Lock()
+	connections[idCurrent] = Connection{conn: c, place: place}
+	mu.Unlock()
+
+	defer func() {
+		mu.Lock()
+		// delete connection
+		delete(connections, idCurrent)
+		mu.Unlock()
+	}()
+
+	for {
+		var p Page
+		err := c.ReadJSON(&p)
+		if err != nil {
+			break
+		}
+		log.Tracef("updating '%s' with operation %q and %d bytes", place, p.Operation, len(p.Text))
+		saved, updateErr := applyWebsocketUpdate(r.Context(), place, p)
+		p.Password = ""
+		err = updateErr
+		if err != nil {
+			log.Warnf("rejected update to %q: %s", place, err)
+			writeWebsocketPage(c, Page{
+				Title:        "error",
+				Text:         saved.Text,
+				Published:    saved.Published,
+				SelfDestruct: saved.SelfDestruct,
+				Locked:       saved.Locked,
+				Operation:    p.Operation,
+				Error:        websocketErrorMessage(err),
+				Current:      saved.Title != "",
+			})
+		} else {
+			mu.Lock()
+			for id := range connections {
+				if id == idCurrent || connections[id].place != place {
+					continue
+				}
+				if writeErr := connections[id].conn.WriteJSON(Page{
+					Title:        "update",
+					Text:         saved.Text,
+					Published:    saved.Published,
+					SelfDestruct: saved.SelfDestruct,
+					Locked:       saved.Locked,
+					Operation:    p.Operation,
+				}); writeErr != nil {
+					log.Error(writeErr)
+				}
+			}
+			mu.Unlock()
+			writeWebsocketPage(c, Page{
+				Title:        "ok",
+				Text:         saved.Text,
+				Published:    saved.Published,
+				SelfDestruct: saved.SelfDestruct,
+				Locked:       saved.Locked,
+				Operation:    p.Operation,
+			})
+		}
+	}
+	return
+}
+
+const (
+	operationLock               = "lock"
+	operationUnlock             = "unlock"
+	operationEncrypt            = "encrypt"
+	operationDecrypt            = "decrypt"
+	operationPublish            = "publish"
+	operationUnpublish          = "unpublish"
+	operationSelfDestruct       = "self-destruct"
+	operationCancelSelfDestruct = "cancel-self-destruct"
+)
+
+var (
+	errPageLocked        = errors.New("page is locked")
+	errSelfDestructArmed = errors.New("page self destruct is armed")
+)
+
+func applyWebsocketUpdate(ctx context.Context, place string, update Page) (database.Page, error) {
+	pageMutationMu.Lock()
+	defer pageMutationMu.Unlock()
+
+	stored, err := pageStore.GetPage(ctx, place)
+	if errors.Is(err, database.ErrPageNotFound) {
+		stored = database.Page{Title: place}
+		err = nil
+	} else if err != nil {
+		return database.Page{}, fmt.Errorf("load page: %w", err)
+	}
+
+	next := database.Page{
+		Title:        place,
+		Text:         update.Text,
+		CursorStart:  update.CursorStart,
+		CursorEnd:    update.CursorEnd,
+		Published:    stored.Published,
+		SelfDestruct: stored.SelfDestruct,
+		Locked:       stored.Locked,
+		LockSalt:     stored.LockSalt,
+		LockVerifier: stored.LockVerifier,
+	}
+	switch update.Operation {
+	case "":
+		if stored.Locked {
+			return stored, errPageLocked
+		}
+	case operationLock:
+		if stored.Locked {
+			err = errPageAlreadyLocked
+		} else {
+			var credentials pageLockCredentials
+			credentials, err = createPageLock(update.Password)
+			if err == nil {
+				next.Locked = true
+				next.SelfDestruct = false
+				next.LockSalt = credentials.salt
+				next.LockVerifier = credentials.verifier
+			}
+		}
+	case operationUnlock:
+		if !stored.Locked {
+			err = errPageNotLocked
+			break
+		}
+		err = verifyPageLock(pageLockCredentials{
+			salt:     stored.LockSalt,
+			verifier: stored.LockVerifier,
+		}, update.Password)
+		if err == nil {
+			next.Text = stored.Text
+			next.Locked = false
+			next.LockSalt = ""
+			next.LockVerifier = ""
+		}
+	case operationEncrypt, operationDecrypt:
+		err = validateCryptoUpdate(
+			stored.Text,
+			update.Text,
+			update.Operation,
+			stored.Locked,
+		)
+	case operationPublish, operationUnpublish:
+		if stored.Locked {
+			err = errPageLocked
+		} else if update.Operation == operationPublish && stored.SelfDestruct {
+			err = errSelfDestructArmed
+		} else {
+			next.Text = stored.Text
+			next.CursorStart = stored.CursorStart
+			next.CursorEnd = stored.CursorEnd
+			next.Published = update.Operation == operationPublish
+		}
+	case operationSelfDestruct, operationCancelSelfDestruct:
+		if stored.Locked {
+			err = errPageLocked
+		} else {
+			next.Text = stored.Text
+			next.CursorStart = stored.CursorStart
+			next.CursorEnd = stored.CursorEnd
+			next.SelfDestruct = update.Operation == operationSelfDestruct
+			if next.SelfDestruct {
+				next.Published = false
+			}
+		}
+	default:
+		err = errors.New("unsupported page operation")
+	}
+	if err != nil {
+		return stored, err
+	}
+
+	if err := pageStore.UpsertPage(ctx, next); err != nil {
+		return database.Page{}, fmt.Errorf("save page: %w", err)
+	}
+	logPageEdit(place, "websocket", pageOperation(update.Operation), len(next.Text))
+	return next, nil
+}
+
+func validateCryptoUpdate(current, next, operation string, locked bool) error {
+	if !locked {
+		return nil
+	}
+
+	switch operation {
+	case operationEncrypt:
+		return errPageLocked
+	case operationDecrypt:
+		if !preservesTextOutsideEncryptedBlocks(current, next) {
+			return errors.New("decryption must preserve text outside complete encrypted blocks")
+		}
+	}
+	return nil
+}
+
+const encryptedBlockStart = "-----BEGIN COWYO ENCRYPTED BLOCK V1-----"
+const encryptedBlockEnd = "-----END COWYO ENCRYPTED BLOCK V1-----"
+
+var encryptedBlockPattern = regexp.MustCompile(
+	regexp.QuoteMeta(encryptedBlockStart) +
+		`\r?\n[^\r\n]+\r?\n` +
+		regexp.QuoteMeta(encryptedBlockEnd),
+)
+
+func preservesTextOutsideEncryptedBlocks(current, next string) bool {
+	ranges := encryptedBlockPattern.FindAllStringIndex(current, -1)
+	if len(ranges) == 0 {
+		return false
+	}
+
+	prefix := current[:ranges[0][0]]
+	suffix := current[ranges[len(ranges)-1][1]:]
+	if !strings.HasPrefix(next, prefix) || !strings.HasSuffix(next, suffix) {
+		return false
+	}
+
+	searchEnd := len(next) - len(suffix)
+	position := len(prefix)
+	for index := 0; index < len(ranges)-1; index++ {
+		unchanged := current[ranges[index][1]:ranges[index+1][0]]
+		found := strings.Index(next[position:searchEnd], unchanged)
+		if found < 0 {
+			return false
+		}
+		position += found + len(unchanged)
+	}
+	return true
+}
+
+func websocketErrorMessage(err error) string {
+	switch {
+	case errors.Is(err, errPageLocked):
+		return "This page is locked."
+	case errors.Is(err, errPageAlreadyLocked):
+		return "This page is already locked."
+	case errors.Is(err, errPageNotLocked):
+		return "This page is not locked."
+	case errors.Is(err, errWrongLockPassword):
+		return "Wrong password for this page lock."
+	case errors.Is(err, errSelfDestructArmed):
+		return "Cancel self destruct before publishing."
+	default:
+		return err.Error()
+	}
+}
+
+func writeWebsocketPage(conn *websocket.Conn, page Page) {
+	mu.Lock()
+	defer mu.Unlock()
+	if err := conn.WriteJSON(page); err != nil {
+		log.Error(err)
+	}
+}
+
+var src = rand.NewSource(time.Now().UnixNano())
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+func RandStringBytesMaskImprSrc(n int) string {
+	b := make([]byte, n)
+	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = src.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+
+	return string(b)
 }

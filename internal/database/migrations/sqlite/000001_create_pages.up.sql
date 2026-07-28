@@ -1,0 +1,7 @@
+CREATE TABLE pages (
+    title TEXT PRIMARY KEY,
+    text TEXT NOT NULL DEFAULT '',
+    cursor_start INTEGER NOT NULL DEFAULT 0,
+    cursor_end INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

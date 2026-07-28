@@ -1,0 +1,24 @@
+version: "2"
+sql:
+  - name: "postgresql"
+    engine: "postgresql"
+    schema: "internal/database/migrations/postgresql"
+    queries: "internal/database/queries/postgresql"
+    gen:
+      go:
+        package: "postgresdb"
+        out: "internal/database/postgresdb"
+        sql_package: "database/sql"
+        emit_interface: true
+        omit_unused_structs: true
+  - name: "sqlite"
+    engine: "sqlite"
+    schema: "internal/database/migrations/sqlite"
+    queries: "internal/database/queries/sqlite"
+    gen:
+      go:
+        package: "sqlitedb"
+        out: "internal/database/sqlitedb"
+        sql_package: "database/sql"
+        emit_interface: true
+        omit_unused_structs: true
