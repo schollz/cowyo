@@ -23,11 +23,10 @@
   </a>
 </p>
 
-*cowyo2* is a self-contained shared scratchpad that makes jotting notes easy
+*cowyo* is a self-contained shared scratchpad that makes jotting notes easy
 and fast. Open a page, type, and it saves automatically. Share the URL to edit
 with other people in real time.
 
-It is a simpler rewrite of [the original cowyo](https://github.com/schollz/cowyo).
 Try it at [cowyo.com](https://cowyo.com).
 
 ## Getting started
@@ -42,7 +41,7 @@ make build
 Then open [localhost:8001](http://localhost:8001). Use `-port` to choose a
 different port.
 
-cowyo2 uses SQLite by default. To use PostgreSQL, set `DATABASE_URL` as shown
+cowyo uses SQLite by default. To use PostgreSQL, set `DATABASE_URL` as shown
 in `.env.example`. In production, set `SITE_URL` to the site's public origin
 (for example, `https://cowyo.com`) so canonical links, social previews,
 returned paste URLs, `robots.txt`, and the sitemap always use the authoritative
@@ -51,8 +50,8 @@ domain.
 ### Docker
 
 ```sh
-docker build -t cowyo2 .
-docker run --name cowyo2 -p 8001:8001 -v cowyo2-data:/data cowyo2
+docker build -t cowyo .
+docker run --name cowyo -p 8001:8001 -v cowyo-data:/data cowyo
 ```
 
 The repository also includes `disco.json` for deployment with Disco.
