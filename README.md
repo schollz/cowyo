@@ -1,9 +1,9 @@
 <p align="center">
-  <img
+  <a href="https://cowyo.com"><img
     src="web/public/static/logo.jpg"
     width="454"
     alt="cowyo logo: a cow beside a speech bubble saying yo"
-  >
+  ></a>
 </p>
 
 <p align="center">A pastebin for minimalists</p>
