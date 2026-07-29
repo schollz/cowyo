@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"html"
-	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
@@ -16,7 +15,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/schollz/cowyo2/internal/database"
@@ -28,19 +26,14 @@ import (
 var flagPort string
 var flagLog string
 var pageStore *database.Store
-var connections map[string]Connection
-var mu sync.Mutex
+var connections map[string]*Connection
+var connectionsMu sync.Mutex
 var pageMutationMu sync.Mutex
 
 const googleTagEnvironment = "GOOGLE_TAG"
 
 var siteContent = site.Content()
 var policy *bluemonday.Policy
-
-type Connection struct {
-	conn  *websocket.Conn
-	place string
-}
 
 func init() {
 	flag.StringVar(&flagPort, "port", "8001", "port to run the server on")
@@ -57,7 +50,7 @@ func Main() {
 		os.Exit(1)
 	}
 
-	connections = make(map[string]Connection)
+	connections = make(map[string]*Connection)
 
 	policy = bluemonday.UGCPolicy()
 
@@ -117,10 +110,6 @@ type Page struct {
 	Published    bool   `json:"published"`
 	SelfDestruct bool   `json:"self_destruct"`
 	Locked       bool   `json:"locked"`
-	Operation    string `json:"operation,omitempty"`
-	Password     string `json:"password,omitempty"`
-	Error        string `json:"error,omitempty"`
-	Current      bool   `json:"current,omitempty"`
 }
 
 type pageTemplateData struct {
@@ -370,111 +359,24 @@ func isCurlRequest(r *http.Request) bool {
 	return strings.HasPrefix(strings.ToLower(r.UserAgent()), "curl/")
 }
 
-var upgrader = websocket.Upgrader{} // use default options
-
-func handleWebsocket(w http.ResponseWriter, r *http.Request) (err error) {
-	// get the place from the query parameter
-	query := r.URL.Query()
-	log.Tracef("query: %+v", query)
-	if _, ok := query["place"]; !ok {
-		err = fmt.Errorf("no place")
-		log.Error(err)
-		return
-	}
-	place := query["place"][0]
-
-	// use gorilla to open websocket
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		return
-	}
-
-	// generate random string
-	// this is used to identify the websocket connection
-	// so that we can send updates to the correct websocket
-	// connection
-	idCurrent := RandStringBytesMaskImprSrc(32)
-	mu.Lock()
-	connections[idCurrent] = Connection{conn: c, place: place}
-	mu.Unlock()
-
-	defer func() {
-		mu.Lock()
-		// delete connection
-		delete(connections, idCurrent)
-		mu.Unlock()
-	}()
-
-	for {
-		var p Page
-		err := c.ReadJSON(&p)
-		if err != nil {
-			break
-		}
-		log.Tracef("updating '%s' with operation %q and %d bytes", place, p.Operation, len(p.Text))
-		saved, updateErr := applyWebsocketUpdate(r.Context(), place, p)
-		p.Password = ""
-		err = updateErr
-		if err != nil {
-			log.Warnf("rejected update to %q: %s", place, err)
-			writeWebsocketPage(c, Page{
-				Title:        "error",
-				Text:         saved.Text,
-				Published:    saved.Published,
-				SelfDestruct: saved.SelfDestruct,
-				Locked:       saved.Locked,
-				Operation:    p.Operation,
-				Error:        websocketErrorMessage(err),
-				Current:      saved.Title != "",
-			})
-		} else {
-			mu.Lock()
-			for id := range connections {
-				if id == idCurrent || connections[id].place != place {
-					continue
-				}
-				if writeErr := connections[id].conn.WriteJSON(Page{
-					Title:        "update",
-					Text:         saved.Text,
-					Published:    saved.Published,
-					SelfDestruct: saved.SelfDestruct,
-					Locked:       saved.Locked,
-					Operation:    p.Operation,
-				}); writeErr != nil {
-					log.Error(writeErr)
-				}
-			}
-			mu.Unlock()
-			writeWebsocketPage(c, Page{
-				Title:        "ok",
-				Text:         saved.Text,
-				Published:    saved.Published,
-				SelfDestruct: saved.SelfDestruct,
-				Locked:       saved.Locked,
-				Operation:    p.Operation,
-			})
-		}
-	}
-	return
-}
-
-const (
-	operationLock               = "lock"
-	operationUnlock             = "unlock"
-	operationEncrypt            = "encrypt"
-	operationDecrypt            = "decrypt"
-	operationPublish            = "publish"
-	operationUnpublish          = "unpublish"
-	operationSelfDestruct       = "self-destruct"
-	operationCancelSelfDestruct = "cancel-self-destruct"
-)
-
 var (
 	errPageLocked        = errors.New("page is locked")
 	errSelfDestructArmed = errors.New("page self destruct is armed")
 )
 
-func applyWebsocketUpdate(ctx context.Context, place string, update Page) (database.Page, error) {
+type pageUpdate struct {
+	Text        string
+	CursorStart int64
+	CursorEnd   int64
+	Operation   string
+	Password    string
+}
+
+func applyWebsocketUpdate(
+	ctx context.Context,
+	place string,
+	update pageUpdate,
+) (database.Page, error) {
 	pageMutationMu.Lock()
 	defer pageMutationMu.Unlock()
 
@@ -639,39 +541,4 @@ func websocketErrorMessage(err error) string {
 	default:
 		return err.Error()
 	}
-}
-
-func writeWebsocketPage(conn *websocket.Conn, page Page) {
-	mu.Lock()
-	defer mu.Unlock()
-	if err := conn.WriteJSON(page); err != nil {
-		log.Error(err)
-	}
-}
-
-var src = rand.NewSource(time.Now().UnixNano())
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const (
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
-)
-
-func RandStringBytesMaskImprSrc(n int) string {
-	b := make([]byte, n)
-	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
-	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
-	}
-
-	return string(b)
 }

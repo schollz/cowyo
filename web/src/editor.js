@@ -40,9 +40,21 @@ import {
   positionDialogInVisualViewport,
   resetDialogVisualViewportPosition,
 } from "./dialog-viewport.js";
+import {
+  createCursorBroadcastGuard,
+  createRemoteCursorOverlay,
+  cursorPositionChanged,
+} from "./remote-cursors.js";
+import {
+  cursorMessage,
+  editMessage,
+  operationMessage,
+  websocketMessageType,
+} from "./websocket-protocol.js";
 const textarea = document.querySelector("textarea");
 const editor = document.querySelector(".editor");
 const linkOverlay = document.getElementById("linkOverlay");
+const cursorOverlay = document.getElementById("cursorOverlay");
 const saveActions = document.getElementById("saveActions");
 const saveStatus = document.getElementById("saveStatus");
 const saveMenu = document.getElementById("saveMenu");
@@ -148,6 +160,12 @@ let pageLocked = textarea.dataset.pageLocked === "true";
 let pagePublished = textarea.dataset.pagePublished === "true";
 let pageSelfDestruct = textarea.dataset.pageSelfDestruct === "true";
 let selectedTheme = readStoredTheme(window.localStorage);
+let lastAnnouncedCursor;
+const cursorBroadcastGuard = createCursorBroadcastGuard(window);
+const remoteCursorOverlay = createRemoteCursorOverlay(
+  textarea,
+  cursorOverlay,
+);
 
 function updateThemeAction(theme) {
   const isDark = theme === "dark";
@@ -205,14 +223,16 @@ function debounce(callback, wait) {
   return debounced;
 }
 
-function setCursorPosition(input, start, end = start) {
+function setCursorPosition(input, start, end = start, afterSet) {
   if (!("selectionStart" in input)) {
+    afterSet?.();
     return;
   }
 
   window.setTimeout(() => {
     input.selectionStart = Math.min(start, input.value.length);
     input.selectionEnd = Math.min(end, input.value.length);
+    afterSet?.();
   }, 1);
 }
 
@@ -225,6 +245,10 @@ function getCursorPosition(input) {
   }
 
   return { start: 0, end: 0 };
+}
+
+function setRemoteCursor(clientId, position) {
+  remoteCursorOverlay.update(clientId, position);
 }
 
 function setSaveState(state) {
@@ -329,14 +353,24 @@ function replacePageText(
   restoreCursor = true,
 ) {
   const cursor = getCursorPosition(textarea);
+  cursorBroadcastGuard.pause();
+  remoteCursorOverlay.beginTextChange();
   textarea.value = text;
+  remoteCursorOverlay.finishTextChange();
   pageLocked = locked;
   pagePublished = published;
   pageSelfDestruct = selfDestruct;
   renderLinks(textarea, linkOverlay);
   updatePageState();
   if (restoreCursor) {
-    setCursorPosition(textarea, cursor.start, cursor.end);
+    setCursorPosition(
+      textarea,
+      cursor.start,
+      cursor.end,
+      () => cursorBroadcastGuard.resumeAfterCurrentTask(),
+    );
+  } else {
+    cursorBroadcastGuard.resumeAfterCurrentTask();
   }
 }
 
@@ -511,14 +545,9 @@ function sendPageOperation(operation, text, password = "") {
   pendingUpdate = undefined;
   const cursor = getCursorPosition(textarea);
   socket.send(
-    JSON.stringify({
-      operation,
-      password,
-      text,
-      cursor_start: cursor.start,
-      cursor_end: cursor.end,
-    }),
+    JSON.stringify(operationMessage(operation, text, password, cursor)),
   );
+  lastAnnouncedCursor = cursor;
   pendingPageOperation = operation;
 }
 
@@ -601,6 +630,10 @@ function flushPendingUpdate() {
   }
 
   socket.send(JSON.stringify(pendingUpdate));
+  lastAnnouncedCursor = {
+    start: pendingUpdate.cursor_start,
+    end: pendingUpdate.cursor_end,
+  };
   pendingUpdate = undefined;
   outstandingSaves++;
 }
@@ -611,16 +644,31 @@ function queueUpdate() {
   }
 
   const cursor = getCursorPosition(textarea);
-  pendingUpdate = {
-    text: textarea.value,
-    cursor_start: cursor.start,
-    cursor_end: cursor.end,
-  };
+  pendingUpdate = editMessage(textarea.value, cursor);
   setSaveState("saving");
   flushPendingUpdate();
 }
 
 const queueUpdateDebounced = debounce(queueUpdate, 100);
+
+function sendCursorUpdate() {
+  if (
+    !cursorBroadcastGuard.canBroadcast() ||
+    !socket ||
+    socket.readyState !== WebSocket.OPEN
+  ) {
+    return;
+  }
+
+  const cursor = getCursorPosition(textarea);
+  if (!cursorPositionChanged(lastAnnouncedCursor, cursor)) {
+    return;
+  }
+  socket.send(JSON.stringify(cursorMessage(cursor)));
+  lastAnnouncedCursor = cursor;
+}
+
+const queueCursorUpdateDebounced = debounce(sendCursorUpdate, 50);
 
 function finishPageOperation(data) {
   if (data.operation !== pendingPageOperation) {
@@ -668,7 +716,17 @@ function finishPageOperation(data) {
 function handleSocketMessage(event) {
   const data = JSON.parse(event.data);
 
-  if (data.title === "ok") {
+  if (data.type === websocketMessageType.cursor) {
+    setRemoteCursor(data.client_id, data.cursor_end);
+    return;
+  }
+
+  if (data.type === websocketMessageType.cursorLeave) {
+    remoteCursorOverlay.remove(data.client_id);
+    return;
+  }
+
+  if (data.type === websocketMessageType.ack) {
     if (data.operation) {
       finishPageOperation(data);
       return;
@@ -681,7 +739,7 @@ function handleSocketMessage(event) {
     return;
   }
 
-  if (data.title === "error") {
+  if (data.type === websocketMessageType.error) {
     if (data.current) {
       replacePageText(
         data.text,
@@ -711,13 +769,14 @@ function handleSocketMessage(event) {
     return;
   }
 
-  if (data.title === "update") {
+  if (data.type === websocketMessageType.update) {
     replacePageText(
       data.text,
       data.locked,
       data.published,
       data.self_destruct,
     );
+    setRemoteCursor(data.client_id, data.cursor_end);
     flashRemoteUpdate();
   }
 }
@@ -729,11 +788,16 @@ function connectSocket() {
     `${protocol}//${window.location.host}/ws?place=${encodeURIComponent(place)}`,
   );
 
-  socket.addEventListener("open", flushPendingUpdate);
+  socket.addEventListener("open", () => {
+    flushPendingUpdate();
+    sendCursorUpdate();
+  });
   socket.addEventListener("message", handleSocketMessage);
   socket.addEventListener("error", () => socket.close());
   socket.addEventListener("close", () => {
     socket = undefined;
+    lastAnnouncedCursor = undefined;
+    remoteCursorOverlay.clear();
 
     if (pendingPageOperation) {
       pendingPageOperation = undefined;
@@ -771,10 +835,17 @@ textarea.addEventListener("keydown", (event) => {
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
 });
 
+textarea.addEventListener("beforeinput", () => {
+  if (!textarea.readOnly) {
+    remoteCursorOverlay.beginTextChange();
+  }
+});
+
 textarea.addEventListener("input", () => {
   if (textarea.readOnly) {
     return;
   }
+  remoteCursorOverlay.finishTextChange();
   markSaveActivity();
   renderLinks(textarea, linkOverlay);
   updatePageState();
@@ -784,6 +855,18 @@ textarea.addEventListener("input", () => {
 textarea.addEventListener("scroll", () => {
   linkOverlay.scrollTop = textarea.scrollTop;
   linkOverlay.scrollLeft = textarea.scrollLeft;
+  remoteCursorOverlay.syncScroll();
+});
+
+textarea.addEventListener("focus", sendCursorUpdate);
+
+document.addEventListener("selectionchange", () => {
+  if (
+    document.activeElement === textarea &&
+    cursorBroadcastGuard.canBroadcast()
+  ) {
+    queueCursorUpdateDebounced();
+  }
 });
 
 saveStatus.addEventListener("click", () => {

@@ -52,8 +52,9 @@ domain.
 ### Editing
 
 Pages save automatically, and people viewing the same page see edits in real
-time. Visiting `/` creates a page with a memorable alliterative name such as
-`calm-cat`.
+time. Each other editor's caret appears as a dim gray line and disappears when
+they leave. Visiting `/` creates a page with a memorable alliterative name such
+as `calm-cat`.
 
 ### Encryption
 
