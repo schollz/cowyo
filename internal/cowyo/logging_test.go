@@ -32,7 +32,7 @@ func TestPageEditLoggingIsDebugLevelAndIdentifiesMutation(t *testing.T) {
 
 	setUpHandlerTest(t, Page{Title: "debug-page", Text: "before"})
 	log.SetLevel("debug")
-	if _, err := applyWebsocketUpdate(context.Background(), "debug-page", Page{
+	if _, err := applyWebsocketUpdate(context.Background(), "debug-page", pageUpdate{
 		Text: "after",
 	}); err != nil {
 		t.Fatalf("apply WebSocket update: %v", err)

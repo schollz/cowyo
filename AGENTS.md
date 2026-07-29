@@ -24,7 +24,9 @@ Important paths:
 
 - `cmd/cowyo/`: production server command entrypoint.
 - `internal/cowyo/server.go`: server startup, routing, browser rendering, curl
-  plaintext responses, and WebSocket editing.
+  plaintext responses, and persisted page mutations.
+- `internal/cowyo/websocket.go`: typed WebSocket protocol, connection hub,
+  bounded per-client writer queues, and ephemeral cursor presence.
 - `Dockerfile`: multi-stage Disco image build for the Vite frontend and Go
   server.
 - `disco.json`: Disco web-service, health-check, and persistent SQLite-volume
@@ -53,6 +55,10 @@ Important paths:
   overrides.
 - `web/src/encryption.js`: versioned client-side encrypted-block format.
 - `web/src/links.js`: URL detection and link-overlay rendering.
+- `web/src/remote-cursors.js`: independent per-collaborator cursor snapshots,
+  cursor clamping, broadcast guarding, and scroll synchronization.
+- `web/src/websocket-protocol.js`: browser constructors and names for the typed
+  WebSocket messages shared with the server.
 - `web/src/style.css`: editor, menu, and modal styling.
 - `web/public/static/`: static icons, manifest, font, the vendored cowyo logo, and
   its derived social-preview image copied into the Vite output.
@@ -176,8 +182,16 @@ When changing the schema or query behavior:
 - POSTs with a configured, matching `X-Cowyo-Admin-Key` bypass the rate limit,
   body limit, and locked-page write restriction. Admin replacements preserve
   the page's publication, self-destruct, and page-lock metadata.
-- `/ws?place=name` carries browser edits and broadcasts updates to other
-  editors on the same document.
+- `/ws?place=name` carries typed edit, operation, and cursor messages and
+  broadcasts typed updates to other editors on the same document.
+- Cursor-only WebSocket presence is ephemeral: it is broadcast only to other
+  editors on the same page, sent to newly connected collaborators, removed on
+  disconnect, and never saved as a page mutation. Applying a remote text update
+  does not echo an unchanged local cursor as fresh presence.
+- Each WebSocket has a bounded outgoing queue and a single writer with a write
+  deadline, so a slow collaborator cannot block the shared connection mutex or
+  other editors. Incoming frames have a 64 KiB read limit, cursor ranges are
+  validated, and cursor-only updates are rate limited per connection.
 - WebSocket page mutations are serialized with named POST lock checks so a
   write cannot race a page-lock change within one server process.
 - In debug mode, every successful POST, WebSocket mutation, or self-destruct
@@ -203,12 +217,22 @@ workflow, the distinct unpublished, locked, encrypted, and self-destruct
 states, curl usage, and the open-source project. Both pages follow the same
 system or locally selected
 light/dark theme as the editor.
+The landing page's protection feature and the About page's four privacy-control
+cards repeat the matching editor-menu icons so unpublished, locked, encrypted,
+and self-destruct states are easy to connect to their controls.
 
 The editor autosaves through the WebSocket. The cow action icon is labeled
 `yo`, remains visible at reduced opacity, becomes fully dark on editor input,
 stays dark as typing continues, and returns to its resting appearance one
 second after the latest input. This visual timer is independent of the 100 ms
-save debounce. The menu stays open until the user clicks away. It lists the
+save debounce. Other connected editors' carets are rendered as dim gray lines
+at their last announced text offsets, move only when that editor sends a cursor
+or edit update, and are removed when those editors disconnect. Each
+collaborator has an independent immutable text snapshot, so updating one cursor
+does not rerender or reposition the others. State-based scroll synchronization
+keeps text-entry auto-scrolling, including Enter, from shifting idle remote
+cursors while deliberate scrolling continues to move them with the document.
+The menu stays open until the user clicks away. It lists the
 current-page actions in this order: copy-text, encrypt/decrypt,
 publish/unpublish, page lock/unlock, and self-destruct, followed directly by
 the device-wide theme action and About link to `/about`. Opening the menu

@@ -2,6 +2,7 @@ package cowyo
 
 import (
 	"context"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"io/fs"
@@ -82,6 +83,7 @@ func TestBuiltFrontendIncludesCowActions(t *testing.T) {
 		"password dialog":       `id="cryptoDialog"`,
 		"password dialog label": `aria-labelledby="cryptoSubmit"`,
 		"password mount":        `id="cryptoPasswordField"`,
+		"remote cursor overlay": `id="cursorOverlay"`,
 	} {
 		if !strings.Contains(builtIndex, marker) {
 			t.Errorf("built index does not contain %s", description)
@@ -181,6 +183,11 @@ func TestBrowserRootRendersLandingPage(t *testing.T) {
 		"indexing directive":   `content="` + robotsDirective(true) + `"`,
 		"sponsorship link":     `https://github.com/sponsors/schollz`,
 		"other-tools menu":     `<summary>other tools</summary>`,
+		"protection icon row":  `class="landing-control-icons"`,
+		"publish menu icon":    `data-lucide="globe-2"`,
+		"page-lock menu icon":  `data-lucide="lock-keyhole"`,
+		"encryption menu icon": `data-lucide="shield-keyhole"`,
+		"self-destruct icon":   `data-lucide="bomb"`,
 		"croc tool":            `https://getcroc.com`,
 		"wthrtxt tool":         `https://wthrtxt.com`,
 		"yesnotice tool":       `https://yesnotice.com`,
@@ -233,6 +240,10 @@ func TestBrowserAboutRendersDedicatedPage(t *testing.T) {
 		"page-lock detail":     `Locked`,
 		"encryption detail":    `Encrypted`,
 		"self-destruct detail": `Self-destruct`,
+		"publish menu icon":    `data-lucide="globe-2"`,
+		"page-lock menu icon":  `data-lucide="lock-keyhole"`,
+		"encryption menu icon": `data-lucide="shield-keyhole"`,
+		"self-destruct icon":   `data-lucide="bomb"`,
 		"curl example":         `curl https://cowyo.com/my-notes`,
 		"sponsorship link":     `https://github.com/sponsors/schollz`,
 		"canonical metadata":   `rel="canonical" href="https://cowyo.example/about"`,
@@ -657,16 +668,7 @@ func TestBrowserGetsLockStateWithoutLockMetadataInPaste(t *testing.T) {
 
 func TestWebsocketPersistsPaste(t *testing.T) {
 	setUpHandlerTest(t, Page{Title: "socket"})
-
-	mu.Lock()
-	previousConnections := connections
-	connections = make(map[string]Connection)
-	mu.Unlock()
-	t.Cleanup(func() {
-		mu.Lock()
-		connections = previousConnections
-		mu.Unlock()
-	})
+	isolateWebsocketConnections(t)
 
 	handlerDone := make(chan struct{})
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -699,16 +701,25 @@ func TestWebsocketPersistsPaste(t *testing.T) {
 		CursorStart: 5,
 		CursorEnd:   9,
 	}
-	if err := conn.WriteJSON(want); err != nil {
+	if err := conn.WriteJSON(websocketMessage{
+		Type:        websocketMessageEdit,
+		Text:        want.Text,
+		CursorStart: want.CursorStart,
+		CursorEnd:   want.CursorEnd,
+	}); err != nil {
 		t.Fatalf("write websocket update: %v", err)
 	}
 
-	var acknowledgement Page
+	var acknowledgement websocketMessage
 	if err := conn.ReadJSON(&acknowledgement); err != nil {
 		t.Fatalf("read websocket acknowledgement: %v", err)
 	}
-	if acknowledgement.Title != "ok" {
-		t.Fatalf("acknowledgement title = %q, want %q", acknowledgement.Title, "ok")
+	if acknowledgement.Type != websocketMessageAck {
+		t.Fatalf(
+			"acknowledgement type = %q, want %q",
+			acknowledgement.Type,
+			websocketMessageAck,
+		)
 	}
 
 	got, err := pageStore.GetPage(context.Background(), want.Title)
@@ -725,10 +736,228 @@ func TestWebsocketPersistsPaste(t *testing.T) {
 	}
 }
 
+func TestWebsocketBroadcastsEphemeralCursorPresence(t *testing.T) {
+	setUpHandlerTest(t, Page{
+		Title:       "presence",
+		Text:        "shared note",
+		CursorStart: 1,
+		CursorEnd:   1,
+	})
+	isolateWebsocketConnections(t)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := handle(w, r); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	socketURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws?place=presence"
+	first, _, err := websocket.DefaultDialer.Dial(socketURL, nil)
+	if err != nil {
+		t.Fatalf("dial first websocket: %v", err)
+	}
+	t.Cleanup(func() {
+		first.Close()
+	})
+
+	second, _, err := websocket.DefaultDialer.Dial(socketURL, nil)
+	if err != nil {
+		t.Fatalf("dial second websocket: %v", err)
+	}
+	t.Cleanup(func() {
+		second.Close()
+	})
+	if err := second.SetReadDeadline(time.Now().Add(time.Second)); err != nil {
+		t.Fatalf("set second websocket deadline: %v", err)
+	}
+
+	cursor := websocketMessage{
+		Type:        websocketMessageCursor,
+		CursorStart: 0,
+		CursorEnd:   0,
+	}
+	if err := first.WriteJSON(cursor); err != nil {
+		t.Fatalf("write cursor presence: %v", err)
+	}
+
+	var broadcast websocketMessage
+	if err := second.ReadJSON(&broadcast); err != nil {
+		t.Fatalf("read cursor presence: %v", err)
+	}
+	if broadcast.Type != websocketMessageCursor {
+		t.Fatalf(
+			"cursor message type = %q, want %q",
+			broadcast.Type,
+			websocketMessageCursor,
+		)
+	}
+	if broadcast.ClientID == "" {
+		t.Fatal("cursor message does not identify its editor")
+	}
+	if broadcast.CursorStart != cursor.CursorStart || broadcast.CursorEnd != cursor.CursorEnd {
+		t.Errorf(
+			"cursor message range = %d:%d, want %d:%d",
+			broadcast.CursorStart,
+			broadcast.CursorEnd,
+			cursor.CursorStart,
+			cursor.CursorEnd,
+		)
+	}
+
+	stored, err := pageStore.GetPage(context.Background(), "presence")
+	if err != nil {
+		t.Fatalf("load page after cursor presence: %v", err)
+	}
+	if stored.Text != "shared note" || stored.CursorStart != 1 || stored.CursorEnd != 1 {
+		t.Errorf("cursor-only presence changed stored page: %+v", stored)
+	}
+
+	third, _, err := websocket.DefaultDialer.Dial(socketURL, nil)
+	if err != nil {
+		t.Fatalf("dial third websocket: %v", err)
+	}
+	t.Cleanup(func() {
+		third.Close()
+	})
+	if err := third.SetReadDeadline(time.Now().Add(time.Second)); err != nil {
+		t.Fatalf("set third websocket deadline: %v", err)
+	}
+
+	var snapshot websocketMessage
+	if err := third.ReadJSON(&snapshot); err != nil {
+		t.Fatalf("read cursor snapshot: %v", err)
+	}
+	if snapshot.Type != websocketMessageCursor ||
+		snapshot.ClientID != broadcast.ClientID ||
+		snapshot.CursorStart != cursor.CursorStart ||
+		snapshot.CursorEnd != cursor.CursorEnd {
+		t.Errorf("cursor snapshot = %+v, want current presence %+v", snapshot, broadcast)
+	}
+
+	if err := first.Close(); err != nil {
+		t.Fatalf("close first websocket: %v", err)
+	}
+	if err := second.SetReadDeadline(time.Now().Add(time.Second)); err != nil {
+		t.Fatalf("reset second websocket deadline: %v", err)
+	}
+
+	var departure websocketMessage
+	if err := second.ReadJSON(&departure); err != nil {
+		t.Fatalf("read cursor departure: %v", err)
+	}
+	if departure.Type != websocketMessageCursorLeave ||
+		departure.ClientID != broadcast.ClientID {
+		t.Errorf("cursor departure = %+v, want client %q to leave", departure, broadcast.ClientID)
+	}
+}
+
+func TestWebsocketCursorPresenceStaysOnItsPage(t *testing.T) {
+	isolateWebsocketConnections(t)
+
+	newConnection := func(id, place string) *Connection {
+		return &Connection{
+			id:    id,
+			place: place,
+			send:  make(chan websocketMessage, websocketSendQueueSize),
+			done:  make(chan struct{}),
+		}
+	}
+	current := newConnection("current", "shared-page")
+	collaborator := newConnection("collaborator", "shared-page")
+	otherPage := newConnection("other", "different-page")
+	registerConnection(current)
+	registerConnection(collaborator)
+	registerConnection(otherPage)
+
+	updateConnectionCursor(current, 4, 4)
+
+	select {
+	case message := <-collaborator.send:
+		if message.Type != websocketMessageCursor ||
+			message.ClientID != current.id ||
+			message.CursorStart != 4 ||
+			message.CursorEnd != 4 {
+			t.Errorf("same-page cursor message = %+v", message)
+		}
+	default:
+		t.Fatal("same-page collaborator did not receive cursor presence")
+	}
+
+	select {
+	case message := <-otherPage.send:
+		t.Fatalf("different page received cursor message %+v", message)
+	default:
+	}
+}
+
+func TestWebsocketConnectionQueueIsBounded(t *testing.T) {
+	connection := &Connection{
+		send: make(chan websocketMessage, 1),
+		done: make(chan struct{}),
+	}
+	if !connection.enqueue(websocketMessage{Type: websocketMessageCursor}) {
+		t.Fatal("first queued message was rejected")
+	}
+	if connection.enqueue(websocketMessage{Type: websocketMessageCursor}) {
+		t.Fatal("message was accepted after the queue reached capacity")
+	}
+}
+
+func TestWebsocketValidatesCursorRanges(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		start int64
+		end   int64
+		want  bool
+	}{
+		{name: "caret", start: 3, end: 3, want: true},
+		{name: "selection", start: 3, end: 8, want: true},
+		{name: "negative start", start: -1, end: 0},
+		{name: "reversed", start: 5, end: 4},
+		{
+			name:  "over message limit",
+			start: 0,
+			end:   maxWebsocketMessageSize + 1,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := validCursorRange(test.start, test.end); got != test.want {
+				t.Errorf(
+					"validCursorRange(%d, %d) = %t, want %t",
+					test.start,
+					test.end,
+					got,
+					test.want,
+				)
+			}
+		})
+	}
+}
+
+func TestWebsocketMessageKeepsZeroCursorAndEmptyText(t *testing.T) {
+	encoded, err := json.Marshal(websocketMessage{
+		Type: websocketMessageUpdate,
+	})
+	if err != nil {
+		t.Fatalf("marshal WebSocket message: %v", err)
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &fields); err != nil {
+		t.Fatalf("unmarshal WebSocket message: %v", err)
+	}
+	for _, field := range []string{"text", "cursor_start", "cursor_end"} {
+		if _, ok := fields[field]; !ok {
+			t.Errorf("zero-value WebSocket message omitted %q: %s", field, encoded)
+		}
+	}
+}
+
 func TestWebsocketCreatesPreviouslyMissingPaste(t *testing.T) {
 	setUpHandlerTest(t, Page{Title: "seed"})
 
-	created, err := applyWebsocketUpdate(context.Background(), "new-page", Page{
+	created, err := applyWebsocketUpdate(context.Background(), "new-page", pageUpdate{
 		Text: "first browser save",
 	})
 	if err != nil {
@@ -739,14 +968,15 @@ func TestWebsocketCreatesPreviouslyMissingPaste(t *testing.T) {
 	}
 }
 
-func TestWebsocketIgnoresClientLockStateOnOrdinaryEdit(t *testing.T) {
-	setUpHandlerTest(t, Page{Title: "forge-lock", Text: "original"})
+func TestWebsocketPreservesServerManagedStateOnOrdinaryEdit(t *testing.T) {
+	setUpHandlerTest(t, Page{
+		Title:     "preserve-state",
+		Text:      "original",
+		Published: true,
+	})
 
-	saved, err := applyWebsocketUpdate(context.Background(), "forge-lock", Page{
-		Text:         "replacement",
-		Published:    true,
-		SelfDestruct: true,
-		Locked:       true,
+	saved, err := applyWebsocketUpdate(context.Background(), "preserve-state", pageUpdate{
+		Text: "replacement",
 	})
 	if err != nil {
 		t.Fatalf("ordinary WebSocket update error = %v", err)
@@ -754,8 +984,8 @@ func TestWebsocketIgnoresClientLockStateOnOrdinaryEdit(t *testing.T) {
 	if saved.Locked {
 		t.Fatal("ordinary WebSocket update changed the database lock state")
 	}
-	if saved.Published {
-		t.Fatal("ordinary WebSocket update changed the database publication state")
+	if !saved.Published {
+		t.Fatal("ordinary WebSocket update cleared the database publication state")
 	}
 	if saved.SelfDestruct {
 		t.Fatal("ordinary WebSocket update changed the database self-destruct state")
@@ -778,7 +1008,7 @@ func TestWebsocketSelfDestructLifecycleAndLockedRejection(t *testing.T) {
 	})
 	ctx := context.Background()
 
-	armed, err := applyWebsocketUpdate(ctx, title, Page{
+	armed, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      "attempted replacement",
 		Operation: operationSelfDestruct,
 	})
@@ -795,9 +1025,8 @@ func TestWebsocketSelfDestructLifecycleAndLockedRejection(t *testing.T) {
 		t.Errorf("arming self destruct changed text to %q, want %q", armed.Text, content)
 	}
 
-	edited, err := applyWebsocketUpdate(ctx, title, Page{
-		Text:         "updated one-time text",
-		SelfDestruct: false,
+	edited, err := applyWebsocketUpdate(ctx, title, pageUpdate{
+		Text: "updated one-time text",
 	})
 	if err != nil {
 		t.Fatalf("edit armed page error = %v", err)
@@ -806,13 +1035,13 @@ func TestWebsocketSelfDestructLifecycleAndLockedRejection(t *testing.T) {
 		t.Fatal("ordinary edit cleared self destruct")
 	}
 
-	if _, err := applyWebsocketUpdate(ctx, title, Page{
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Operation: operationPublish,
 	}); !errors.Is(err, errSelfDestructArmed) {
 		t.Fatalf("publish armed page error = %v, want %v", err, errSelfDestructArmed)
 	}
 
-	cancelled, err := applyWebsocketUpdate(ctx, title, Page{
+	cancelled, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Operation: operationCancelSelfDestruct,
 	})
 	if err != nil {
@@ -822,12 +1051,12 @@ func TestWebsocketSelfDestructLifecycleAndLockedRejection(t *testing.T) {
 		t.Fatal("cancel operation left self destruct armed")
 	}
 
-	if _, err := applyWebsocketUpdate(ctx, title, Page{
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Operation: operationSelfDestruct,
 	}); err != nil {
 		t.Fatalf("re-arm self destruct error = %v", err)
 	}
-	locked, err := applyWebsocketUpdate(ctx, title, Page{
+	locked, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      edited.Text,
 		Operation: operationLock,
 		Password:  password,
@@ -842,7 +1071,7 @@ func TestWebsocketSelfDestructLifecycleAndLockedRejection(t *testing.T) {
 		t.Fatal("locking a page did not cancel self destruct")
 	}
 
-	if _, err := applyWebsocketUpdate(ctx, title, Page{
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Operation: operationSelfDestruct,
 	}); !errors.Is(err, errPageLocked) {
 		t.Fatalf("locked self destruct error = %v, want %v", err, errPageLocked)
@@ -861,7 +1090,7 @@ func TestWebsocketPagePublishingLifecycle(t *testing.T) {
 	setUpHandlerTest(t, Page{Title: title, Text: "draft"})
 	ctx := context.Background()
 
-	published, err := applyWebsocketUpdate(ctx, title, Page{
+	published, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      "attempted replacement",
 		Operation: operationPublish,
 	})
@@ -872,9 +1101,8 @@ func TestWebsocketPagePublishingLifecycle(t *testing.T) {
 		t.Errorf("published page = %+v", published)
 	}
 
-	edited, err := applyWebsocketUpdate(ctx, title, Page{
-		Text:      "edited while published",
-		Published: false,
+	edited, err := applyWebsocketUpdate(ctx, title, pageUpdate{
+		Text: "edited while published",
 	})
 	if err != nil {
 		t.Fatalf("published edit error = %v", err)
@@ -883,7 +1111,7 @@ func TestWebsocketPagePublishingLifecycle(t *testing.T) {
 		t.Fatal("ordinary edit cleared publication state")
 	}
 
-	locked, err := applyWebsocketUpdate(ctx, title, Page{
+	locked, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      edited.Text,
 		Operation: operationLock,
 		Password:  "correct horse battery staple",
@@ -891,20 +1119,20 @@ func TestWebsocketPagePublishingLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("lock update error = %v", err)
 	}
-	if _, err := applyWebsocketUpdate(ctx, title, Page{
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      locked.Text,
 		Operation: operationUnpublish,
 	}); !errors.Is(err, errPageLocked) {
 		t.Fatalf("locked unpublish error = %v, want %v", err, errPageLocked)
 	}
 
-	if _, err := applyWebsocketUpdate(ctx, title, Page{
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Operation: operationUnlock,
 		Password:  "correct horse battery staple",
 	}); err != nil {
 		t.Fatalf("unlock update error = %v", err)
 	}
-	unpublished, err := applyWebsocketUpdate(ctx, title, Page{
+	unpublished, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      edited.Text,
 		Operation: operationUnpublish,
 	})
@@ -933,7 +1161,7 @@ func TestWebsocketPageLockLifecycle(t *testing.T) {
 	setUpHandlerTest(t, Page{Title: title, Text: content})
 	ctx := context.Background()
 
-	locked, err := applyWebsocketUpdate(ctx, title, Page{
+	locked, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      content,
 		Operation: operationLock,
 		Password:  password,
@@ -951,7 +1179,7 @@ func TestWebsocketPageLockLifecycle(t *testing.T) {
 		t.Fatal("lock update did not store verification credentials")
 	}
 
-	if _, err := applyWebsocketUpdate(ctx, title, Page{Text: "unauthorized edit"}); !errors.Is(err, errPageLocked) {
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{Text: "unauthorized edit"}); !errors.Is(err, errPageLocked) {
 		t.Fatalf("ordinary locked update error = %v, want %v", err, errPageLocked)
 	}
 	stored, err := pageStore.GetPage(ctx, title)
@@ -963,7 +1191,7 @@ func TestWebsocketPageLockLifecycle(t *testing.T) {
 	}
 
 	encryptedContent := "-----BEGIN COWYO ENCRYPTED BLOCK V1-----\n{\"data\":\"ciphertext\"}\n-----END COWYO ENCRYPTED BLOCK V1-----"
-	if _, err := applyWebsocketUpdate(ctx, title, Page{
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Text:      encryptedContent,
 		Operation: operationEncrypt,
 	}); !errors.Is(err, errPageLocked) {
@@ -977,14 +1205,14 @@ func TestWebsocketPageLockLifecycle(t *testing.T) {
 		t.Fatalf("locked encryption changed page = %+v", stored)
 	}
 
-	if _, err := applyWebsocketUpdate(ctx, title, Page{
+	if _, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Operation: operationUnlock,
 		Password:  "wrong page password",
 	}); !errors.Is(err, errWrongLockPassword) {
 		t.Fatalf("wrong-password unlock error = %v, want %v", err, errWrongLockPassword)
 	}
 
-	unlocked, err := applyWebsocketUpdate(ctx, title, Page{
+	unlocked, err := applyWebsocketUpdate(ctx, title, pageUpdate{
 		Operation: operationUnlock,
 		Password:  password,
 	})
@@ -998,7 +1226,7 @@ func TestWebsocketPageLockLifecycle(t *testing.T) {
 		t.Fatal("unlock update did not clear database lock metadata")
 	}
 
-	edited, err := applyWebsocketUpdate(ctx, title, Page{Text: "editable again"})
+	edited, err := applyWebsocketUpdate(ctx, title, pageUpdate{Text: "editable again"})
 	if err != nil {
 		t.Fatalf("post-unlock edit error = %v", err)
 	}
@@ -1021,6 +1249,21 @@ func TestLockedDecryptionPreservesUnencryptedText(t *testing.T) {
 	if err := validateCryptoUpdate(current, changedFooter, operationDecrypt, true); err == nil {
 		t.Fatal("locked decryption changed unencrypted text")
 	}
+}
+
+func isolateWebsocketConnections(t *testing.T) {
+	t.Helper()
+
+	connectionsMu.Lock()
+	previousConnections := connections
+	connections = make(map[string]*Connection)
+	connectionsMu.Unlock()
+
+	t.Cleanup(func() {
+		connectionsMu.Lock()
+		connections = previousConnections
+		connectionsMu.Unlock()
+	})
 }
 
 func setUpHandlerTest(t *testing.T, page Page) {

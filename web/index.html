@@ -261,6 +261,20 @@
               Pages start unpublished. Encrypt text in your browser, lock
               editing, or make the page self-destruct.
             </p>
+            <div class="landing-control-icons" aria-hidden="true">
+              <span class="menu-icon-tile">
+                <i data-lucide="globe-2"></i>
+              </span>
+              <span class="menu-icon-tile">
+                <i data-lucide="shield-keyhole"></i>
+              </span>
+              <span class="menu-icon-tile">
+                <i data-lucide="lock-keyhole"></i>
+              </span>
+              <span class="menu-icon-tile">
+                <i data-lucide="bomb"></i>
+              </span>
+            </div>
           </article>
           <article>
             <p class="landing-feature-number">03</p>
@@ -350,40 +364,60 @@
           </div>
           <div class="about-privacy-grid">
             <article>
-              <div>
-                <h3>Unpublished</h3>
-                <span>default</span>
-              </div>
+              <header>
+                <div class="about-privacy-control">
+                  <span class="menu-icon-tile" aria-hidden="true">
+                    <i data-lucide="globe-2"></i>
+                  </span>
+                  <h3>Unpublished</h3>
+                </div>
+                <span class="about-privacy-detail">default</span>
+              </header>
               <p>
                 Keeps the page out of cowyo's sitemap. Anyone who knows the URL
                 can still open it.
               </p>
             </article>
             <article>
-              <div>
-                <h3>Locked</h3>
-                <span>edit protection</span>
-              </div>
+              <header>
+                <div class="about-privacy-control">
+                  <span class="menu-icon-tile" aria-hidden="true">
+                    <i data-lucide="lock-keyhole"></i>
+                  </span>
+                  <h3>Locked</h3>
+                </div>
+                <span class="about-privacy-detail">edit protection</span>
+              </header>
               <p>
                 Prevents changes until the page password is entered. The text
                 stays readable.
               </p>
             </article>
             <article>
-              <div>
-                <h3>Encrypted</h3>
-                <span>content protection</span>
-              </div>
+              <header>
+                <div class="about-privacy-control">
+                  <span class="menu-icon-tile" aria-hidden="true">
+                    <i data-lucide="shield-keyhole"></i>
+                  </span>
+                  <h3>Encrypted</h3>
+                </div>
+                <span class="about-privacy-detail">content protection</span>
+              </header>
               <p>
                 Protects text in your browser before it is saved. The
                 encryption password never reaches the server.
               </p>
             </article>
             <article>
-              <div>
-                <h3>Self-destruct</h3>
-                <span>one final load</span>
-              </div>
+              <header>
+                <div class="about-privacy-control">
+                  <span class="menu-icon-tile" aria-hidden="true">
+                    <i data-lucide="bomb"></i>
+                  </span>
+                  <h3>Self-destruct</h3>
+                </div>
+                <span class="about-privacy-detail">one final load</span>
+              </header>
               <p>
                 Returns the page one last time on its next visit, then deletes
                 it.
@@ -648,6 +682,7 @@ curl --data-binary @notes.txt \
 
     <main class="editor">
       <div id="linkOverlay" aria-hidden="true"></div>
+      <div id="cursorOverlay" aria-hidden="true"></div>
       <textarea
         autofocus
         placeholder="type..."

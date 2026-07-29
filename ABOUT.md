@@ -1,6 +1,6 @@
 # About cowyo
 
-cowyo is a minimalist shared scratchpad. Every page lives at a simple URL: open one, type, and your text is saved automatically.
+cowyo is a minimalist shared scratchpad. Every page lives at a simple URL: open one, type, and your text is saved automatically. When other people are editing the same page, their carets appear as dim gray lines.
 
 The cow menu provides the page's controls:
 
