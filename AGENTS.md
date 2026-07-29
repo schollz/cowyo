@@ -31,6 +31,8 @@ Important paths:
   configuration.
 - `.github/workflows/ci.yml`: GitHub Actions test workflow for pushes to
   `main` and pull requests.
+- `.github/workflows/lock-closed-threads.yml`: daily and manually triggered
+  workflow that comments on and locks closed issues.
 - `cmd/migrate/`: migration-only command used by `make migrate`.
 - `internal/cowyo/post.go`: curl POST handling, the 16 KiB body limit,
   per-client rate limiting, random-page allocation, and returned URLs.
@@ -285,10 +287,11 @@ make test
 make build
 ```
 
-GitHub Actions runs `make test` on Ubuntu for every pull request and push to
-`main`, using the Go version declared in `go.mod` and Node.js 24. The README
-shows the workflow status for `main` and the repository's latest GitHub
-release.
+The CI GitHub Actions workflow runs `make test` on Ubuntu for every pull
+request and push to `main`, using the Go version declared in `go.mod` and
+Node.js 24. A separate daily workflow comments on and locks closed issues with
+no inactivity delay and can also be run manually. The README shows the CI
+workflow status for `main` and the repository's latest GitHub release.
 
 For changes touching concurrency, storage, dependencies, security, or build
 behavior, also run:
