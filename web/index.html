@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="{{if or .Landing .About}}landing-root{{end}}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -178,7 +178,308 @@
     />
     <link rel="manifest" href="/static/manifest.json" />
   </head>
-  <body>
+  <body class="{{if or .Landing .About}}landing-body{{end}}">
+    {{if or .Landing .About}}
+    <div class="landing-page">
+      <header class="landing-header">
+        <a class="landing-brand" href="/" aria-label="cowyo home">
+          <img
+            src="/static/logo.jpg"
+            width="1515"
+            height="668"
+            alt="cowyo"
+          />
+        </a>
+        <nav class="landing-nav" aria-label="Main navigation">
+          {{if .About}}
+          <a href="/">home</a>
+          {{else}}
+          <a href="/about">about</a>
+          {{end}}
+          <a
+            href="https://github.com/schollz/cowyo"
+            rel="noreferrer"
+          >source</a>
+        </nav>
+      </header>
+
+      {{if .Landing}}
+      <main>
+        <section class="landing-hero">
+          <div class="landing-intro">
+            <p class="landing-eyebrow">zero-account shared scratchpad</p>
+            <h1>Write together.<br />Without the setup.</h1>
+            <p class="landing-lede">
+              Open a page, type, and share the URL. cowyo saves live and
+              stays out of your way.
+            </p>
+            <div class="landing-actions">
+              <a class="landing-primary-action" href="/?new=1">
+                Start a scratchpad <span aria-hidden="true">→</span>
+              </a>
+              <a class="landing-secondary-action" href="/about">
+                See how it works
+              </a>
+            </div>
+            <p class="landing-assurance">No account. Free and open source.</p>
+          </div>
+
+          <div class="landing-demo" aria-label="A cowyo scratchpad example">
+            <div class="landing-demo-bar">
+              <span>cowyo.com/calm-cat</span>
+              <span class="landing-demo-status">
+                <span aria-hidden="true"></span> saved
+              </span>
+            </div>
+            <div class="landing-demo-copy">
+              <p>launch notes</p>
+              <p>
+                ship the tiny version<br />
+                share the link<br />
+                keep moving<span class="landing-cursor" aria-hidden="true"></span>
+              </p>
+            </div>
+            <div class="landing-demo-caption">
+              One memorable URL. Everyone sees changes live.
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-features" aria-label="What cowyo does">
+          <article>
+            <p class="landing-feature-number">01</p>
+            <h2>Just a link</h2>
+            <p>
+              Pick any URL or let cowyo make a memorable one. No workspace,
+              invite flow, or login.
+            </p>
+          </article>
+          <article>
+            <p class="landing-feature-number">02</p>
+            <h2>Protected when needed</h2>
+            <p>
+              Pages start unpublished. Encrypt text in your browser, lock
+              editing, or make the page self-destruct.
+            </p>
+          </article>
+          <article>
+            <p class="landing-feature-number">03</p>
+            <h2>Friendly to curl</h2>
+            <p>Read and write exact plaintext from the command line.</p>
+            <code>curl --data-binary @notes.txt cowyo.com/</code>
+          </article>
+        </section>
+      </main>
+      {{else}}
+      <main class="about-main">
+        <section class="about-hero">
+          <div class="about-hero-copy">
+            <p class="landing-eyebrow">about cowyo</p>
+            <h1>A shared scratchpad,<br />minus the ceremony.</h1>
+            <p class="landing-lede">
+              cowyo is for the text that needs a place right now: a running
+              list, a handoff, meeting notes, or a thought shared across a
+              room.
+            </p>
+            <div class="landing-actions">
+              <a class="landing-primary-action" href="/?new=1">
+                Start a scratchpad <span aria-hidden="true">→</span>
+              </a>
+              <a
+                class="landing-secondary-action"
+                href="https://github.com/schollz/cowyo"
+                rel="noreferrer"
+              >View the source</a>
+            </div>
+          </div>
+
+          <aside class="about-hero-note" aria-label="cowyo in one sentence">
+            <span aria-hidden="true">→</span>
+            <p>
+              Open a URL.<br />
+              Type together.<br />
+              Leave no account behind.
+            </p>
+          </aside>
+        </section>
+
+        <section class="about-section about-how" aria-labelledby="about-how-title">
+          <div class="about-section-heading">
+            <p class="landing-eyebrow">how it works</p>
+            <h2 id="about-how-title">From blank page to shared thought.</h2>
+          </div>
+          <div class="about-step-grid">
+            <article>
+              <p class="landing-feature-number">01 / open</p>
+              <h3>Choose any path</h3>
+              <p>
+                Visit a memorable URL yourself, or let cowyo make an
+                alliterative one like <code>calm-cat</code>.
+              </p>
+            </article>
+            <article>
+              <p class="landing-feature-number">02 / type</p>
+              <h3>Write together</h3>
+              <p>
+                Text saves as you type. Share the URL and everyone on the page
+                sees updates live.
+              </p>
+            </article>
+            <article>
+              <p class="landing-feature-number">03 / decide</p>
+              <h3>Keep it your way</h3>
+              <p>
+                Leave it unlisted, publish it, lock editing, encrypt the text,
+                or destroy it after the next load.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section
+          class="about-section about-privacy"
+          aria-labelledby="about-privacy-title"
+        >
+          <div class="about-section-heading">
+            <p class="landing-eyebrow">privacy, plainly</p>
+            <h2 id="about-privacy-title">Four controls. Four different jobs.</h2>
+            <p>
+              cowyo keeps these choices separate so you can use exactly the
+              protection a page needs.
+            </p>
+          </div>
+          <div class="about-privacy-grid">
+            <article>
+              <div>
+                <h3>Unpublished</h3>
+                <span>default</span>
+              </div>
+              <p>
+                Keeps the page out of cowyo's sitemap. Anyone who knows the URL
+                can still open it.
+              </p>
+            </article>
+            <article>
+              <div>
+                <h3>Locked</h3>
+                <span>edit protection</span>
+              </div>
+              <p>
+                Prevents changes until the page password is entered. The text
+                stays readable.
+              </p>
+            </article>
+            <article>
+              <div>
+                <h3>Encrypted</h3>
+                <span>content protection</span>
+              </div>
+              <p>
+                Protects text in your browser before it is saved. The
+                encryption password never reaches the server.
+              </p>
+            </article>
+            <article>
+              <div>
+                <h3>Self-destruct</h3>
+                <span>one final load</span>
+              </div>
+              <p>
+                Returns the page one last time on its next visit, then deletes
+                it.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="about-section about-curl" aria-labelledby="about-curl-title">
+          <div class="about-curl-copy">
+            <p class="landing-eyebrow">browser optional</p>
+            <h2 id="about-curl-title">Plain text in. Plain text out.</h2>
+            <p>
+              curl reads the exact stored text and can create or replace a
+              scratchpad with a single request.
+            </p>
+          </div>
+          <pre aria-label="curl examples"><code>curl https://cowyo.com/my-notes
+
+curl --data-binary @notes.txt \
+  https://cowyo.com/my-notes</code></pre>
+        </section>
+
+        <section class="about-open-source" aria-labelledby="about-source-title">
+          <p class="landing-eyebrow">open source, by design</p>
+          <h2 id="about-source-title">Small enough to understand.<br />Free to run yourself.</h2>
+          <p>
+            cowyo is built by schollz and released under the MIT license.
+            Inspect the code, host your own copy, or help keep the public
+            service running.
+          </p>
+          <div class="landing-actions">
+            <a
+              class="landing-primary-action"
+              href="https://github.com/sponsors/schollz"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Sponsor schollz <span aria-hidden="true">→</span>
+            </a>
+            <a
+              class="landing-secondary-action"
+              href="https://github.com/schollz/cowyo"
+              rel="noreferrer"
+              target="_blank"
+            >Browse GitHub</a>
+          </div>
+        </section>
+      </main>
+      {{end}}
+
+      <footer class="landing-footer">
+        <div class="landing-footer-links">
+          <span>
+            made by
+            <a
+              href="https://github.com/sponsors/schollz"
+              rel="noreferrer"
+              target="_blank"
+            >schollz</a>
+          </span>
+          <span aria-hidden="true">·</span>
+          {{if .About}}
+          <a href="/about" aria-current="page">about</a>
+          {{else}}
+          <a href="/about">about</a>
+          {{end}}
+          <span aria-hidden="true">·</span>
+          <a
+            href="https://github.com/schollz/cowyo"
+            rel="noreferrer"
+            target="_blank"
+          >github</a>
+        </div>
+
+        <details class="landing-tools-menu">
+          <summary>other tools</summary>
+          <ul>
+            <li>
+              <a href="https://getcroc.com" rel="noreferrer" target="_blank">
+                <strong>croc</strong>
+                <span>send files with croc</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://wthrtxt.com" rel="noreferrer" target="_blank">
+                <strong>wthrtxt</strong>
+                <span>weather without clutter</span>
+              </a>
+            </li>
+          </ul>
+        </details>
+      </footer>
+    </div>
+
+    {{else}}
     <div
       id="remoteUpdateStatus"
       class="remote-update-status"
@@ -377,6 +678,7 @@
       </form>
     </dialog>
 
+    {{end}}
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

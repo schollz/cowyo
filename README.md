@@ -29,6 +29,12 @@ with other people in real time.
 
 Try it at [cowyo.com](https://cowyo.com).
 
+The home page introduces cowyo and starts a new randomly named scratchpad from
+its primary action. You can also open any memorable path directly, such as
+`/calm-cat`, to use it as a scratchpad. The dedicated
+[About page](https://cowyo.com/about) explains the workflow, privacy controls,
+curl interface, and open-source project.
+
 ## Getting started
 
 Build and run:

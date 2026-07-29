@@ -43,8 +43,11 @@ Important paths:
 - `internal/cowyo/names.go`: adjective and animal lists plus the alliterative
   random-name generator.
 - `internal/site/assets.go`: optimized frontend embedding and filesystem access.
-- `web/index.html`: the Go-compatible HTML template and frontend UI structure.
-- `web/src/main.js`: editor synchronization, save/cow menu, password modal,
+- `web/index.html`: the Go-compatible HTML template for the dedicated landing
+  and About pages plus the editor UI.
+- `web/src/main.js`: shared Vite entrypoint that loads the site styles and
+  initializes the editor only on paste pages.
+- `web/src/editor.js`: editor synchronization, save/cow menu, password modal,
   theme selection, encryption actions, and page lock/unlock interactions.
 - `web/src/theme.js`: system theme detection and locally cached light/dark
   overrides.
@@ -134,17 +137,22 @@ When changing the schema or query behavior:
 
 ## HTTP and editing behavior
 
-- `GET /` redirects to a random alliterative `adjective-animal` path such as
-  `/calm-cat`, using common adjectives and animal names.
+- A browser `GET /` renders the indexable marketing landing page.
+- The landing page's start action, `GET /?new=1`, redirects to a random
+  alliterative `adjective-animal` path such as `/calm-cat`, using common
+  adjectives and animal names. A curl `GET /` retains the same redirect for
+  command-line compatibility.
+- `GET /about` renders the indexable About page for browser and command-line
+  user agents. `/about` is a reserved site route and rejects POSTs.
 - `GET /name` returns the browser editor normally.
 - A `curl/*` user agent requesting `/name` receives only the paste's plaintext
   body with a `text/plain` content type.
 - An unlocked page armed for self destruct is returned by exactly one final
   browser or curl GET and atomically deleted as part of that load. HEAD does
   not consume it, and the final response uses `Cache-Control: no-store`.
-- `GET /sitemap.xml` lists only pages whose persisted publication flag is set,
-  using absolute URLs from `SITE_URL` or the request host and forwarded
-  protocol.
+- `GET /sitemap.xml` lists the home and About pages plus pages whose persisted
+  publication flag is set, using absolute URLs from `SITE_URL` or the request
+  host and forwarded protocol.
 - `GET /robots.txt` allows crawling and advertises `/sitemap.xml`.
 - Published page responses send `index, follow`; unpublished and missing page
   responses send `noindex, nofollow`.
@@ -183,6 +191,17 @@ collisions. Keep browser and POST random naming on the shared generator in
 `internal/cowyo/names.go`.
 
 ## Frontend behavior and encryption
+
+The dedicated home page explains cowyo's zero-account shared-scratchpad
+workflow, links to the About page and source repository, previews the editor,
+and highlights memorable URLs, privacy controls, and curl access. Its primary
+action starts a new randomly named scratchpad. The footer links to schollz's
+GitHub Sponsors page, About, and the source repository, and offers an
+expandable list of other tools (`croc` and `wthrtxt`). The dedicated About page
+uses the same site shell and explains the three-step workflow, the distinct
+unpublished, locked, encrypted, and self-destruct states, curl usage, and the
+open-source project. Both pages follow the same system or locally selected
+light/dark theme as the editor.
 
 The editor autosaves through the WebSocket. The cow action icon is labeled
 `yo`, remains visible at reduced opacity, becomes fully dark on editor input,
@@ -256,8 +275,9 @@ Page publishing is separate from content and page locking:
 - Publication changes are rejected while the page is locked; unlock it first.
 - Arming self destruct unpublishes the page, and publishing remains blocked
   until self destruct is cancelled.
-- `/robots.txt` advertises the dynamically generated sitemap. Sitemap entries
-  are ordered by page title for deterministic output.
+- `/robots.txt` advertises the dynamically generated sitemap. The home and
+  About pages are listed first, followed by published paste entries ordered by
+  page title for deterministic output.
 
 Page self destruct is persisted separately from content:
 

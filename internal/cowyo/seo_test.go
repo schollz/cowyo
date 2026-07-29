@@ -72,6 +72,61 @@ func TestPublishedPageSEO(t *testing.T) {
 	}
 }
 
+func TestBuildLandingSEOUsesRootCanonicalAndWebsiteMetadata(t *testing.T) {
+	t.Setenv(siteURLEnvironment, "https://cowyo.example")
+	request := httptest.NewRequest(http.MethodGet, "http://internal.example/", nil)
+
+	seo, err := buildLandingSEO(request)
+	if err != nil {
+		t.Fatalf("buildLandingSEO() error = %v", err)
+	}
+
+	if seo.Title != landingTitle {
+		t.Errorf("Title = %q, want %q", seo.Title, landingTitle)
+	}
+	if seo.CanonicalURL != "https://cowyo.example/" {
+		t.Errorf("CanonicalURL = %q, want root URL", seo.CanonicalURL)
+	}
+	if seo.OpenGraphType != "website" {
+		t.Errorf("OpenGraphType = %q, want website", seo.OpenGraphType)
+	}
+	if seo.Robots != robotsDirective(true) {
+		t.Errorf("Robots = %q, want indexable", seo.Robots)
+	}
+	if !seo.Published {
+		t.Error("landing SEO is not marked published")
+	}
+	if strings.Contains(seo.JSONLD, "DigitalDocument") {
+		t.Error("landing structured data describes a paste document")
+	}
+}
+
+func TestBuildAboutSEOUsesAboutCanonicalAndWebsiteMetadata(t *testing.T) {
+	t.Setenv(siteURLEnvironment, "https://cowyo.example")
+	request := httptest.NewRequest(http.MethodGet, "http://internal.example/about", nil)
+
+	seo, err := buildAboutSEO(request)
+	if err != nil {
+		t.Fatalf("buildAboutSEO() error = %v", err)
+	}
+
+	if seo.Title != aboutTitle {
+		t.Errorf("Title = %q, want %q", seo.Title, aboutTitle)
+	}
+	if seo.Description != aboutDescription {
+		t.Errorf("Description = %q, want %q", seo.Description, aboutDescription)
+	}
+	if seo.CanonicalURL != "https://cowyo.example/about" {
+		t.Errorf("CanonicalURL = %q, want about URL", seo.CanonicalURL)
+	}
+	if seo.Robots != robotsDirective(true) || !seo.Published {
+		t.Error("about SEO is not indexable")
+	}
+	if strings.Contains(seo.JSONLD, "DigitalDocument") {
+		t.Error("about structured data describes a paste document")
+	}
+}
+
 func TestUnpublishedSEOUsesGenericCopy(t *testing.T) {
 	const secret = "do not put this secret in metadata"
 	request := httptest.NewRequest(http.MethodGet, "https://cowyo.example/private-note", nil)
