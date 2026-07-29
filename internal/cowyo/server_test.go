@@ -183,6 +183,7 @@ func TestBrowserRootRendersLandingPage(t *testing.T) {
 		"other-tools menu":     `<summary>other tools</summary>`,
 		"croc tool":            `https://getcroc.com`,
 		"wthrtxt tool":         `https://wthrtxt.com`,
+		"yesnotice tool":       `https://yesnotice.com`,
 		"zero-account message": `No account. Free and open source.`,
 	} {
 		if !strings.Contains(body, marker) {

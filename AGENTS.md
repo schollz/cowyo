@@ -197,10 +197,11 @@ workflow, links to the About page and source repository, previews the editor,
 and highlights memorable URLs, privacy controls, and curl access. Its primary
 action starts a new randomly named scratchpad. The footer links to schollz's
 GitHub Sponsors page, About, and the source repository, and offers an
-expandable list of other tools (`croc` and `wthrtxt`). The dedicated About page
-uses the same site shell and explains the three-step workflow, the distinct
-unpublished, locked, encrypted, and self-destruct states, curl usage, and the
-open-source project. Both pages follow the same system or locally selected
+expandable list of other tools (`croc`, `wthrtxt`, and `yesnotice`). The
+dedicated About page uses the same site shell and explains the three-step
+workflow, the distinct unpublished, locked, encrypted, and self-destruct
+states, curl usage, and the open-source project. Both pages follow the same
+system or locally selected
 light/dark theme as the editor.
 
 The editor autosaves through the WebSocket. The cow action icon is labeled
