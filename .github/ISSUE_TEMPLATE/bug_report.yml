@@ -1,0 +1,154 @@
+name: Bug Report
+description: File a complete bug report to help us improve cowyo
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+
+        Bug reports must be filled out in full to be considered. Please answer every question and enter `N/A` only when a field genuinely does not apply.
+
+        Do not include passwords, paste contents, database contents, `ADMIN_POST_KEY`, or credentials from `DATABASE_URL`.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and did not find an open report for this bug.
+          required: true
+        - label: I have completed every section below and removed any secrets or sensitive paste data.
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Clearly describe the bug and its impact.
+      placeholder: Tell us what you saw and how it affected you.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: What did you expect to happen?
+      description: Clearly describe the behavior you expected.
+      placeholder: Tell us what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest reliable sequence that reproduces the bug. Use placeholder text instead of private paste contents.
+      placeholder: |
+        1. Start cowyo with '...'
+        2. Open or request '...'
+        3. Perform '...'
+        4. Observe '...'
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: cowyo version
+      description: Provide the release version, Git commit, or container image tag/digest you are running.
+      placeholder: e.g., v1.2.3, commit abc1234, or ghcr.io/...@sha256:...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Installation or deployment method
+      description: How are you running cowyo?
+      options:
+        - Disco
+        - Docker
+        - Built from source
+        - Prebuilt binary
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected area
+      description: Where does the bug occur?
+      options:
+        - Browser editor or interface
+        - curl or HTTP API
+        - WebSocket editing or synchronization
+        - Server startup or deployment
+        - Database or migrations
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database backend
+      description: Which database backend is cowyo using?
+      options:
+        - SQLite
+        - PostgreSQL
+        - Not sure
+        - Not applicable
+    validations:
+      required: true
+
+  - type: input
+    id: client
+    attributes:
+      label: Browser or client version
+      description: Provide the browser name and version, curl version, or other HTTP client. Enter N/A for startup-only or deployment-only bugs.
+      placeholder: e.g., Firefox 128.0, curl 8.7.1, or N/A
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: Operating system
+      description: Provide the operating system and version for the server and, if different, the affected client.
+      placeholder: e.g., server Ubuntu 24.04; client macOS 15.5
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Relevant configuration
+      description: List relevant flags and environment variable names with secrets redacted. Enter N/A if the default configuration reproduces the bug.
+      placeholder: |
+        - Started with: `-log debug`
+        - `SITE_URL`: https://example.com
+        - `DATABASE_URL`: [redacted]
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: |
+        Run cowyo with `-log debug` when possible and paste the relevant output below. Remove secrets, private URLs, and sensitive paste data first. Enter N/A if no logs are available.
+        This field is automatically formatted as code, so do not add backticks.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add sanitized screenshots or any other details that could help diagnose the bug. Enter N/A if there is nothing else to add.
+    validations:
+      required: true

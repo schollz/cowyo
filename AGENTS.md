@@ -33,6 +33,8 @@ Important paths:
   `main` and pull requests.
 - `.github/workflows/lock-closed-threads.yml`: daily and manually triggered
   workflow that comments on and locks closed issues.
+- `.github/ISSUE_TEMPLATE/`: required bug-report issue form and issue chooser
+  configuration; blank issues are disabled.
 - `cmd/migrate/`: migration-only command used by `make migrate`.
 - `internal/cowyo/post.go`: curl POST handling, the 16 KiB body limit,
   per-client rate limiting, random-page allocation, and returned URLs.
