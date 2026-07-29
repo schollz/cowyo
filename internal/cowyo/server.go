@@ -126,6 +126,8 @@ type Page struct {
 type pageTemplateData struct {
 	Page
 	GoogleTag string
+	Landing   bool
+	About     bool
 	SEO       seoTemplateData
 }
 
@@ -157,15 +159,15 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 		w.Header().Set("Expires", "0")
 		http.FileServer(http.FS(siteContent)).ServeHTTP(w, r)
 		return
+	} else if r.URL.Path == "/about" {
+		return handleAbout(w, r)
 	} else if r.Method == http.MethodPost {
 		return handlePost(w, r)
 	} else if r.URL.Path == "/" {
-		name, err := randomDocumentName()
-		if err != nil {
-			return fmt.Errorf("generate random paste name: %w", err)
+		if isCurlRequest(r) || r.URL.Query().Has("new") {
+			return redirectToRandomDocument(w, r)
 		}
-		http.Redirect(w, r, "/"+name, http.StatusFound)
-		return nil
+		return handleLanding(w, r)
 	}
 	key := r.URL.Path[1:]
 	p := Page{Title: key}
@@ -232,6 +234,62 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 	})
 }
 
+func handleLanding(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD, POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+
+	seo, err := buildLandingSEO(r)
+	if err != nil {
+		return fmt.Errorf("build landing page metadata: %w", err)
+	}
+
+	w.Header().Set("Content-Language", "en-US")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Link", fmt.Sprintf("<%s>; rel=\"canonical\"", postedDocumentURL(r, "")))
+	w.Header().Set("Vary", "User-Agent")
+	w.Header().Set("X-Robots-Tag", robotsDirective(true))
+	return indexTemplate.Execute(w, pageTemplateData{
+		GoogleTag: configuredGoogleTag(),
+		Landing:   true,
+		SEO:       seo,
+	})
+}
+
+func handleAbout(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+
+	seo, err := buildAboutSEO(r)
+	if err != nil {
+		return fmt.Errorf("build about page metadata: %w", err)
+	}
+
+	w.Header().Set("Content-Language", "en-US")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Link", fmt.Sprintf("<%s>; rel=\"canonical\"", postedDocumentURL(r, "about")))
+	w.Header().Set("X-Robots-Tag", robotsDirective(true))
+	return indexTemplate.Execute(w, pageTemplateData{
+		GoogleTag: configuredGoogleTag(),
+		About:     true,
+		SEO:       seo,
+	})
+}
+
+func redirectToRandomDocument(w http.ResponseWriter, r *http.Request) error {
+	name, err := randomDocumentName()
+	if err != nil {
+		return fmt.Errorf("generate random paste name: %w", err)
+	}
+	http.Redirect(w, r, "/"+name, http.StatusFound)
+	return nil
+}
+
 var googleTagPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,100}$`)
 
 func configuredGoogleTag() string {
@@ -254,8 +312,16 @@ func handleSitemap(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("list published pages: %w", err)
 	}
 
-	urls := make([]sitemapURL, 0, len(titles))
+	urls := make([]sitemapURL, 0, len(titles)+2)
+	urls = append(
+		urls,
+		sitemapURL{Location: postedDocumentURL(r, "")},
+		sitemapURL{Location: postedDocumentURL(r, "about")},
+	)
 	for _, title := range titles {
+		if title == "about" {
+			continue
+		}
 		urls = append(urls, sitemapURL{
 			Location: postedDocumentURL(r, title),
 		})

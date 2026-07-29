@@ -9,9 +9,12 @@ import (
 )
 
 const (
-	siteName        = "cowyo"
-	siteDescription = "Create and share text instantly with cowyo, a minimalist online pastebin with live autosave, collaboration, browser-side encryption, and self-destructing pastes."
-	socialImageAlt  = "cowyo logo — a cow beside a speech bubble saying yo"
+	siteName         = "cowyo"
+	siteDescription  = "Create and share text instantly with cowyo, a minimalist online pastebin with live autosave, collaboration, browser-side encryption, and self-destructing pastes."
+	landingTitle     = "cowyo — A shared scratchpad with no setup"
+	aboutTitle       = "About cowyo — Simple, shared text"
+	aboutDescription = "Learn how cowyo makes shared text simple with live autosave, memorable URLs, browser-side encryption, page locks, self-destruct, and curl support."
+	socialImageAlt   = "cowyo logo — a cow beside a speech bubble saying yo"
 )
 
 type seoTemplateData struct {
@@ -70,6 +73,51 @@ func buildPageSEO(r *http.Request, page Page) (seoTemplateData, error) {
 		SocialImageURL: html.EscapeString(raw.socialImageURL),
 		OpenGraphType:  raw.openGraphType,
 		Published:      page.Published,
+		JSONLD:         string(jsonLD),
+	}, nil
+}
+
+func buildLandingSEO(r *http.Request) (seoTemplateData, error) {
+	return buildSitePageSEO(r, landingTitle, siteDescription, "")
+}
+
+func buildAboutSEO(r *http.Request) (seoTemplateData, error) {
+	return buildSitePageSEO(r, aboutTitle, aboutDescription, "about")
+}
+
+func buildSitePageSEO(
+	r *http.Request,
+	title string,
+	description string,
+	path string,
+) (seoTemplateData, error) {
+	raw := rawPageSEO{
+		title:          title,
+		description:    description,
+		robots:         robotsDirective(true),
+		canonicalURL:   postedDocumentURL(r, path),
+		siteURL:        postedDocumentURL(r, ""),
+		sitemapURL:     postedDocumentURL(r, "sitemap.xml"),
+		socialImageURL: postedDocumentURL(r, "static/og.jpg"),
+		logoURL:        postedDocumentURL(r, "static/logo.jpg"),
+		openGraphType:  "website",
+	}
+
+	jsonLD, err := structuredDataJSON(raw, Page{})
+	if err != nil {
+		return seoTemplateData{}, err
+	}
+
+	return seoTemplateData{
+		Title:          html.EscapeString(raw.title),
+		Description:    html.EscapeString(raw.description),
+		Robots:         raw.robots,
+		CanonicalURL:   html.EscapeString(raw.canonicalURL),
+		SiteURL:        html.EscapeString(raw.siteURL),
+		SitemapURL:     html.EscapeString(raw.sitemapURL),
+		SocialImageURL: html.EscapeString(raw.socialImageURL),
+		OpenGraphType:  raw.openGraphType,
+		Published:      true,
 		JSONLD:         string(jsonLD),
 	}, nil
 }

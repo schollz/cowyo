@@ -112,9 +112,14 @@ func TestBuiltFrontendIncludesCowActions(t *testing.T) {
 		`id="themeAction"`,
 		`href="/about"`,
 	}
+	editorStart := strings.Index(builtIndex, `id="saveActions"`)
+	if editorStart == -1 {
+		t.Fatal("built index does not contain editor actions")
+	}
+	editorIndex := builtIndex[editorStart:]
 	previousIndex := -1
 	for _, marker := range actionOrder {
-		currentIndex := strings.Index(builtIndex, marker)
+		currentIndex := strings.Index(editorIndex, marker)
 		if currentIndex <= previousIndex {
 			t.Fatalf("built action %q is out of order", marker)
 		}
@@ -153,11 +158,148 @@ func TestIsCurlRequest(t *testing.T) {
 	}
 }
 
-func TestRootRedirectsToAlliterativeDocument(t *testing.T) {
+func TestBrowserRootRendersLandingPage(t *testing.T) {
 	setUpHandlerTest(t, Page{Title: "seed"})
 
 	request := httptest.NewRequest(http.MethodGet, "/", nil)
 	request.Header.Set("User-Agent", "Mozilla/5.0")
+	response := httptest.NewRecorder()
+
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+	if response.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+
+	body := response.Body.String()
+	for description, marker := range map[string]string{
+		"landing page":         `class="landing-page"`,
+		"primary action":       `href="/?new=1"`,
+		"landing headline":     `Write together.`,
+		"open-source link":     `https://github.com/schollz/cowyo`,
+		"indexing directive":   `content="` + robotsDirective(true) + `"`,
+		"sponsorship link":     `https://github.com/sponsors/schollz`,
+		"other-tools menu":     `<summary>other tools</summary>`,
+		"croc tool":            `https://getcroc.com`,
+		"wthrtxt tool":         `https://wthrtxt.com`,
+		"zero-account message": `No account. Free and open source.`,
+	} {
+		if !strings.Contains(body, marker) {
+			t.Errorf("landing response does not contain %s", description)
+		}
+	}
+	for description, marker := range map[string]string{
+		"paste editor": `<textarea`,
+		"paste menu":   `id="saveMenu"`,
+	} {
+		if strings.Contains(body, marker) {
+			t.Errorf("landing response unexpectedly contains %s", description)
+		}
+	}
+	if got := response.Header().Get("X-Robots-Tag"); got != robotsDirective(true) {
+		t.Errorf("X-Robots-Tag = %q, want %q", got, robotsDirective(true))
+	}
+	if got := response.Header().Get("Content-Type"); got != "text/html; charset=utf-8" {
+		t.Errorf("Content-Type = %q, want HTML", got)
+	}
+}
+
+func TestBrowserAboutRendersDedicatedPage(t *testing.T) {
+	t.Setenv(siteURLEnvironment, "https://cowyo.example")
+	setUpHandlerTest(t, Page{
+		Title: "about",
+		Text:  "this stored paste must not replace the dedicated page",
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/about", nil)
+	request.Header.Set("User-Agent", "Mozilla/5.0")
+	response := httptest.NewRecorder()
+
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+	if response.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+
+	body := response.Body.String()
+	for description, marker := range map[string]string{
+		"about page":           `class="about-main"`,
+		"about headline":       `minus the ceremony`,
+		"start action":         `href="/?new=1"`,
+		"unpublished detail":   `Unpublished`,
+		"page-lock detail":     `Locked`,
+		"encryption detail":    `Encrypted`,
+		"self-destruct detail": `Self-destruct`,
+		"curl example":         `curl https://cowyo.com/my-notes`,
+		"sponsorship link":     `https://github.com/sponsors/schollz`,
+		"canonical metadata":   `rel="canonical" href="https://cowyo.example/about"`,
+		"indexing directive":   `content="` + robotsDirective(true) + `"`,
+	} {
+		if !strings.Contains(body, marker) {
+			t.Errorf("about response does not contain %s", description)
+		}
+	}
+	for description, marker := range map[string]string{
+		"paste editor":      `<textarea`,
+		"stored paste text": `this stored paste must not replace the dedicated page`,
+	} {
+		if strings.Contains(body, marker) {
+			t.Errorf("about response unexpectedly contains %s", description)
+		}
+	}
+	if got := response.Header().Get("Link"); got != `<https://cowyo.example/about>; rel="canonical"` {
+		t.Errorf("Link header = %q", got)
+	}
+	if got := response.Header().Get("X-Robots-Tag"); got != robotsDirective(true) {
+		t.Errorf("X-Robots-Tag = %q, want %q", got, robotsDirective(true))
+	}
+}
+
+func TestAboutRejectsPosts(t *testing.T) {
+	setUpHandlerTest(t, Page{Title: "seed"})
+
+	request := httptest.NewRequest(http.MethodPost, "/about", strings.NewReader("hidden paste"))
+	response := httptest.NewRecorder()
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+
+	if response.Code != http.StatusMethodNotAllowed {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusMethodNotAllowed)
+	}
+	if got := response.Header().Get("Allow"); got != "GET, HEAD" {
+		t.Errorf("Allow = %q, want GET, HEAD", got)
+	}
+}
+
+func TestRootNewQueryRedirectsToAlliterativeDocument(t *testing.T) {
+	setUpHandlerTest(t, Page{Title: "seed"})
+
+	request := httptest.NewRequest(http.MethodGet, "/?new=1", nil)
+	request.Header.Set("User-Agent", "Mozilla/5.0")
+	response := httptest.NewRecorder()
+
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+	if response.Code != http.StatusFound {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusFound)
+	}
+
+	location := response.Header().Get("Location")
+	name := strings.TrimPrefix(location, "/")
+	if location == name || !isAlliterativeDocumentName(name) {
+		t.Errorf("Location = %q, want /adjective-animal with matching initials", location)
+	}
+}
+
+func TestCurlRootStillRedirectsToAlliterativeDocument(t *testing.T) {
+	setUpHandlerTest(t, Page{Title: "seed"})
+
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	request.Header.Set("User-Agent", "curl/8.7.1")
 	response := httptest.NewRecorder()
 
 	if err := handle(response, request); err != nil {
@@ -397,7 +539,7 @@ func TestPublishedBrowserPageCanBeIndexed(t *testing.T) {
 	}
 }
 
-func TestSitemapIncludesOnlyPublishedPages(t *testing.T) {
+func TestSitemapIncludesLandingAndOnlyPublishedPages(t *testing.T) {
 	setUpHandlerTest(t, Page{
 		Title:     "alpha-published",
 		Text:      "first",
@@ -441,6 +583,8 @@ func TestSitemapIncludesOnlyPublishedPages(t *testing.T) {
 		t.Fatalf("parse sitemap: %v\n%s", err, response.Body.String())
 	}
 	wantLocations := []string{
+		"https://example.com/",
+		"https://example.com/about",
 		"https://example.com/alpha-published",
 		"https://example.com/zebra-published",
 	}
