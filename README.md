@@ -29,19 +29,12 @@ with other people in real time.
 
 Try it at [cowyo.com](https://cowyo.com).
 
-The home page introduces cowyo and starts a new randomly named scratchpad from
-its primary action. You can also open any memorable path directly, such as
-`/calm-cat`, to use it as a scratchpad. The dedicated
-[About page](https://cowyo.com/about) explains the workflow, privacy controls,
-curl interface, and open-source project.
-
 ## Getting started
 
 Build and run:
 
 ```sh
-make build
-./cowyo
+make serve
 ```
 
 Then open [localhost:8001](http://localhost:8001). Use `-port` to choose a
@@ -52,15 +45,6 @@ in `.env.example`. In production, set `SITE_URL` to the site's public origin
 (for example, `https://cowyo.com`) so canonical links, social previews,
 returned paste URLs, `robots.txt`, and the sitemap always use the authoritative
 domain.
-
-### Docker
-
-```sh
-docker build -t cowyo .
-docker run --name cowyo -p 8001:8001 -v cowyo-data:/data cowyo
-```
-
-The repository also includes `disco.json` for deployment with Disco.
 
 ## Features
 
@@ -113,12 +97,6 @@ curl --data-binary @notes.txt https://cowyo.com/my-notes
 ```
 
 ## Development
-
-Run the development server:
-
-```sh
-make serve
-```
 
 Run the tests:
 
