@@ -119,6 +119,10 @@ The server loads `.env` at startup.
 - A non-empty `ADMIN_POST_KEY` authorizes unrestricted HTTP POSTs when the
   request supplies the exact value in `X-Cowyo-Admin-Key`. Keep it secret and
   deploy behind HTTPS.
+- `UMAMI_URL` and `UMAMI_WEBSITE_ID` optionally add Umami analytics to every
+  browser-rendered page. The URL must be an HTTP(S) origin without a path,
+  query, fragment, or credentials, and the website ID must be a UUID. Both
+  values must be valid for the tracker to render.
 - `-log` selects the logging level and defaults to `info`.
 
 Database migrations run automatically when the store opens. They can also be
@@ -167,6 +171,9 @@ When changing the schema or query behavior:
   and the current page. Published pastes use a bounded plaintext excerpt and
   `article` Open Graph type; unpublished pages use generic site copy so their
   contents do not leak into link-preview metadata.
+- Every browser page includes the Umami tracker when both `UMAMI_URL` and
+  `UMAMI_WEBSITE_ID` are configured; curl plaintext responses never include
+  analytics markup.
 - Social previews and structured data use the official vendored cowyo logo at
   `/static/logo.jpg`; `/static/og.jpg` is the centered 1200×630 derivative for
   large link cards.
@@ -387,10 +394,11 @@ default SQLite database is persisted across container replacements. A custom
 SQLite path must remain under `/data` to be persistent.
 
 For PostgreSQL deployments, set `DATABASE_URL` through the Disco dashboard or
-CLI. Set `ADMIN_POST_KEY` there as well. Never put secrets in `disco.json`;
-Disco commits that file with the repository. The application applies database
-migrations during startup, so the Disco configuration does not define a
-separate migration hook.
+CLI. Set `ADMIN_POST_KEY` there as well. Set `UMAMI_URL` and
+`UMAMI_WEBSITE_ID` there to enable Umami analytics. Never put secrets in
+`disco.json`; Disco commits that file with the repository. The application
+applies database migrations during startup, so the Disco configuration does
+not define a separate migration hook.
 
 ## Change checklist
 

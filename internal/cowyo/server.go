@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -30,7 +31,11 @@ var connections map[string]*Connection
 var connectionsMu sync.Mutex
 var pageMutationMu sync.Mutex
 
-const googleTagEnvironment = "GOOGLE_TAG"
+const (
+	googleTagEnvironment      = "GOOGLE_TAG"
+	umamiURLEnvironment       = "UMAMI_URL"
+	umamiWebsiteIDEnvironment = "UMAMI_WEBSITE_ID"
+)
 
 var siteContent = site.Content()
 var policy *bluemonday.Policy
@@ -114,10 +119,12 @@ type Page struct {
 
 type pageTemplateData struct {
 	Page
-	GoogleTag string
-	Landing   bool
-	About     bool
-	SEO       seoTemplateData
+	GoogleTag      string
+	UmamiURL       string
+	UmamiWebsiteID string
+	Landing        bool
+	About          bool
+	SEO            seoTemplateData
 }
 
 type sitemapURLSet struct {
@@ -216,11 +223,13 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 	}
 	p.Text = html.EscapeString(p.Text)
 	p.Text = policy.Sanitize(p.Text)
-	return indexTemplate.Execute(w, pageTemplateData{
+	data := pageTemplateData{
 		Page:      p,
 		GoogleTag: configuredGoogleTag(),
 		SEO:       seo,
-	})
+	}
+	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
+	return indexTemplate.Execute(w, data)
 }
 
 func handleLanding(w http.ResponseWriter, r *http.Request) error {
@@ -240,11 +249,13 @@ func handleLanding(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Link", fmt.Sprintf("<%s>; rel=\"canonical\"", postedDocumentURL(r, "")))
 	w.Header().Set("Vary", "User-Agent")
 	w.Header().Set("X-Robots-Tag", robotsDirective(true))
-	return indexTemplate.Execute(w, pageTemplateData{
+	data := pageTemplateData{
 		GoogleTag: configuredGoogleTag(),
 		Landing:   true,
 		SEO:       seo,
-	})
+	}
+	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
+	return indexTemplate.Execute(w, data)
 }
 
 func handleAbout(w http.ResponseWriter, r *http.Request) error {
@@ -263,11 +274,13 @@ func handleAbout(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Link", fmt.Sprintf("<%s>; rel=\"canonical\"", postedDocumentURL(r, "about")))
 	w.Header().Set("X-Robots-Tag", robotsDirective(true))
-	return indexTemplate.Execute(w, pageTemplateData{
+	data := pageTemplateData{
 		GoogleTag: configuredGoogleTag(),
 		About:     true,
 		SEO:       seo,
-	})
+	}
+	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
+	return indexTemplate.Execute(w, data)
 }
 
 func redirectToRandomDocument(w http.ResponseWriter, r *http.Request) error {
@@ -287,6 +300,31 @@ func configuredGoogleTag() string {
 		return ""
 	}
 	return tag
+}
+
+var umamiWebsiteIDPattern = regexp.MustCompile(
+	`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+)
+
+func configuredUmamiTracker() (string, string) {
+	configuredURL := strings.TrimSpace(os.Getenv(umamiURLEnvironment))
+	websiteID := strings.TrimSpace(os.Getenv(umamiWebsiteIDEnvironment))
+	if configuredURL == "" || !umamiWebsiteIDPattern.MatchString(websiteID) {
+		return "", ""
+	}
+
+	parsed, err := url.Parse(configuredURL)
+	if err != nil ||
+		(parsed.Scheme != "http" && parsed.Scheme != "https") ||
+		parsed.Host == "" ||
+		parsed.User != nil ||
+		(parsed.Path != "" && parsed.Path != "/") ||
+		parsed.RawQuery != "" ||
+		parsed.Fragment != "" {
+		return "", ""
+	}
+
+	return html.EscapeString(parsed.Scheme + "://" + parsed.Host), websiteID
 }
 
 func handleSitemap(w http.ResponseWriter, r *http.Request) error {

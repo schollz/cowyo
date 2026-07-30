@@ -70,6 +70,14 @@
       gtag("config", "{{.GoogleTag}}");
     </script>
     {{end}}
+    {{if and .UmamiURL .UmamiWebsiteID}}
+    <script
+      vite-ignore
+      defer
+      src="{{.UmamiURL}}/script.js"
+      data-website-id="{{.UmamiWebsiteID}}"
+    ></script>
+    {{end}}
     <script>
       (() => {
         const storageKey = "cowyo-theme";

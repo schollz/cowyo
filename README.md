@@ -45,7 +45,8 @@ cowyo uses SQLite by default. To use PostgreSQL, set `DATABASE_URL` as shown
 in `.env.example`. In production, set `SITE_URL` to the site's public origin
 (for example, `https://cowyo.com`) so canonical links, social previews,
 returned paste URLs, `robots.txt`, and the sitemap always use the authoritative
-domain.
+domain. To enable Umami analytics, set `UMAMI_URL` to the Umami origin and
+`UMAMI_WEBSITE_ID` to the Cowyo website ID from the Umami dashboard.
 
 ## Features
 

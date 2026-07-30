@@ -435,6 +435,70 @@ func TestBrowserPageOmitsUnconfiguredOrInvalidGoogleTag(t *testing.T) {
 	}
 }
 
+func TestBrowserPageIncludesConfiguredUmamiTracker(t *testing.T) {
+	const (
+		umamiURL  = "https://umami.schollz.com/"
+		websiteID = "94db1cb1-74f4-4a40-ad6c-962362670409"
+	)
+	t.Setenv(umamiURLEnvironment, umamiURL)
+	t.Setenv(umamiWebsiteIDEnvironment, websiteID)
+	setUpHandlerTest(t, Page{Title: "tracked"})
+
+	request := httptest.NewRequest(http.MethodGet, "/tracked", nil)
+	request.Header.Set("User-Agent", "Mozilla/5.0")
+	response := httptest.NewRecorder()
+
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+
+	body := response.Body.String()
+	if !strings.Contains(body, `src="https://umami.schollz.com/script.js"`) {
+		t.Error("browser response does not load the configured Umami tracker")
+	}
+	if !strings.Contains(body, `data-website-id="`+websiteID+`"`) {
+		t.Error("browser response does not include the configured Umami website ID")
+	}
+}
+
+func TestBrowserPageOmitsIncompleteOrInvalidUmamiTracker(t *testing.T) {
+	const (
+		validURL = "https://umami.schollz.com"
+		validID  = "94db1cb1-74f4-4a40-ad6c-962362670409"
+	)
+	for _, tt := range []struct {
+		name      string
+		umamiURL  string
+		websiteID string
+	}{
+		{name: "unconfigured"},
+		{name: "missing website ID", umamiURL: validURL},
+		{name: "missing URL", websiteID: validID},
+		{name: "URL has path", umamiURL: validURL + `/tracker`, websiteID: validID},
+		{name: "URL has query", umamiURL: validURL + `?bad=true`, websiteID: validID},
+		{name: "URL has credentials", umamiURL: `https://user:pass@umami.schollz.com`, websiteID: validID},
+		{name: "invalid scheme", umamiURL: `javascript:alert(1)`, websiteID: validID},
+		{name: "invalid website ID", umamiURL: validURL, websiteID: `"></script><script>alert(1)</script>`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(umamiURLEnvironment, tt.umamiURL)
+			t.Setenv(umamiWebsiteIDEnvironment, tt.websiteID)
+			setUpHandlerTest(t, Page{Title: "untracked"})
+
+			request := httptest.NewRequest(http.MethodGet, "/untracked", nil)
+			request.Header.Set("User-Agent", "Mozilla/5.0")
+			response := httptest.NewRecorder()
+
+			if err := handle(response, request); err != nil {
+				t.Fatalf("handle() error = %v", err)
+			}
+			if body := response.Body.String(); strings.Contains(body, "data-website-id") {
+				t.Errorf("browser response includes an Umami tracker for %q and %q", tt.umamiURL, tt.websiteID)
+			}
+		})
+	}
+}
+
 func TestSelfDestructPageLoadsOnceThenIsDeleted(t *testing.T) {
 	const (
 		title   = "one-time-browser"
