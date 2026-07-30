@@ -17,6 +17,7 @@ const (
 	pageLockSaltLength = 16
 	pageLockKeyLength  = 32
 	minLockPasswordLen = 8
+	maxLockPasswordLen = 1024
 )
 
 var (
@@ -35,6 +36,12 @@ func createPageLock(password string) (pageLockCredentials, error) {
 		return pageLockCredentials{}, fmt.Errorf(
 			"page lock password must be at least %d characters",
 			minLockPasswordLen,
+		)
+	}
+	if len(password) > maxLockPasswordLen {
+		return pageLockCredentials{}, fmt.Errorf(
+			"page lock password must not exceed %d bytes",
+			maxLockPasswordLen,
 		)
 	}
 

@@ -59,8 +59,9 @@ as `calm-cat`.
 
 ### Encryption
 
-Encryption happens entirely in the browser. The password is never sent to the
-server, and encrypted text cannot be recovered if the password is lost.
+Encryption happens entirely on the client—the browser does it for the editor.
+The password is never sent to the server, and encrypted text cannot be
+recovered if the password is lost.
 Password fields are hidden by default and have an eye button to reveal them.
 On mobile, the password dialog stays inside the visible area as the on-screen
 keyboard opens.
@@ -91,13 +92,85 @@ See [About cowyo](ABOUT.md) for a more complete guide.
 
 ## Using curl
 
-curl receives and sends plain text:
+cowyo works as a plain-text command-line endpoint without an SDK, JSON
+wrapping, or an API token. A GET prints the exact stored text, so it can be
+piped to another command or redirected to a file:
 
 ```sh
 curl https://cowyo.com/my-notes
-curl --data-binary @notes.txt https://cowyo.com/
-curl --data-binary @notes.txt https://cowyo.com/my-notes
+curl https://cowyo.com/my-notes > notes.txt
 ```
+
+POST a file to `/` to create a randomly named page. The response is its
+shareable URL:
+
+```sh
+curl --data-binary @notes.txt https://cowyo.com/
+```
+
+POST to a named path to create or replace that page. `@-` reads the body from
+stdin:
+
+```sh
+curl --data-binary @notes.txt https://cowyo.com/my-notes
+printf '%s\n' 'deploy at 3pm' |
+  curl --data-binary @- https://cowyo.com/team-handoff
+```
+
+A named POST replaces the page's complete contents. Locked pages reject normal
+command-line writes until they are unlocked in the browser or through the
+page-control API.
+
+### Page-control API
+
+Existing pages can be published, locked, encrypted, or armed for self destruct
+through the versioned operations endpoint:
+
+```text
+POST /api/v1/pages/{page}/operations
+Content-Type: application/json
+```
+
+For example, publish a page:
+
+```sh
+curl --json '{"operation":"publish"}' \
+  https://cowyo.com/api/v1/pages/my-notes/operations
+```
+
+The supported operations are `publish`, `unpublish`, `lock`, `unlock`,
+`encrypt`, `decrypt`, `self-destruct`, and `cancel-self-destruct`. Lock and
+unlock requests include a `password`:
+
+```sh
+curl --json '{"operation":"lock","password":"use a strong password"}' \
+  https://cowyo.com/api/v1/pages/my-notes/operations
+```
+
+Avoid putting a real password in shell history; send JSON from a protected file
+or stdin instead. Use HTTPS so page-lock passwords are protected in transit.
+
+Encryption stays client-side. An `encrypt` request supplies one complete,
+locally generated `COWYO ENCRYPTED BLOCK V1` in the `text` field; `decrypt`
+supplies the locally decrypted result. The API rejects encryption passwords:
+
+```sh
+jq -n --rawfile text encrypted.txt \
+  '{operation:"encrypt", text:$text}' |
+  curl --json @- \
+    https://cowyo.com/api/v1/pages/my-notes/operations
+```
+
+Successful requests return JSON with the page URL and its current published,
+self-destruct, locked, and encrypted states. The endpoint only changes existing
+pages, accepts strict JSON, limits transformed text to 16 KiB, and caps the
+complete request at 64 KiB.
+
+API mutations share the normal per-client POST limit of 10 per minute with a
+burst of 5. Page operations also have per-client and per-page token buckets;
+lock and unlock attempts have tighter client-plus-page and page-wide limits to
+slow password guessing and distributed state-flipping. Rate-limited responses
+return HTTP 429 with `Retry-After`.
 
 ## Development
 

@@ -2,11 +2,14 @@ package cowyo
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"flag"
 	"fmt"
 	"html"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -140,6 +143,8 @@ type sitemapURL struct {
 func handle(w http.ResponseWriter, r *http.Request) (err error) {
 	if r.URL.Path == "/ws" {
 		return handleWebsocket(w, r)
+	} else if r.URL.Path == apiRoot || strings.HasPrefix(r.URL.Path, apiPrefix) {
+		return handleAPI(w, r)
 	} else if r.URL.Path == "/sitemap.xml" {
 		return handleSitemap(w, r)
 	} else if r.URL.Path == "/robots.txt" {
@@ -398,8 +403,11 @@ func isCurlRequest(r *http.Request) bool {
 }
 
 var (
-	errPageLocked        = errors.New("page is locked")
-	errSelfDestructArmed = errors.New("page self destruct is armed")
+	errPageLocked              = errors.New("page is locked")
+	errSelfDestructArmed       = errors.New("page self destruct is armed")
+	errDecryptChangedPlaintext = errors.New(
+		"decryption must preserve text outside complete encrypted blocks",
+	)
 )
 
 type pageUpdate struct {
@@ -410,16 +418,48 @@ type pageUpdate struct {
 	Password    string
 }
 
+type pageUpdateOptions struct {
+	requireExisting  bool
+	preserveLockText bool
+	source           string
+}
+
 func applyWebsocketUpdate(
 	ctx context.Context,
 	place string,
 	update pageUpdate,
+) (database.Page, error) {
+	return applyPageUpdate(ctx, place, update, pageUpdateOptions{
+		source: "websocket",
+	})
+}
+
+func applyAPIUpdate(
+	ctx context.Context,
+	place string,
+	update pageUpdate,
+) (database.Page, error) {
+	return applyPageUpdate(ctx, place, update, pageUpdateOptions{
+		requireExisting:  true,
+		preserveLockText: true,
+		source:           "http-api",
+	})
+}
+
+func applyPageUpdate(
+	ctx context.Context,
+	place string,
+	update pageUpdate,
+	options pageUpdateOptions,
 ) (database.Page, error) {
 	pageMutationMu.Lock()
 	defer pageMutationMu.Unlock()
 
 	stored, err := pageStore.GetPage(ctx, place)
 	if errors.Is(err, database.ErrPageNotFound) {
+		if options.requireExisting {
+			return database.Page{}, database.ErrPageNotFound
+		}
 		stored = database.Page{Title: place}
 		err = nil
 	} else if err != nil {
@@ -446,6 +486,11 @@ func applyWebsocketUpdate(
 		if stored.Locked {
 			err = errPageAlreadyLocked
 		} else {
+			if options.preserveLockText {
+				next.Text = stored.Text
+				next.CursorStart = stored.CursorStart
+				next.CursorEnd = stored.CursorEnd
+			}
 			var credentials pageLockCredentials
 			credentials, err = createPageLock(update.Password)
 			if err == nil {
@@ -466,6 +511,10 @@ func applyWebsocketUpdate(
 		}, update.Password)
 		if err == nil {
 			next.Text = stored.Text
+			if options.preserveLockText {
+				next.CursorStart = stored.CursorStart
+				next.CursorEnd = stored.CursorEnd
+			}
 			next.Locked = false
 			next.LockSalt = ""
 			next.LockVerifier = ""
@@ -510,7 +559,7 @@ func applyWebsocketUpdate(
 	if err := pageStore.UpsertPage(ctx, next); err != nil {
 		return database.Page{}, fmt.Errorf("save page: %w", err)
 	}
-	logPageEdit(place, "websocket", pageOperation(update.Operation), len(next.Text))
+	logPageEdit(place, options.source, pageOperation(update.Operation), len(next.Text))
 	return next, nil
 }
 
@@ -524,7 +573,7 @@ func validateCryptoUpdate(current, next, operation string, locked bool) error {
 		return errPageLocked
 	case operationDecrypt:
 		if !preservesTextOutsideEncryptedBlocks(current, next) {
-			return errors.New("decryption must preserve text outside complete encrypted blocks")
+			return errDecryptChangedPlaintext
 		}
 	}
 	return nil
@@ -538,6 +587,70 @@ var encryptedBlockPattern = regexp.MustCompile(
 		`\r?\n[^\r\n]+\r?\n` +
 		regexp.QuoteMeta(encryptedBlockEnd),
 )
+
+type encryptedBlockEnvelope struct {
+	Version    int    `json:"v"`
+	KDF        string `json:"kdf"`
+	N          int    `json:"N"`
+	R          int    `json:"r"`
+	P          int    `json:"p"`
+	Salt       string `json:"salt"`
+	Cipher     string `json:"cipher"`
+	Nonce      string `json:"nonce"`
+	Ciphertext string `json:"data"`
+}
+
+func validEncryptedDocument(text string) bool {
+	match := encryptedBlockPattern.FindStringIndex(text)
+	return match != nil &&
+		match[0] == 0 &&
+		match[1] == len(text) &&
+		validEncryptedBlock(text)
+}
+
+func hasValidEncryptedBlock(text string) bool {
+	for _, block := range encryptedBlockPattern.FindAllString(text, -1) {
+		if validEncryptedBlock(block) {
+			return true
+		}
+	}
+	return false
+}
+
+func validEncryptedBlock(block string) bool {
+	payload := strings.TrimPrefix(block, encryptedBlockStart)
+	payload = strings.TrimSuffix(payload, encryptedBlockEnd)
+	payload = strings.TrimSpace(payload)
+
+	var envelope encryptedBlockEnvelope
+	decoder := json.NewDecoder(strings.NewReader(payload))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&envelope); err != nil {
+		return false
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return false
+	}
+	if envelope.Version != 1 ||
+		envelope.KDF != "scrypt" ||
+		envelope.N != 1<<16 ||
+		envelope.R != 8 ||
+		envelope.P != 1 ||
+		envelope.Cipher != "xchacha20-poly1305" {
+		return false
+	}
+
+	salt, err := base64.RawURLEncoding.DecodeString(envelope.Salt)
+	if err != nil || len(salt) != 16 {
+		return false
+	}
+	nonce, err := base64.RawURLEncoding.DecodeString(envelope.Nonce)
+	if err != nil || len(nonce) != 24 {
+		return false
+	}
+	ciphertext, err := base64.RawURLEncoding.DecodeString(envelope.Ciphertext)
+	return err == nil && len(ciphertext) >= 16
+}
 
 func preservesTextOutsideEncryptedBlocks(current, next string) bool {
 	ranges := encryptedBlockPattern.FindAllStringIndex(current, -1)
