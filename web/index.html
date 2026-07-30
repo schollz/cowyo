@@ -216,7 +216,7 @@
         <section class="landing-hero">
           <div class="landing-intro">
             <p class="landing-eyebrow">zero-account shared scratchpad</p>
-            <h1>Write together.<br />Without the setup.</h1>
+            <h1>Write it down.<br />Share it instantly.</h1>
             <p class="landing-lede">
               Open a page, type, and share the URL. cowyo saves live and
               stays out of your way.
@@ -229,7 +229,15 @@
                 See how it works
               </a>
             </div>
-            <p class="landing-assurance">No account. Free and open source.</p>
+            <p class="landing-assurance">
+              No account. Free and
+              <a
+                class="landing-assurance-source"
+                href="https://github.com/schollz/cowyo"
+                rel="noreferrer"
+              >open source</a>.
+              <span>Powering quick notes on the web for more than 10 years.</span>
+            </p>
           </div>
 
           <div class="landing-demo" aria-label="A cowyo scratchpad example">
@@ -264,10 +272,10 @@
           </article>
           <article>
             <p class="landing-feature-number">02</p>
-            <h2>Protected when needed</h2>
+            <h2>A few page controls</h2>
             <p>
-              Pages start unpublished. Encrypt text in your browser, lock
-              editing, or make the page self-destruct.
+              Pages start out of search, not private. Lock editing, encrypt the
+              text, or make the page disappear after one final load.
             </p>
             <div class="landing-control-icons" aria-hidden="true">
               <span class="menu-icon-tile">
@@ -286,9 +294,21 @@
           </article>
           <article>
             <p class="landing-feature-number">03</p>
-            <h2>Friendly to curl</h2>
-            <p>Read and write exact plaintext from the command line.</p>
-            <code>curl --data-binary @notes.txt cowyo.com/</code>
+            <h2>At home in the terminal</h2>
+            <p>
+              No SDK or special client. Read exact plaintext, or send a file
+              and get a shareable cowyo URL back.
+            </p>
+            <div class="landing-cli-example" aria-label="curl examples">
+              <div class="landing-cli-line">
+                <span>read</span>
+                <code>curl https://cowyo.com/my-notes</code>
+              </div>
+              <div class="landing-cli-line">
+                <span>write</span>
+                <code>curl --data-binary @notes.txt https://cowyo.com/</code>
+              </div>
+            </div>
           </article>
         </section>
       </main>
@@ -297,7 +317,7 @@
         <section class="about-hero">
           <div class="about-hero-copy">
             <p class="landing-eyebrow">about cowyo</p>
-            <h1>A shared scratchpad,<br />minus the ceremony.</h1>
+            <h1>a blank page + a link</h1>
             <p class="landing-lede">
               cowyo is for the text that needs a place right now: a running
               list, a handoff, meeting notes, or a thought shared across a
@@ -363,11 +383,12 @@
           aria-labelledby="about-privacy-title"
         >
           <div class="about-section-heading">
-            <p class="landing-eyebrow">privacy, plainly</p>
-            <h2 id="about-privacy-title">Four controls. Four different jobs.</h2>
+            <p class="landing-eyebrow">page controls, plainly</p>
+            <h2 id="about-privacy-title">A link is still a link.</h2>
             <p>
-              cowyo keeps these choices separate so you can use exactly the
-              protection a page needs.
+              Anyone with the URL can open an unencrypted page. These controls
+              manage search visibility, editing, encryption, and lifespan—they
+              don't turn cowyo into a private workspace.
             </p>
           </div>
           <div class="about-privacy-grid">
@@ -382,8 +403,9 @@
                 <span class="about-privacy-detail">default</span>
               </header>
               <p>
-                Keeps the page out of cowyo's sitemap. Anyone who knows the URL
-                can still open it.
+                Keeps the page out of cowyo's sitemap and asks search engines
+                not to index it. It is not private; anyone with the URL can
+                still open it.
               </p>
             </article>
             <article>
@@ -397,8 +419,8 @@
                 <span class="about-privacy-detail">edit protection</span>
               </header>
               <p>
-                Prevents changes until the page password is entered. The text
-                stays readable.
+                Prevents changes until the page password is entered. It does
+                not hide the text, which stays readable to anyone with the URL.
               </p>
             </article>
             <article>
@@ -412,8 +434,9 @@
                 <span class="about-privacy-detail">content protection</span>
               </header>
               <p>
-                Protects text in your browser before it is saved. The
-                encryption password never reaches the server.
+                Encrypts the text in your browser before it is saved. Anyone
+                can load the encrypted block; the password is needed to read
+                its contents.
               </p>
             </article>
             <article>
@@ -427,26 +450,104 @@
                 <span class="about-privacy-detail">one final load</span>
               </header>
               <p>
-                Returns the page one last time on its next visit, then deletes
-                it.
+                Whoever visits next receives one final load. The page is then
+                deleted.
               </p>
             </article>
           </div>
         </section>
 
-        <section class="about-section about-curl" aria-labelledby="about-curl-title">
-          <div class="about-curl-copy">
-            <p class="landing-eyebrow">browser optional</p>
-            <h2 id="about-curl-title">Plain text in. Plain text out.</h2>
-            <p>
-              curl reads the exact stored text and can create or replace a
-              scratchpad with a single request.
-            </p>
+        <section
+          class="about-section about-curl"
+          aria-labelledby="about-curl-title"
+        >
+          <div class="about-curl-header">
+            <div class="about-curl-copy">
+              <p class="landing-eyebrow">browser optional</p>
+              <h2 id="about-curl-title">cowyo speaks command line.</h2>
+              <p>
+                Every scratchpad doubles as a plain-text endpoint. Read with
+                GET, write with POST, and use the same URL in a terminal, a
+                browser, or a script.
+              </p>
+            </div>
+            <ul class="about-curl-benefits" aria-label="Command-line advantages">
+              <li>
+                <strong>Composable</strong>
+                <span>Pipe command output in or redirect a page to a file.</span>
+              </li>
+              <li>
+                <strong>Plain</strong>
+                <span>No JSON envelope, HTML scraping, SDK, or API token.</span>
+              </li>
+              <li>
+                <strong>Shareable</strong>
+                <span>Each write returns the page URL as its response.</span>
+              </li>
+            </ul>
           </div>
-          <pre aria-label="curl examples"><code>curl https://cowyo.com/my-notes
 
-curl --data-binary @notes.txt \
-  https://cowyo.com/my-notes</code></pre>
+          <div class="about-curl-recipes">
+            <article>
+              <p class="landing-feature-number">01 / read</p>
+              <h3>Read a page</h3>
+              <p>
+                curl receives only the exact stored text. Print it, pipe it to
+                another command, or save it locally.
+              </p>
+              <pre aria-label="Read a cowyo page"><code>curl https://cowyo.com/my-notes
+
+curl https://cowyo.com/my-notes \
+  &gt; notes.txt</code></pre>
+            </article>
+
+            <article>
+              <p class="landing-feature-number">02 / create</p>
+              <h3>Create a new page</h3>
+              <p>
+                POST a file to the home URL. cowyo chooses a memorable name and
+                prints the new page URL.
+              </p>
+              <pre aria-label="Create a cowyo page"><code>curl --data-binary @notes.txt \
+  https://cowyo.com/</code></pre>
+            </article>
+
+            <article>
+              <p class="landing-feature-number">03 / write</p>
+              <h3>Write a named page</h3>
+              <p>
+                POST to any path to create or replace it. Use
+                <code class="about-inline-code">@-</code> to read from stdin.
+              </p>
+              <pre aria-label="Write a named cowyo page"><code>printf '%s\n' 'deploy at 3pm' | \
+  curl --data-binary @- \
+  https://cowyo.com/team-handoff</code></pre>
+            </article>
+          </div>
+
+          <div class="about-curl-api">
+            <div>
+              <p class="landing-eyebrow">page controls</p>
+              <h3>Manage more than text.</h3>
+              <p>
+                The versioned API can publish, lock, encrypt, or arm an existing
+                page for self destruct. Successful changes appear immediately
+                for people with the page open.
+              </p>
+              <p>
+                Encryption stays local: send a compatible encrypted block, not
+                the encryption password.
+              </p>
+            </div>
+            <pre aria-label="Publish a page with the API"><code>curl --json '{"operation":"publish"}' \
+  https://cowyo.com/api/v1/pages/my-notes/operations</code></pre>
+          </div>
+
+          <p class="about-curl-note">
+            A named write replaces the page's complete contents. Locked pages
+            reject ordinary writes until they are unlocked in the browser or
+            through the API.
+          </p>
         </section>
 
         <section class="about-open-source" aria-labelledby="about-source-title">

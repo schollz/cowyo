@@ -19,9 +19,10 @@ Unpublished is the default. It keeps a page out of cowyo's sitemap and asks sear
 
 Page locking prevents changes until the page-lock password is entered. It does not hide or encrypt the text. A locked page remains readable, and its password cannot be recovered if forgotten. The password is sent to cowyo when you lock or unlock the page, but is never stored as plain text.
 
-Encryption protects the text itself. Encryption and decryption happen in your browser, and the encryption password is never sent to a server. The server stores the protected content as an encrypted block. Ordinary text before or after an encrypted block is preserved when that block is decrypted. If you lose the encryption password, the encrypted text cannot be recovered.
+Encryption protects the text itself. Encryption and decryption happen on your client—the browser handles it when you use the editor—and the encryption password is never sent to a server. The server stores the protected content as an encrypted block. Ordinary text before or after an encrypted block is preserved when that block is decrypted. If you lose the encryption password, the encrypted text cannot be recovered.
 
-Unlock a page before encrypting it or changing whether it is published.
+Unlock a page before encrypting it or changing whether it is published. This
+can be done in the browser or through the page-control API.
 
 ## Self-destructing pages
 
@@ -58,3 +59,36 @@ curl --data-binary 'remember the milk' https://cowyo.com/shopping-list
 ```
 
 `--data-binary` preserves the text exactly, including line breaks.
+
+## Controlling a page with the API
+
+The versioned page-control endpoint works with existing pages:
+
+```text
+POST /api/v1/pages/{page}/operations
+Content-Type: application/json
+```
+
+Publish or arm a page for self destruct by sending an operation:
+
+```sh
+curl --json '{"operation":"publish"}' \
+  https://cowyo.com/api/v1/pages/my-notes/operations
+
+curl --json '{"operation":"self-destruct"}' \
+  https://cowyo.com/api/v1/pages/my-notes/operations
+```
+
+The complete operation list is `publish`, `unpublish`, `lock`, `unlock`,
+`encrypt`, `decrypt`, `self-destruct`, and `cancel-self-destruct`. Lock and
+unlock requests also supply `password`. Send password-bearing JSON from a
+protected file or stdin rather than leaving the password in shell history, and
+use HTTPS.
+
+Encryption remains local: create or decrypt the signed
+`COWYO ENCRYPTED BLOCK V1` on the client, then send the transformed content in
+the API's `text` field. The encryption password is rejected if sent to cowyo.
+
+The API accepts strict JSON, operates only on existing pages, limits transformed
+text to 16 KiB, and returns HTTP 429 with `Retry-After` when a client, page, or
+page-lock attempt exceeds its rate limit.

@@ -141,6 +141,26 @@ func handleWebsocket(w http.ResponseWriter, r *http.Request) (err error) {
 }
 
 func applyWebsocketMessage(r *http.Request, connection *Connection, message websocketMessage) {
+	if message.Type == websocketMessageOperation {
+		allowed, retryAfter := allowPageOperation(
+			r,
+			connection.place,
+			message.Operation,
+		)
+		if !allowed {
+			sendWebsocketError(
+				connection,
+				database.Page{},
+				message.Operation,
+				fmt.Errorf(
+					"page operation rate limit exceeded; retry in %s",
+					retryAfter.Round(time.Second),
+				),
+			)
+			return
+		}
+	}
+
 	update := pageUpdate{
 		Text:        message.Text,
 		CursorStart: message.CursorStart,
@@ -283,6 +303,29 @@ func broadcastPageUpdate(
 	current.cursorEnd = update.CursorEnd
 	current.hasCursor = true
 	slow := enqueueForPlaceLocked(current.place, current.id, message)
+	connectionsMu.Unlock()
+
+	closeSlowConnections(slow)
+}
+
+func broadcastExternalPageUpdate(
+	place string,
+	saved database.Page,
+	operation string,
+) {
+	message := websocketMessage{
+		Type:         websocketMessageUpdate,
+		Text:         saved.Text,
+		Published:    saved.Published,
+		SelfDestruct: saved.SelfDestruct,
+		Locked:       saved.Locked,
+		Operation:    operation,
+		CursorStart:  saved.CursorStart,
+		CursorEnd:    saved.CursorEnd,
+	}
+
+	connectionsMu.Lock()
+	slow := enqueueForPlaceLocked(place, "", message)
 	connectionsMu.Unlock()
 
 	closeSlowConnections(slow)

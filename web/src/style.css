@@ -684,6 +684,16 @@ textarea {
   font-size: 10px;
 }
 
+.landing-assurance span {
+  display: block;
+  margin-top: 6px;
+}
+
+.landing-assurance-source {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
 .landing-demo {
   position: relative;
   border: 1px solid var(--control-color);
@@ -799,6 +809,37 @@ textarea {
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.landing-cli-example {
+  margin-top: 18px;
+  border-top: 1px dotted
+    color-mix(in srgb, var(--text-color) 35%, transparent);
+}
+
+.landing-cli-line {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 9px 0;
+}
+
+.landing-cli-line + .landing-cli-line {
+  border-top: 1px dotted
+    color-mix(in srgb, var(--text-color) 20%, transparent);
+}
+
+.landing-cli-line span {
+  color: var(--muted-color);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.landing-cli-line code {
+  min-width: 0;
+  margin: 0;
 }
 
 /* About page */
@@ -995,25 +1036,144 @@ textarea {
 }
 
 .about-curl {
+  padding-bottom: 88px;
+}
+
+.about-curl-header {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(430px, 1.2fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(380px, 1.1fr);
   gap: clamp(48px, 8vw, 104px);
-  align-items: center;
+  align-items: end;
+}
+
+.about-curl-benefits {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--control-color);
+  list-style: none;
+}
+
+.about-curl-benefits li {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px dotted
+    color-mix(in srgb, var(--text-color) 35%, transparent);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.about-curl-benefits strong {
+  font-weight: 400;
+}
+
+.about-curl-benefits span {
+  color: var(--muted-color);
+}
+
+.about-curl-recipes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 64px;
+  border-top: 1px solid var(--control-color);
+  border-bottom: 1px solid var(--control-color);
+}
+
+.about-curl-recipes article {
+  display: flex;
+  min-width: 0;
+  min-height: 390px;
+  flex-direction: column;
+  padding: 28px 28px 30px 0;
+}
+
+.about-curl-recipes article + article {
+  padding-left: 28px;
+  border-left: 1px solid var(--control-color);
+}
+
+.about-curl-recipes h3 {
+  margin: 34px 0 14px;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.about-curl-recipes article > p:not(.landing-feature-number) {
+  min-height: 68px;
+  margin: 0 0 24px;
+  color: var(--muted-color);
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.about-curl-recipes pre {
+  margin: auto 0 0;
 }
 
 .about-curl pre {
   margin: 0;
-  padding: 28px;
+  padding: 20px;
   overflow: auto;
   border: 1px solid var(--control-color);
   color: var(--control-color);
   background: var(--page-background);
-  box-shadow: 10px 10px 0
+  box-shadow: 7px 7px 0
     color-mix(in srgb, var(--text-color) 10%, transparent);
   font: inherit;
   font-size: 11px;
-  line-height: 2;
+  line-height: 1.8;
   white-space: pre-wrap;
+}
+
+.about-curl-api {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  gap: clamp(44px, 7vw, 88px);
+  align-items: center;
+  margin-top: 44px;
+  padding: 34px;
+  color: var(--control-inverse);
+  background: var(--control-color);
+}
+
+.about-curl-api .landing-eyebrow,
+.about-curl-api p {
+  color: color-mix(in srgb, var(--control-inverse) 72%, transparent);
+}
+
+.about-curl-api h3 {
+  margin: 16px 0 14px;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.about-curl-api p {
+  max-width: 500px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.about-curl-api p + p {
+  margin-top: 12px;
+}
+
+.about-curl-api pre {
+  width: 100%;
+}
+
+.about-inline-code {
+  color: var(--control-color);
+  font-size: 0.95em;
+}
+
+.about-curl-note {
+  max-width: 780px;
+  margin: 24px 0 0;
+  color: var(--muted-color);
+  font-size: 10px;
+  line-height: 1.7;
 }
 
 .about-open-source {
@@ -1311,15 +1471,54 @@ textarea {
   }
 
   .about-curl {
+    padding-bottom: 66px;
+  }
+
+  .about-curl-header {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 42px;
+  }
+
+  .about-curl-benefits li {
+    grid-template-columns: 90px minmax(0, 1fr);
+  }
+
+  .about-curl-recipes {
+    grid-template-columns: 1fr;
+    margin-top: 48px;
+  }
+
+  .about-curl-recipes article {
+    min-height: 0;
+    padding: 26px 0 34px;
+  }
+
+  .about-curl-recipes article + article {
+    padding-left: 0;
+    border-top: 1px solid var(--control-color);
+    border-left: 0;
+  }
+
+  .about-curl-recipes article > p:not(.landing-feature-number) {
+    min-height: 0;
+  }
+
+  .about-curl-recipes pre {
+    margin-top: 0;
+  }
+
+  .about-curl-api {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin-top: 34px;
+    padding: 26px 18px;
   }
 
   .about-curl pre {
     padding: 20px 16px;
     box-shadow: 6px 6px 0
       color-mix(in srgb, var(--text-color) 10%, transparent);
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .about-open-source {

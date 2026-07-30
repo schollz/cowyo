@@ -176,22 +176,26 @@ func TestBrowserRootRendersLandingPage(t *testing.T) {
 
 	body := response.Body.String()
 	for description, marker := range map[string]string{
-		"landing page":         `class="landing-page"`,
-		"primary action":       `href="/?new=1"`,
-		"landing headline":     `Write together.`,
-		"open-source link":     `https://github.com/schollz/cowyo`,
-		"indexing directive":   `content="` + robotsDirective(true) + `"`,
-		"sponsorship link":     `https://github.com/sponsors/schollz`,
-		"other-tools menu":     `<summary>other tools</summary>`,
-		"protection icon row":  `class="landing-control-icons"`,
-		"publish menu icon":    `data-lucide="globe-2"`,
-		"page-lock menu icon":  `data-lucide="lock-keyhole"`,
-		"encryption menu icon": `data-lucide="shield-keyhole"`,
-		"self-destruct icon":   `data-lucide="bomb"`,
-		"croc tool":            `https://getcroc.com`,
-		"wthrtxt tool":         `https://wthrtxt.com`,
-		"yesnotice tool":       `https://yesnotice.com`,
-		"zero-account message": `No account. Free and open source.`,
+		"landing page":          `class="landing-page"`,
+		"primary action":        `href="/?new=1"`,
+		"landing headline":      `Write it down.`,
+		"open-source link":      `https://github.com/schollz/cowyo`,
+		"indexing directive":    `content="` + robotsDirective(true) + `"`,
+		"sponsorship link":      `https://github.com/sponsors/schollz`,
+		"other-tools menu":      `<summary>other tools</summary>`,
+		"protection icon row":   `class="landing-control-icons"`,
+		"publish menu icon":     `data-lucide="globe-2"`,
+		"page-lock menu icon":   `data-lucide="lock-keyhole"`,
+		"encryption menu icon":  `data-lucide="shield-keyhole"`,
+		"self-destruct icon":    `data-lucide="bomb"`,
+		"croc tool":             `https://getcroc.com`,
+		"wthrtxt tool":          `https://wthrtxt.com`,
+		"yesnotice tool":        `https://yesnotice.com`,
+		"zero-account message":  `No account. Free and`,
+		"assurance source link": `class="landing-assurance-source"`,
+		"longevity message":     `Powering quick notes on the web for more than 10 years.`,
+		"terminal read":         `curl https://cowyo.com/my-notes`,
+		"terminal write":        `curl --data-binary @notes.txt https://cowyo.com/`,
 	} {
 		if !strings.Contains(body, marker) {
 			t.Errorf("landing response does not contain %s", description)
@@ -234,7 +238,7 @@ func TestBrowserAboutRendersDedicatedPage(t *testing.T) {
 	body := response.Body.String()
 	for description, marker := range map[string]string{
 		"about page":           `class="about-main"`,
-		"about headline":       `minus the ceremony`,
+		"about headline":       `a blank page + a link`,
 		"start action":         `href="/?new=1"`,
 		"unpublished detail":   `Unpublished`,
 		"page-lock detail":     `Locked`,
@@ -244,7 +248,11 @@ func TestBrowserAboutRendersDedicatedPage(t *testing.T) {
 		"page-lock menu icon":  `data-lucide="lock-keyhole"`,
 		"encryption menu icon": `data-lucide="shield-keyhole"`,
 		"self-destruct icon":   `data-lucide="bomb"`,
-		"curl example":         `curl https://cowyo.com/my-notes`,
+		"curl read example":    `curl https://cowyo.com/my-notes`,
+		"curl create example":  `curl --data-binary @notes.txt`,
+		"curl stdin example":   `curl --data-binary @-`,
+		"curl advantages":      `Command-line advantages`,
+		"page-control API":     `/api/v1/pages/my-notes/operations`,
 		"sponsorship link":     `https://github.com/sponsors/schollz`,
 		"canonical metadata":   `rel="canonical" href="https://cowyo.example/about"`,
 		"indexing directive":   `content="` + robotsDirective(true) + `"`,
@@ -1332,6 +1340,7 @@ func isolateWebsocketConnections(t *testing.T) {
 
 func setUpHandlerTest(t *testing.T, page Page) {
 	t.Helper()
+	usePermissivePageOperationLimiters(t)
 
 	previousStore := pageStore
 	previousPolicy := policy

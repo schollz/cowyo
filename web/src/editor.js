@@ -776,7 +776,9 @@ function handleSocketMessage(event) {
       data.published,
       data.self_destruct,
     );
-    setRemoteCursor(data.client_id, data.cursor_end);
+    if (data.client_id) {
+      setRemoteCursor(data.client_id, data.cursor_end);
+    }
     flashRemoteUpdate();
   }
 }

@@ -2,6 +2,7 @@ package cowyo
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -49,6 +50,10 @@ func TestPageLockRejectsWrongPasswordAndInvalidCredentials(t *testing.T) {
 func TestPageLockRequiresStrongPasswordAndUsesRandomSalts(t *testing.T) {
 	if _, err := createPageLock("short"); err == nil {
 		t.Fatal("createPageLock() accepted a short password")
+	}
+	tooLong := strings.Repeat("a", maxLockPasswordLen+1)
+	if _, err := createPageLock(tooLong); err == nil {
+		t.Fatal("createPageLock() accepted an oversized password")
 	}
 
 	first, err := createPageLock("long enough password")

@@ -40,6 +40,10 @@ Important paths:
 - `cmd/migrate/`: migration-only command used by `make migrate`.
 - `internal/cowyo/post.go`: curl POST handling, the 16 KiB body limit,
   per-client rate limiting, random-page allocation, and returned URLs.
+- `internal/cowyo/api.go`: strict JSON page-control API routing, validation,
+  state responses, existing-page enforcement, and request limits.
+- `internal/cowyo/page_operation_rate_limit.go`: shared HTTP/WebSocket
+  operation, per-page, and credential-attempt abuse controls.
 - `internal/cowyo/page_lock.go`: scrypt page-lock verifier creation and
   checking.
 - `internal/cowyo/names.go`: adjective and animal lists plus the alliterative
@@ -116,9 +120,11 @@ The server loads `.env` at startup.
 - `SITE_URL` optionally sets the authoritative public HTTP(S) origin used for
   canonical URLs, social images, returned paste URLs, `robots.txt`, and the
   sitemap. It must not contain a path, query string, fragment, or credentials.
-- A non-empty `ADMIN_POST_KEY` authorizes unrestricted HTTP POSTs when the
-  request supplies the exact value in `X-Cowyo-Admin-Key`. Keep it secret and
-  deploy behind HTTPS.
+- A non-empty `ADMIN_POST_KEY` authorizes unrestricted paste POSTs when the
+  request supplies the exact value in `X-Cowyo-Admin-Key`. It also bypasses
+  page-control API mutation rate limits, while API schema, request-size, and
+  page-state invariants remain enforced. Keep it secret and deploy behind
+  HTTPS.
 - `UMAMI_URL` and `UMAMI_WEBSITE_ID` optionally add Umami analytics to every
   browser-rendered page. The URL must be an HTTP(S) origin without a path,
   query, fragment, or credentials, and the website ID must be a UUID. Both
@@ -186,9 +192,24 @@ When changing the schema or query behavior:
 - POST bodies are limited to 16 KiB.
 - POST requests are rate limited per client IP to 10 per minute with a burst of
   5.
-- POSTs with a configured, matching `X-Cowyo-Admin-Key` bypass the rate limit,
-  body limit, and locked-page write restriction. Admin replacements preserve
-  the page's publication, self-destruct, and page-lock metadata.
+- `POST /api/v1/pages/{name}/operations` accepts strict JSON operations for an
+  existing page: publish/unpublish, lock/unlock, encrypt/decrypt,
+  self-destruct/cancel-self-destruct. It returns the page URL and current state
+  as JSON, rejects unknown fields and endpoints, caps the request at 64 KiB,
+  and caps transformed encryption text at 16 KiB.
+- API mutations share the normal POST limiter. HTTP and WebSocket page
+  operations also use a shared per-client token bucket (20 per minute, burst
+  8) and per-page bucket (60 per hour, burst 10). Lock and unlock additionally
+  use a client-plus-page bucket (6 per 10 minutes, burst 3) and page-wide
+  bucket (10 per hour, burst 3). API rate-limit responses use HTTP 429 and
+  `Retry-After`; WebSocket clients receive a typed error.
+- API operations never create pages, and strict `application/json` requests
+  prevent form-based cross-origin mutations. API page titles are bounded, and
+  reserved `/api` routes are not paste paths.
+- Named and random paste POSTs with a configured, matching
+  `X-Cowyo-Admin-Key` bypass the rate limit, body limit, and locked-page write
+  restriction. Admin replacements preserve the page's publication,
+  self-destruct, and page-lock metadata.
 - `/ws?place=name` carries typed edit, operation, and cursor messages and
   broadcasts typed updates to other editors on the same document.
 - Cursor-only WebSocket presence is ephemeral: it is broadcast only to other
@@ -198,7 +219,10 @@ When changing the schema or query behavior:
 - Each WebSocket has a bounded outgoing queue and a single writer with a write
   deadline, so a slow collaborator cannot block the shared connection mutex or
   other editors. Incoming frames have a 64 KiB read limit, cursor ranges are
-  validated, and cursor-only updates are rate limited per connection.
+  validated, cursor-only updates are rate limited per connection, and page
+  operations use the shared client/page abuse controls.
+- Successful API operations are broadcast to browser editors on the same page
+  without creating a phantom remote cursor.
 - WebSocket page mutations are serialized with named POST lock checks so a
   write cannot race a page-lock change within one server process.
 - In debug mode, every successful POST, WebSocket mutation, or self-destruct
@@ -215,18 +239,23 @@ collisions. Keep browser and POST random naming on the shared generator in
 
 The dedicated home page explains cowyo's zero-account shared-scratchpad
 workflow, links to the About page and source repository, previews the editor,
-and highlights memorable URLs, privacy controls, and curl access. Its primary
-action starts a new randomly named scratchpad. The footer links to schollz's
-GitHub Sponsors page, About, and the source repository, and offers an
+and highlights memorable URLs, accurately scoped page controls, more than a
+decade of service, and command-line access with curl read and write examples.
+Its primary action starts a new randomly named scratchpad. The footer links to
+schollz's GitHub Sponsors page, About, and the source repository, and offers an
 expandable list of other tools (`croc`, `wthrtxt`, and `yesnotice`). The
 dedicated About page uses the same site shell and explains the three-step
 workflow, the distinct unpublished, locked, encrypted, and self-destruct
-states, curl usage, and the open-source project. Both pages follow the same
-system or locally selected
+states, the open-source project, and a command-line section covering plaintext
+reads, random and named writes, stdin/file composition, returned URLs,
+page-control API operations, and locked-page behavior. Both pages follow the
+same system or locally selected
 light/dark theme as the editor.
-The landing page's protection feature and the About page's four privacy-control
-cards repeat the matching editor-menu icons so unpublished, locked, encrypted,
-and self-destruct states are easy to connect to their controls.
+The landing page's controls feature and the About page's four page-control cards
+repeat the matching editor-menu icons so unpublished, locked, encrypted, and
+self-destruct states are easy to connect to their controls. Both pages state
+that unpublished and locked pages remain readable to anyone with the URL, and
+that only encryption hides the text itself.
 
 The editor autosaves through the WebSocket. The cow action icon is labeled
 `yo`, remains visible at reduced opacity, becomes fully dark on editor input,
@@ -251,7 +280,7 @@ title tooltips. Each tooltip's outlined side opens into an unfilled triangular
 point toward its action. Copying briefly replaces the copy icon with a
 high-contrast checkmark and announces success through the live status region.
 
-Encryption happens entirely in the browser:
+Encryption happens entirely on the client:
 
 - Passwords are not persisted or sent to the server.
 - Encrypting requires two matching password entries; decrypting requires one.
@@ -268,6 +297,10 @@ Encryption happens entirely in the browser:
   `COWYO ENCRYPTED BLOCK V1` begin/end signature.
 - Decryption replaces only complete signed blocks, preserving any ordinary
   text around them.
+- API encryption and decryption preserve the same zero-knowledge boundary:
+  clients transform the text locally and send only a structurally valid signed
+  encrypted block or the locally decrypted result. Encryption passwords in API
+  requests are rejected.
 
 The server never receives encryption passwords or decrypts content. It stores
 encrypted blocks as paste text; while a page is locked, it recognizes the
@@ -284,6 +317,10 @@ Page locking is separate from encryption:
 - The page-lock password is sent to the server for a lock or unlock request,
   checked server-side, and never stored as plaintext. Deploy behind HTTPS/WSS
   so credentials are protected in transit.
+- New page locks require the existing minimum password length and cap passwords
+  at 1024 bytes; unlock still accepts legacy longer passwords. The API's tighter
+  credential limiters slow both single-client and distributed password
+  guessing.
 - The server-provided lock state makes the textarea read-only. Ordinary
   WebSocket edits and named curl POSTs are rejected until the correct password
   clears the database lock metadata.
@@ -301,7 +338,8 @@ Page publishing is separate from content and page locking:
 
 - Pages are unpublished by default and excluded from `/sitemap.xml`.
 - The globe action publishes or unpublishes through the WebSocket operation
-  channel, and the server broadcasts the resulting state to other editors.
+  channel, while the page-control API exposes the same state changes. The
+  server broadcasts either source's resulting state to other editors.
 - Ordinary WebSocket edits cannot forge publication state. Named curl POSTs
   preserve an existing page's publication state.
 - Publication changes are rejected while the page is locked; unlock it first.
@@ -314,7 +352,8 @@ Page publishing is separate from content and page locking:
 Page self destruct is persisted separately from content:
 
 - The bomb action arms or cancels self destruct through the WebSocket operation
-  channel, and ordinary edits or named curl POSTs preserve the stored state.
+  channel or page-control API, and ordinary edits or named curl POSTs preserve
+  the stored state.
 - Arming and cancelling are rejected while the page is locked. Locking an
   already armed page cancels self destruct.
 - The next unlocked GET uses an atomic database delete-and-return operation, so
@@ -328,8 +367,8 @@ Page self destruct is persisted separately from content:
 
 Tests are organized as follows:
 
-- `internal/cowyo/*_test.go`: server, curl, WebSocket, naming, page locking,
-  limits, and build integration tests.
+- `internal/cowyo/*_test.go`: server, curl, page-control API, WebSocket, naming,
+  page locking, limits, and build integration tests.
 - `internal/database/*_test.go`: backend-neutral storage tests.
 - `web/tests/*.test.js`: frontend URL, encryption, theme, and save-activity
   tests.
