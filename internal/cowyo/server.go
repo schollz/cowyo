@@ -35,6 +35,7 @@ var connectionsMu sync.Mutex
 var pageMutationMu sync.Mutex
 
 const (
+	googleAdSenseEnvironment  = "GOOGLE_ADSENSE"
 	googleTagEnvironment      = "GOOGLE_TAG"
 	umamiURLEnvironment       = "UMAMI_URL"
 	umamiWebsiteIDEnvironment = "UMAMI_WEBSITE_ID"
@@ -122,6 +123,7 @@ type Page struct {
 
 type pageTemplateData struct {
 	Page
+	GoogleAdSense  string
 	GoogleTag      string
 	UmamiURL       string
 	UmamiWebsiteID string
@@ -229,9 +231,10 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 	p.Text = html.EscapeString(p.Text)
 	p.Text = policy.Sanitize(p.Text)
 	data := pageTemplateData{
-		Page:      p,
-		GoogleTag: configuredGoogleTag(),
-		SEO:       seo,
+		Page:          p,
+		GoogleAdSense: configuredGoogleAdSense(),
+		GoogleTag:     configuredGoogleTag(),
+		SEO:           seo,
 	}
 	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
 	return indexTemplate.Execute(w, data)
@@ -255,9 +258,10 @@ func handleLanding(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Vary", "User-Agent")
 	w.Header().Set("X-Robots-Tag", robotsDirective(true))
 	data := pageTemplateData{
-		GoogleTag: configuredGoogleTag(),
-		Landing:   true,
-		SEO:       seo,
+		GoogleAdSense: configuredGoogleAdSense(),
+		GoogleTag:     configuredGoogleTag(),
+		Landing:       true,
+		SEO:           seo,
 	}
 	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
 	return indexTemplate.Execute(w, data)
@@ -280,9 +284,10 @@ func handleAbout(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Link", fmt.Sprintf("<%s>; rel=\"canonical\"", postedDocumentURL(r, "about")))
 	w.Header().Set("X-Robots-Tag", robotsDirective(true))
 	data := pageTemplateData{
-		GoogleTag: configuredGoogleTag(),
-		About:     true,
-		SEO:       seo,
+		GoogleAdSense: configuredGoogleAdSense(),
+		GoogleTag:     configuredGoogleTag(),
+		About:         true,
+		SEO:           seo,
 	}
 	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
 	return indexTemplate.Execute(w, data)
@@ -295,6 +300,16 @@ func redirectToRandomDocument(w http.ResponseWriter, r *http.Request) error {
 	}
 	http.Redirect(w, r, "/"+name, http.StatusFound)
 	return nil
+}
+
+var googleAdSensePattern = regexp.MustCompile(`^ca-pub-[0-9]{16}$`)
+
+func configuredGoogleAdSense() string {
+	client := strings.TrimSpace(os.Getenv(googleAdSenseEnvironment))
+	if !googleAdSensePattern.MatchString(client) {
+		return ""
+	}
+	return client
 }
 
 var googleTagPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,100}$`)

@@ -443,6 +443,58 @@ func TestBrowserPageOmitsUnconfiguredOrInvalidGoogleTag(t *testing.T) {
 	}
 }
 
+func TestBrowserPageIncludesConfiguredGoogleAdSense(t *testing.T) {
+	const client = "ca-pub-1234567890123456"
+	t.Setenv(googleAdSenseEnvironment, client)
+	setUpHandlerTest(t, Page{Title: "ad-supported"})
+
+	for _, path := range []string{"/", "/about", "/ad-supported"} {
+		request := httptest.NewRequest(http.MethodGet, path, nil)
+		request.Header.Set("User-Agent", "Mozilla/5.0")
+		response := httptest.NewRecorder()
+
+		if err := handle(response, request); err != nil {
+			t.Fatalf("handle(%q) error = %v", path, err)
+		}
+
+		body := response.Body.String()
+		if !strings.Contains(body, "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+client) {
+			t.Errorf("browser response for %q does not load AdSense with the configured client", path)
+		}
+		if !strings.Contains(body, `crossorigin="anonymous"`) {
+			t.Errorf("browser response for %q does not set anonymous cross-origin loading for AdSense", path)
+		}
+	}
+}
+
+func TestBrowserPageOmitsUnconfiguredOrInvalidGoogleAdSense(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		client string
+	}{
+		{name: "unconfigured"},
+		{name: "missing prefix", client: "1234567890123456"},
+		{name: "wrong length", client: "ca-pub-123"},
+		{name: "invalid characters", client: `ca-pub-1234567890123456"></script>`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(googleAdSenseEnvironment, tt.client)
+			setUpHandlerTest(t, Page{Title: "ad-free"})
+
+			request := httptest.NewRequest(http.MethodGet, "/ad-free", nil)
+			request.Header.Set("User-Agent", "Mozilla/5.0")
+			response := httptest.NewRecorder()
+
+			if err := handle(response, request); err != nil {
+				t.Fatalf("handle() error = %v", err)
+			}
+			if body := response.Body.String(); strings.Contains(body, "pagead2.googlesyndication.com") {
+				t.Errorf("browser response includes AdSense for %q", tt.client)
+			}
+		})
+	}
+}
+
 func TestBrowserPageIncludesConfiguredUmamiTracker(t *testing.T) {
 	const (
 		umamiURL  = "https://umami.schollz.com/"

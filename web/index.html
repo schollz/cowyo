@@ -54,6 +54,13 @@
 
     <meta name="theme-color" content="#f0f0f0" />
     <meta name="msapplication-TileColor" content="#f0f0f0" />
+    {{if .GoogleAdSense}}
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{.GoogleAdSense}}"
+      crossorigin="anonymous"
+    ></script>
+    {{end}}
     {{if .GoogleTag}}
     <!-- Google tag (gtag.js) -->
     <script
