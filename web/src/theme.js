@@ -3,7 +3,7 @@ export const DARK_THEME_QUERY = "(prefers-color-scheme: dark)";
 
 const themes = new Set(["light", "dark"]);
 const themeColors = {
-  light: "#f0f0f0",
+  light: "#fcfcfc",
   dark: "#171717",
 };
 
