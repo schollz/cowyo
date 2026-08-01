@@ -6,10 +6,10 @@
 
 :root {
   color-scheme: light;
-  --page-background: #f0f0f0;
+  --page-background: #fcfcfc;
   --text-color: #333;
   --control-color: #111;
-  --control-inverse: #f0f0f0;
+  --control-inverse: #fcfcfc;
   --cow-color: #777;
   --muted-color: #555;
   --disabled-color: #999;
@@ -695,10 +695,16 @@ textarea {
 }
 
 .landing-demo {
+  --landing-demo-surface: var(--field-background);
+  --landing-demo-chrome: color-mix(
+    in srgb,
+    var(--landing-demo-surface) 97%,
+    var(--control-color)
+  );
   position: relative;
   border: 1px solid var(--control-color);
   color: var(--control-color);
-  background: var(--page-background);
+  background: var(--landing-demo-surface);
   box-shadow: 18px 18px 0 color-mix(in srgb, var(--text-color) 10%, transparent);
   transform: rotate(1.2deg);
 }
@@ -711,6 +717,7 @@ textarea {
   padding: 0 14px;
   border-bottom: 1px solid var(--control-color);
   color: var(--muted-color);
+  background: var(--landing-demo-chrome);
   font-size: 10px;
 }
 
@@ -752,6 +759,7 @@ textarea {
   padding: 13px 14px;
   border-top: 1px solid var(--control-color);
   color: var(--muted-color);
+  background: var(--landing-demo-chrome);
   font-size: 10px;
 }
 
