@@ -9,7 +9,9 @@ import (
 )
 
 type Querier interface {
+	ConsumeE2EESelfDestructPage(ctx context.Context, title string) (ConsumeE2EESelfDestructPageRow, error)
 	ConsumeSelfDestructPage(ctx context.Context, title string) (ConsumeSelfDestructPageRow, error)
+	ConvertPageToE2EE(ctx context.Context, arg ConvertPageToE2EEParams) (int64, error)
 	CreatePage(ctx context.Context, arg CreatePageParams) (int64, error)
 	GetPage(ctx context.Context, title string) (GetPageRow, error)
 	ListPublishedPageTitles(ctx context.Context) ([]string, error)

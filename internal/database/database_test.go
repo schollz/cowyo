@@ -224,3 +224,87 @@ func TestSQLiteStoreMigratesAndPersistsPages(t *testing.T) {
 		t.Errorf("concurrent ConsumePage() successes = %d, want 1", successes)
 	}
 }
+
+func TestSQLiteStoreE2EELifecycle(t *testing.T) {
+	ctx := context.Background()
+	store, err := Open(ctx, Config{
+		SQLitePath: filepath.Join(t.TempDir(), "e2ee.sqlite3"),
+	})
+	if err != nil {
+		t.Fatalf("open SQLite store: %v", err)
+	}
+	t.Cleanup(func() { _ = store.Close() })
+
+	private := Page{
+		Title:             "private",
+		Text:              "ciphertext",
+		CursorStart:       2,
+		CursorEnd:         4,
+		Published:         true,
+		EndToEndEncrypted: true,
+		E2EEAuthHash:      "capability hash",
+	}
+	created, err := store.CreatePage(ctx, private)
+	if err != nil || !created {
+		t.Fatalf("CreatePage(private) = %t, %v", created, err)
+	}
+	got, err := store.GetPage(ctx, private.Title)
+	if err != nil || got != private {
+		t.Fatalf("GetPage(private) = %+v, %v", got, err)
+	}
+	titles, err := store.ListPublishedPageTitles(ctx)
+	if err != nil {
+		t.Fatalf("ListPublishedPageTitles(): %v", err)
+	}
+	if len(titles) != 0 {
+		t.Fatalf("published private page appeared in sitemap list: %v", titles)
+	}
+
+	ordinary := Page{Title: "convert", Text: "plaintext", Published: true}
+	if err := store.UpsertPage(ctx, ordinary); err != nil {
+		t.Fatalf("store ordinary page: %v", err)
+	}
+	converted := Page{
+		Title:             ordinary.Title,
+		Text:              "converted ciphertext",
+		CursorStart:       1,
+		CursorEnd:         1,
+		EndToEndEncrypted: true,
+		E2EEAuthHash:      "converted hash",
+	}
+	ok, err := store.ConvertPageToE2EE(ctx, converted)
+	if err != nil || !ok {
+		t.Fatalf("ConvertPageToE2EE() = %t, %v", ok, err)
+	}
+	got, err = store.GetPage(ctx, ordinary.Title)
+	if err != nil {
+		t.Fatalf("load converted page: %v", err)
+	}
+	if got.Text != converted.Text ||
+		!got.EndToEndEncrypted ||
+		got.E2EEAuthHash != converted.E2EEAuthHash ||
+		got.Published {
+		t.Fatalf("converted page = %+v", got)
+	}
+	if ok, err = store.ConvertPageToE2EE(ctx, converted); err != nil || ok {
+		t.Fatalf("second conversion = %t, %v; want false", ok, err)
+	}
+
+	got.SelfDestruct = true
+	if err := store.UpsertPage(ctx, got); err != nil {
+		t.Fatalf("arm private self destruct: %v", err)
+	}
+	if _, err := store.ConsumePage(ctx, got.Title); err != nil {
+		t.Fatalf("ordinary consume should return private page without deleting it: %v", err)
+	}
+	if _, err := store.GetPage(ctx, got.Title); err != nil {
+		t.Fatalf("ordinary consume deleted private page: %v", err)
+	}
+	consumed, err := store.ConsumeE2EEPage(ctx, got.Title)
+	if err != nil || consumed != got {
+		t.Fatalf("ConsumeE2EEPage() = %+v, %v", consumed, err)
+	}
+	if _, err := store.GetPage(ctx, got.Title); !errors.Is(err, ErrPageNotFound) {
+		t.Fatalf("consumed private page remains: %v", err)
+	}
+}

@@ -668,7 +668,8 @@ func assertAPIOperationState(
 	if state.Published != published ||
 		state.SelfDestruct != selfDestruct ||
 		state.Locked != locked ||
-		state.Encrypted != encrypted {
+		state.Encrypted != encrypted ||
+		state.EndToEndEncrypted {
 		t.Errorf(
 			"API state = %+v, want published=%v self_destruct=%v locked=%v encrypted=%v",
 			state,

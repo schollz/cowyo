@@ -33,13 +33,14 @@ type apiPageOperationRequest struct {
 }
 
 type apiPageOperationResponse struct {
-	Title        string `json:"title"`
-	URL          string `json:"url"`
-	Operation    string `json:"operation"`
-	Published    bool   `json:"published"`
-	SelfDestruct bool   `json:"self_destruct"`
-	Locked       bool   `json:"locked"`
-	Encrypted    bool   `json:"encrypted"`
+	Title             string `json:"title"`
+	URL               string `json:"url"`
+	Operation         string `json:"operation"`
+	Published         bool   `json:"published"`
+	SelfDestruct      bool   `json:"self_destruct"`
+	Locked            bool   `json:"locked"`
+	Encrypted         bool   `json:"encrypted"`
+	EndToEndEncrypted bool   `json:"end_to_end_encrypted"`
 }
 
 type apiErrorResponse struct {
@@ -149,6 +150,10 @@ func handleAPIPageOperation(
 	if err != nil {
 		return fmt.Errorf("load API page %q: %w", title, err)
 	}
+	if stored.EndToEndEncrypted {
+		writeAPIError(w, http.StatusForbidden, "API mutations are unavailable for private pages")
+		return nil
+	}
 
 	if message := validateAPIPageOperation(request, stored); message != "" {
 		writeAPIError(w, http.StatusBadRequest, message)
@@ -192,13 +197,14 @@ func handleAPIPageOperation(
 	w.Header().Set("Location", location)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	return json.NewEncoder(w).Encode(apiPageOperationResponse{
-		Title:        saved.Title,
-		URL:          location,
-		Operation:    request.Operation,
-		Published:    saved.Published,
-		SelfDestruct: saved.SelfDestruct,
-		Locked:       saved.Locked,
-		Encrypted:    hasValidEncryptedBlock(saved.Text),
+		Title:             saved.Title,
+		URL:               location,
+		Operation:         request.Operation,
+		Published:         saved.Published,
+		SelfDestruct:      saved.SelfDestruct,
+		Locked:            saved.Locked,
+		Encrypted:         hasValidEncryptedBlock(saved.Text),
+		EndToEndEncrypted: saved.EndToEndEncrypted,
 	})
 }
 

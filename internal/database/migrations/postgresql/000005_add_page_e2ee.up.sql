@@ -1,0 +1,3 @@
+ALTER TABLE pages
+    ADD COLUMN end_to_end_encrypted BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN e2ee_auth_hash TEXT NOT NULL DEFAULT '';

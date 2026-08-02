@@ -226,11 +226,15 @@
             <h1>Write it down.<br />Share it instantly.</h1>
             <p class="landing-lede">
               Open a page, type, and share the URL. cowyo saves live and
-              stays out of your way.
+              stays out of your way—or start private so the server receives
+              only ciphertext.
             </p>
             <div class="landing-actions">
               <a class="landing-primary-action" href="/?new=1">
                 Start a scratchpad <span aria-hidden="true">→</span>
+              </a>
+              <a class="landing-secondary-action landing-private-action" href="/?new=private">
+                Private scratchpad
               </a>
               <a class="landing-secondary-action" href="/about">
                 See how it works
@@ -244,6 +248,10 @@
                 rel="noreferrer"
               >open source</a>.
               <span>Powering quick notes on the web for more than 10 years.</span>
+              <span>
+                Private scratchpads encrypt every save in your browser. Keep
+                the complete <code>#key</code> link; lost keys cannot be recovered.
+              </span>
             </p>
           </div>
 
@@ -281,8 +289,9 @@
             <p class="landing-feature-number">02</p>
             <h2>A few page controls</h2>
             <p>
-              Pages start out of search, not private. Lock editing, encrypt the
-              text, or make the page disappear after one final load.
+              Ordinary pages start out of search, not private. Lock editing,
+              encrypt a block with a password, make the whole page permanently
+              private, or destroy it after one final load.
             </p>
             <div class="landing-control-icons" aria-hidden="true">
               <span class="menu-icon-tile">
@@ -290,6 +299,9 @@
               </span>
               <span class="menu-icon-tile">
                 <i data-lucide="shield-keyhole"></i>
+              </span>
+              <span class="menu-icon-tile">
+                <i data-lucide="key-round"></i>
               </span>
               <span class="menu-icon-tile">
                 <i data-lucide="lock-keyhole"></i>
@@ -333,6 +345,9 @@
             <div class="landing-actions">
               <a class="landing-primary-action" href="/?new=1">
                 Start a scratchpad <span aria-hidden="true">→</span>
+              </a>
+              <a class="landing-secondary-action" href="/?new=private">
+                Start private
               </a>
               <a
                 class="landing-secondary-action"
@@ -378,11 +393,16 @@
               <p class="landing-feature-number">03 / decide</p>
               <h3>Keep it your way</h3>
               <p>
-                Leave it unlisted, publish it, lock editing, encrypt the text,
-                or destroy it after the next load.
+                Leave it unlisted, publish it, lock editing, encrypt a block,
+                make it permanently private, or destroy it after the next load.
               </p>
             </article>
           </div>
+          <p class="about-how-note">
+            Choose <strong>Private scratchpad</strong> before typing when the
+            server should never receive plaintext. Keep the complete
+            <code>#key</code> URL; it grants access and cannot be recovered if lost.
+          </p>
         </section>
 
         <section
@@ -393,9 +413,9 @@
             <p class="landing-eyebrow">page controls, plainly</p>
             <h2 id="about-privacy-title">A link is still a link.</h2>
             <p>
-              Anyone with the URL can open an unencrypted page. These controls
-              manage search visibility, editing, encryption, and lifespan—they
-              don't turn cowyo into a private workspace.
+              Anyone with an ordinary page URL can open its unencrypted text.
+              Permanent private mode is different: its complete <code>#key</code>
+              URL is the only read-and-write credential.
             </p>
           </div>
           <div class="about-privacy-grid">
@@ -436,14 +456,31 @@
                   <span class="menu-icon-tile" aria-hidden="true">
                     <i data-lucide="shield-keyhole"></i>
                   </span>
-                  <h3>Encrypted</h3>
+                  <h3>Encrypted block</h3>
                 </div>
                 <span class="about-privacy-detail">content protection</span>
               </header>
               <p>
-                Encrypts the text in your browser before it is saved. Anyone
-                can load the encrypted block; the password is needed to read
-                its contents.
+                Password-encrypts the current text in your browser as a signed
+                block. Ordinary text can remain around it, and the page stays
+                an ordinary page.
+              </p>
+            </article>
+            <article>
+              <header>
+                <div class="about-privacy-control">
+                  <span class="menu-icon-tile" aria-hidden="true">
+                    <i data-lucide="key-round"></i>
+                  </span>
+                  <h3>Private E2EE</h3>
+                </div>
+                <span class="about-privacy-detail">permanent whole-page protection</span>
+              </header>
+              <p>
+                Encrypts every save in the browser. The server stores only
+                ciphertext and a one-way write-capability hash. Keep the full
+                <code>#key</code> URL: it grants read and write access, cannot be
+                recovered if lost, and never reaches the server.
               </p>
             </article>
             <article>
@@ -457,11 +494,20 @@
                 <span class="about-privacy-detail">one final load</span>
               </header>
               <p>
-                Whoever visits next receives one final load. The page is then
-                deleted.
+                An ordinary page is returned on its next load, then deleted.
+                A private page is consumed only after a browser proves it has
+                the write capability.
               </p>
             </article>
           </div>
+          <p class="about-curl-note">
+            Starting private means the server never receives plaintext.
+            Converting an existing page protects its current replacement and
+            future saves, but plaintext already sent may remain in database
+            history, backups, or logs. Because the server delivers the browser
+            code, a server able to replace that JavaScript is outside this
+            client-side threat model.
+          </p>
         </section>
 
         <section
@@ -473,9 +519,9 @@
               <p class="landing-eyebrow">browser optional</p>
               <h2 id="about-curl-title">cowyo speaks command line.</h2>
               <p>
-                Every scratchpad doubles as a plain-text endpoint. Read with
-                GET, write with POST, and use the same URL in a terminal, a
-                browser, or a script.
+                Every ordinary scratchpad doubles as a plain-text endpoint.
+                Private pages return only their ciphertext and reject curl
+                writes and page-control API mutations.
               </p>
             </div>
             <ul class="about-curl-benefits" aria-label="Command-line advantages">
@@ -543,7 +589,8 @@ curl https://cowyo.com/my-notes \
               </p>
               <p>
                 Encryption stays local: send a compatible encrypted block, not
-                the encryption password.
+                the encryption password. Permanent private pages do not accept
+                API mutations.
               </p>
             </div>
             <pre aria-label="Publish a page with the API"><code>curl --json '{"operation":"publish"}' \
@@ -718,6 +765,16 @@ curl https://cowyo.com/my-notes \
           ></i>
         </button>
         <button
+          id="privateAction"
+          class="save-menu-action"
+          type="button"
+          role="menuitem"
+          data-tooltip="Make permanently private"
+          aria-label="Make permanently private"
+        >
+          <i data-lucide="key-round" aria-hidden="true"></i>
+        </button>
+        <button
           id="publishAction"
           class="save-menu-action"
           type="button"
@@ -797,6 +854,13 @@ curl https://cowyo.com/my-notes \
     </div>
 
     <main class="editor">
+      <div
+        id="privateStatus"
+        class="private-status"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
       <div id="linkOverlay" aria-hidden="true"></div>
       <div id="cursorOverlay" aria-hidden="true"></div>
       <textarea
@@ -809,6 +873,9 @@ curl https://cowyo.com/my-notes \
         data-page-locked="{{.Locked}}"
         data-page-published="{{.Published}}"
         data-page-self-destruct="{{.SelfDestruct}}"
+        data-page-e2ee="{{.EndToEndEncrypted}}"
+        data-private-bootstrap="{{.PrivateBootstrap}}"
+        data-conversion-bootstrap="{{.ConversionBootstrap}}"
       >{{.Text}}</textarea>
     </main>
 

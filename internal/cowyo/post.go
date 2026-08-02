@@ -84,6 +84,11 @@ func handlePost(w http.ResponseWriter, r *http.Request) error {
 			pageMutationMu.Unlock()
 			return fmt.Errorf("load paste %q: %w", page.Title, loadErr)
 		}
+		if loadErr == nil && stored.EndToEndEncrypted {
+			pageMutationMu.Unlock()
+			http.Error(w, "private pages accept ciphertext only from an authenticated browser", http.StatusForbidden)
+			return nil
+		}
 		if loadErr == nil && stored.Locked && !admin {
 			pageMutationMu.Unlock()
 			http.Error(w, "page is locked", http.StatusLocked)
@@ -95,6 +100,8 @@ func handlePost(w http.ResponseWriter, r *http.Request) error {
 			page.Locked = stored.Locked
 			page.LockSalt = stored.LockSalt
 			page.LockVerifier = stored.LockVerifier
+			page.EndToEndEncrypted = stored.EndToEndEncrypted
+			page.E2EEAuthHash = stored.E2EEAuthHash
 			if adminPublishes {
 				page.Published = true
 			}

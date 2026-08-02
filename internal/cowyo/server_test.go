@@ -64,6 +64,8 @@ func TestBuiltFrontendIncludesCowActions(t *testing.T) {
 		"copy tooltip":          `data-tooltip="Copy paste text"`,
 		"encryption action":     `data-lucide="shield-keyhole"`,
 		"encryption tooltip":    `data-tooltip="Encrypt paste"`,
+		"private action":        `id="privateAction"`,
+		"private action icon":   `data-lucide="key-round"`,
 		"publish action":        `id="publishAction"`,
 		"publish icon":          `data-lucide="globe-2"`,
 		"publish tooltip":       `data-tooltip="Publish page"`,
@@ -108,6 +110,7 @@ func TestBuiltFrontendIncludesCowActions(t *testing.T) {
 	actionOrder := []string{
 		`id="copyTextAction"`,
 		`id="cryptoAction"`,
+		`id="privateAction"`,
 		`id="publishAction"`,
 		`id="pageLockAction"`,
 		`id="selfDestructAction"`,
@@ -178,6 +181,7 @@ func TestBrowserRootRendersLandingPage(t *testing.T) {
 	for description, marker := range map[string]string{
 		"landing page":          `class="landing-page"`,
 		"primary action":        `href="/?new=1"`,
+		"private action":        `href="/?new=private"`,
 		"landing headline":      `Write it down.`,
 		"open-source link":      `https://github.com/schollz/cowyo`,
 		"indexing directive":    `content="` + robotsDirective(true) + `"`,
@@ -187,6 +191,7 @@ func TestBrowserRootRendersLandingPage(t *testing.T) {
 		"publish menu icon":     `data-lucide="globe-2"`,
 		"page-lock menu icon":   `data-lucide="lock-keyhole"`,
 		"encryption menu icon":  `data-lucide="shield-keyhole"`,
+		"private menu icon":     `data-lucide="key-round"`,
 		"self-destruct icon":    `data-lucide="bomb"`,
 		"croc tool":             `https://getcroc.com`,
 		"wthrtxt tool":          `https://wthrtxt.com`,
@@ -194,6 +199,7 @@ func TestBrowserRootRendersLandingPage(t *testing.T) {
 		"zero-account message":  `No account. Free and`,
 		"assurance source link": `class="landing-assurance-source"`,
 		"longevity message":     `Powering quick notes on the web for more than 10 years.`,
+		"private key note":      `Private scratchpads encrypt every save in your browser.`,
 		"terminal read":         `curl https://cowyo.com/my-notes`,
 		"terminal write":        `curl --data-binary @notes.txt https://cowyo.com/`,
 	} {
@@ -240,13 +246,17 @@ func TestBrowserAboutRendersDedicatedPage(t *testing.T) {
 		"about page":           `class="about-main"`,
 		"about headline":       `a blank page + a link`,
 		"start action":         `href="/?new=1"`,
+		"private action":       `href="/?new=private"`,
 		"unpublished detail":   `Unpublished`,
 		"page-lock detail":     `Locked`,
-		"encryption detail":    `Encrypted`,
+		"encryption detail":    `Encrypted block`,
+		"private detail":       `Private E2EE`,
+		"private how note":     `Choose <strong>Private scratchpad</strong> before typing`,
 		"self-destruct detail": `Self-destruct`,
 		"publish menu icon":    `data-lucide="globe-2"`,
 		"page-lock menu icon":  `data-lucide="lock-keyhole"`,
 		"encryption menu icon": `data-lucide="shield-keyhole"`,
+		"private menu icon":    `data-lucide="key-round"`,
 		"self-destruct icon":   `data-lucide="bomb"`,
 		"curl read example":    `curl https://cowyo.com/my-notes`,
 		"curl create example":  `curl --data-binary @notes.txt`,
@@ -312,6 +322,26 @@ func TestRootNewQueryRedirectsToAlliterativeDocument(t *testing.T) {
 	name := strings.TrimPrefix(location, "/")
 	if location == name || !isAlliterativeDocumentName(name) {
 		t.Errorf("Location = %q, want /adjective-animal with matching initials", location)
+	}
+}
+
+func TestRootPrivateQueryRedirectsToTrackerFreeBootstrap(t *testing.T) {
+	setUpHandlerTest(t, Page{Title: "seed"})
+
+	request := httptest.NewRequest(http.MethodGet, "/?new=private", nil)
+	request.Header.Set("User-Agent", "Mozilla/5.0")
+	response := httptest.NewRecorder()
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+	if response.Code != http.StatusFound {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusFound)
+	}
+
+	location := response.Header().Get("Location")
+	name := strings.TrimSuffix(strings.TrimPrefix(location, "/"), "?private=1")
+	if !strings.HasSuffix(location, "?private=1") || !isAlliterativeDocumentName(name) {
+		t.Fatalf("Location = %q, want /adjective-animal?private=1", location)
 	}
 }
 
@@ -1410,13 +1440,14 @@ func setUpHandlerTest(t *testing.T, page Page) {
 	indexTemplate = template.Must(template.ParseFS(siteContent, "index.html"))
 
 	if err := pageStore.UpsertPage(ctx, database.Page{
-		Title:        page.Title,
-		Text:         page.Text,
-		CursorStart:  page.CursorStart,
-		CursorEnd:    page.CursorEnd,
-		Published:    page.Published,
-		SelfDestruct: page.SelfDestruct,
-		Locked:       page.Locked,
+		Title:             page.Title,
+		Text:              page.Text,
+		CursorStart:       page.CursorStart,
+		CursorEnd:         page.CursorEnd,
+		Published:         page.Published,
+		SelfDestruct:      page.SelfDestruct,
+		Locked:            page.Locked,
+		EndToEndEncrypted: page.EndToEndEncrypted,
 	}); err != nil {
 		t.Fatalf("seed test store: %v", err)
 	}

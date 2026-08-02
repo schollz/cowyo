@@ -9,6 +9,7 @@ import {
   Globe2,
   GlobeLock,
   Info,
+  KeyRound,
   LockKeyhole,
   Moon,
   ShieldCheck,
@@ -22,6 +23,18 @@ import {
   encryptText,
   hasEncryptedBlocks,
 } from "./encryption.js";
+import {
+  bytesToBase64URL,
+  createSerialQueue,
+  decryptE2EEDocument,
+  derivePageKeys,
+  encodeMasterKey,
+  encryptE2EEDocument,
+  generateMasterKey,
+  normalizePagePath,
+  parseFragmentKey,
+  privatePageURL,
+} from "./e2ee.js";
 import { renderLinks } from "./links.js";
 import {
   applySystemTheme,
@@ -47,8 +60,11 @@ import {
 } from "./remote-cursors.js";
 import {
   cursorMessage,
+  e2eeAuthenticateMessage,
+  e2eeBootstrapMessage,
   editMessage,
   operationMessage,
+  websocketURL,
   websocketMessageType,
 } from "./websocket-protocol.js";
 const textarea = document.querySelector("textarea");
@@ -62,6 +78,7 @@ const saveStatusText = document.getElementById("saveStatusText");
 const themeAction = document.getElementById("themeAction");
 const copyTextAction = document.getElementById("copyTextAction");
 const cryptoAction = document.getElementById("cryptoAction");
+const privateAction = document.getElementById("privateAction");
 const publishAction = document.getElementById("publishAction");
 const pageLockAction = document.getElementById("pageLockAction");
 const selfDestructAction = document.getElementById("selfDestructAction");
@@ -75,6 +92,7 @@ const cryptoError = document.getElementById("cryptoError");
 const cryptoCancel = document.getElementById("cryptoCancel");
 const cryptoSubmit = document.getElementById("cryptoSubmit");
 const remoteUpdateStatus = document.getElementById("remoteUpdateStatus");
+const privateStatus = document.getElementById("privateStatus");
 
 const ICON_ATTRIBUTES = {
   "aria-hidden": "true",
@@ -89,6 +107,7 @@ createIcons({
     Globe2,
     GlobeLock,
     Info,
+    KeyRound,
     LockKeyhole,
     Moon,
     ShieldCheck,
@@ -159,6 +178,22 @@ let pendingPageOperation;
 let pageLocked = textarea.dataset.pageLocked === "true";
 let pagePublished = textarea.dataset.pagePublished === "true";
 let pageSelfDestruct = textarea.dataset.pageSelfDestruct === "true";
+let pageE2EE = textarea.dataset.pageE2ee === "true";
+let privateBootstrap = textarea.dataset.privateBootstrap === "true";
+let conversionBootstrap = textarea.dataset.conversionBootstrap === "true";
+let e2eeAuthenticated = false;
+let e2eeFinal = false;
+let e2eeKeys;
+let encodedMasterKey;
+let latestCiphertext = pageE2EE ? textarea.value : "";
+let pendingE2EEBootstrap;
+let pendingE2EESnapshot;
+let e2eeTextRevision = 0;
+let e2eeRemoteSequence = 0;
+let e2eeDecrypting = false;
+let reconnectEnabled = true;
+const e2eeCryptoQueue = createSerialQueue();
+const ordinarySaveWaiters = new Set();
 let selectedTheme = readStoredTheme(window.localStorage);
 let lastAnnouncedCursor;
 const cursorBroadcastGuard = createCursorBroadcastGuard(window);
@@ -266,6 +301,45 @@ function setSaveState(state) {
 
 const markSaveActivity = createSaveActivityIndicator(saveStatus);
 
+function showPrivateStatus(message, error = false) {
+  privateStatus.textContent = message;
+  privateStatus.dataset.error = String(error);
+  privateStatus.hidden = !message;
+}
+
+function settleOrdinarySaveWaiters(error) {
+  if (outstandingSaves !== 0 || pendingUpdate || pendingE2EESnapshot) {
+    return;
+  }
+  for (const waiter of ordinarySaveWaiters) {
+    window.clearTimeout(waiter.timeout);
+    if (error) {
+      waiter.reject(error);
+    } else {
+      waiter.resolve();
+    }
+  }
+  ordinarySaveWaiters.clear();
+}
+
+function waitForOrdinarySaves() {
+  if (
+    outstandingSaves === 0 &&
+    !pendingUpdate &&
+    !pendingE2EESnapshot
+  ) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve, reject) => {
+    const waiter = { resolve, reject };
+    waiter.timeout = window.setTimeout(() => {
+      ordinarySaveWaiters.delete(waiter);
+      reject(new Error("The current text could not be confirmed as saved."));
+    }, 10000);
+    ordinarySaveWaiters.add(waiter);
+  });
+}
+
 function setActionMenuOpen(open, restoreFocus = false) {
   saveMenu.hidden = !open;
   saveActions.classList.toggle("is-open", open);
@@ -287,37 +361,70 @@ function updatePageState() {
   const encrypted = hasEncryptedBlocks(textarea.value);
   const operationPending = pendingPageOperation !== undefined;
 
-  textarea.readOnly = locked;
-  textarea.setAttribute("aria-readonly", String(locked));
-  editor.classList.toggle("is-locked", locked);
-  saveActions.classList.toggle("is-locked", locked);
+  const privateReady = !pageE2EE || (e2eeAuthenticated && !e2eeFinal);
+  const readOnly =
+    locked ||
+    !privateReady ||
+    privateBootstrap ||
+    conversionBootstrap ||
+    e2eeDecrypting;
 
-  cryptoLockIcon.toggleAttribute("hidden", encrypted);
-  cryptoUnlockIcon.toggleAttribute("hidden", !encrypted);
+  textarea.readOnly = readOnly;
+  textarea.setAttribute("aria-readonly", String(readOnly));
+  editor.classList.toggle("is-locked", readOnly);
+  saveActions.classList.toggle("is-locked", readOnly);
+  copyTextAction.disabled = pageE2EE && !e2eeAuthenticated;
+
+  cryptoLockIcon.toggleAttribute("hidden", encrypted && !pageE2EE);
+  cryptoUnlockIcon.toggleAttribute("hidden", !encrypted || pageE2EE);
   const cryptoLabel =
-    locked && !encrypted
+    pageE2EE
+      ? "Legacy block encryption is unavailable for private pages"
+      : locked && !encrypted
       ? "Unlock page to encrypt paste"
       : encrypted
         ? "Decrypt paste"
         : "Encrypt paste";
   cryptoAction.setAttribute("aria-label", cryptoLabel);
   cryptoAction.dataset.tooltip = cryptoLabel;
-  cryptoAction.disabled = (locked && !encrypted) || operationPending;
+  cryptoAction.disabled =
+    pageE2EE || (locked && !encrypted) || operationPending;
+
+  privateAction.classList.toggle("is-active", pageE2EE);
+  const privateLabel = pageE2EE
+    ? privateBootstrap || conversionBootstrap
+      ? "Creating private page…"
+      : encodedMasterKey
+      ? "Copy complete private URL"
+      : "A valid private key is required"
+    : locked
+      ? "Unlock page before making it private"
+      : selfDestruct
+        ? "Cancel self destruct before making it private"
+        : "Make permanently private";
+  privateAction.setAttribute("aria-label", privateLabel);
+  privateAction.dataset.tooltip = privateLabel;
+  privateAction.disabled = pageE2EE
+    ? !encodedMasterKey || privateBootstrap || conversionBootstrap
+    : locked || selfDestruct || operationPending;
 
   pageLockIcon.toggleAttribute("hidden", locked);
   pageUnlockIcon.toggleAttribute("hidden", !locked);
   pageLockAction.setAttribute("aria-label", locked ? "Unlock page" : "Lock page");
   pageLockAction.dataset.tooltip = locked ? "Unlock page" : "Lock page";
-  pageLockAction.disabled = operationPending;
+  pageLockAction.disabled = operationPending || (pageE2EE && !e2eeAuthenticated);
 
   publishIcon.toggleAttribute("hidden", published);
   unpublishIcon.toggleAttribute("hidden", !published);
   publishAction.classList.toggle("is-active", published);
-  publishAction.disabled = locked || selfDestruct || operationPending;
+  publishAction.disabled =
+    pageE2EE || locked || selfDestruct || operationPending;
   publishAction.setAttribute("aria-checked", String(published));
   publishAction.setAttribute(
     "aria-label",
-    locked
+    pageE2EE
+      ? "Publishing is unavailable for private pages"
+      : locked
       ? "Unlock page to change publishing"
       : selfDestruct
         ? "Cancel self destruct before publishing"
@@ -325,7 +432,9 @@ function updatePageState() {
           ? "Unpublish page"
           : "Publish page",
   );
-  publishAction.dataset.tooltip = locked
+  publishAction.dataset.tooltip = pageE2EE
+    ? "Publishing is unavailable for private pages"
+    : locked
     ? "Unlock page to change publishing"
     : selfDestruct
       ? "Cancel self destruct before publishing"
@@ -334,7 +443,8 @@ function updatePageState() {
         : "Publish page";
 
   selfDestructAction.classList.toggle("is-active", selfDestruct);
-  selfDestructAction.disabled = locked || operationPending;
+  selfDestructAction.disabled =
+    locked || operationPending || (pageE2EE && !e2eeAuthenticated);
   selfDestructAction.setAttribute("aria-checked", String(selfDestruct));
   const selfDestructLabel = locked
     ? "Unlock page to change self destruct"
@@ -351,6 +461,7 @@ function replacePageText(
   published,
   selfDestruct,
   restoreCursor = true,
+  endToEndEncrypted = pageE2EE,
 ) {
   const cursor = getCursorPosition(textarea);
   cursorBroadcastGuard.pause();
@@ -360,6 +471,7 @@ function replacePageText(
   pageLocked = locked;
   pagePublished = published;
   pageSelfDestruct = selfDestruct;
+  pageE2EE = endToEndEncrypted;
   renderLinks(textarea, linkOverlay);
   updatePageState();
   if (restoreCursor) {
@@ -389,15 +501,19 @@ function copyTextFallback(value) {
   }
 }
 
+async function copyValue(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+  } else {
+    copyTextFallback(value);
+  }
+}
+
 async function copyPasteText() {
   resetCopyFeedback();
 
   try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(textarea.value);
-    } else {
-      copyTextFallback(textarea.value);
-    }
+    await copyValue(textarea.value);
 
     copyIcon.hidden = true;
     copySuccessIcon.hidden = false;
@@ -411,6 +527,21 @@ async function copyPasteText() {
     );
   } catch {
     saveStatusText.textContent = "Could not copy paste text";
+  }
+}
+
+async function copyPrivateLink() {
+  if (!pageE2EE || !encodedMasterKey) {
+    return;
+  }
+  try {
+    await copyValue(privatePageURL(window.location, encodedMasterKey));
+    saveStatusText.textContent = "Complete private URL copied";
+    showPrivateStatus(
+      "Complete private URL copied. Anyone with this URL can read and edit the scratchpad.",
+    );
+  } catch {
+    saveStatusText.textContent = "Could not copy the private URL";
   }
 }
 
@@ -551,6 +682,16 @@ function sendPageOperation(operation, text, password = "") {
   pendingPageOperation = operation;
 }
 
+async function sendPageOperationAfterSave(operation, text, password = "") {
+  if (pageE2EE && !pageLocked) {
+    queueUpdateDebounced.cancel();
+    queueUpdate();
+    await e2eeCryptoQueue.drain();
+    await waitForOrdinarySaves();
+  }
+  sendPageOperation(operation, text, password);
+}
+
 async function submitPasswordForm(event) {
   event.preventDefault();
   cryptoError.textContent = "";
@@ -603,7 +744,7 @@ async function submitPasswordForm(event) {
 
     const serverPassword =
       dialogMode === "lock" || dialogMode === "unlock" ? password : "";
-    sendPageOperation(dialogMode, transformed, serverPassword);
+    await sendPageOperationAfterSave(dialogMode, transformed, serverPassword);
     cryptoPassword.value = "";
     if (cryptoPasswordConfirmation) {
       cryptoPasswordConfirmation.value = "";
@@ -638,24 +779,82 @@ function flushPendingUpdate() {
   outstandingSaves++;
 }
 
+function flushPendingE2EEUpdate() {
+  if (!pendingE2EESnapshot || !e2eeAuthenticated || e2eeFinal) {
+    return;
+  }
+  const snapshot = pendingE2EESnapshot;
+  if (snapshot.queued) {
+    return;
+  }
+  snapshot.queued = true;
+  void e2eeCryptoQueue
+    .run(async () => {
+      if (
+        !e2eeKeys ||
+        !socket ||
+        socket.readyState !== WebSocket.OPEN ||
+        !e2eeAuthenticated ||
+        e2eeFinal
+      ) {
+        snapshot.queued = false;
+        return;
+      }
+      const ciphertext = encryptE2EEDocument(
+        snapshot.text,
+        e2eeKeys.contentKey,
+        window.location.pathname,
+      );
+      socket.send(JSON.stringify(editMessage(ciphertext, snapshot.cursor)));
+      latestCiphertext = ciphertext;
+      lastAnnouncedCursor = snapshot.cursor;
+      if (pendingE2EESnapshot === snapshot) {
+        pendingE2EESnapshot = undefined;
+      }
+      outstandingSaves++;
+    })
+    .catch((error) => {
+      snapshot.queued = false;
+      saveStatusText.textContent =
+        error instanceof Error ? error.message : "The private page was not saved.";
+      saveStatus.dataset.state = "saved";
+    });
+}
+
 function queueUpdate() {
-  if (pageLocked) {
+  if (pageLocked || e2eeFinal) {
     return;
   }
 
   const cursor = getCursorPosition(textarea);
+  if (pageE2EE) {
+    if (!e2eeAuthenticated) {
+      return;
+    }
+    pendingE2EESnapshot = { text: textarea.value, cursor };
+    setSaveState("saving");
+    flushPendingE2EEUpdate();
+    return;
+  }
   pendingUpdate = editMessage(textarea.value, cursor);
   setSaveState("saving");
   flushPendingUpdate();
 }
 
-const queueUpdateDebounced = debounce(queueUpdate, 100);
+const queueUpdateDebounced = debounce(() => {
+  if (pageE2EE) {
+    flushPendingE2EEUpdate();
+  } else {
+    queueUpdate();
+  }
+}, 100);
 
 function sendCursorUpdate() {
   if (
     !cursorBroadcastGuard.canBroadcast() ||
     !socket ||
-    socket.readyState !== WebSocket.OPEN
+    socket.readyState !== WebSocket.OPEN ||
+    (pageE2EE && !e2eeAuthenticated)
   ) {
     return;
   }
@@ -676,7 +875,13 @@ function finishPageOperation(data) {
   }
 
   pendingPageOperation = undefined;
-  if (
+  if (pageE2EE) {
+    latestCiphertext = data.text || latestCiphertext;
+    pageLocked = data.locked;
+    pagePublished = false;
+    pageSelfDestruct = data.self_destruct;
+    updatePageState();
+  } else if (
     data.operation === "publish" ||
     data.operation === "unpublish" ||
     data.operation === "self-destruct" ||
@@ -713,8 +918,115 @@ function finishPageOperation(data) {
   }
 }
 
+function revealRawPrivateDocument(data, message) {
+  reconnectEnabled = false;
+  e2eeAuthenticated = false;
+  e2eeDecrypting = false;
+  pageE2EE = true;
+  latestCiphertext = data.text || latestCiphertext;
+  replacePageText(
+    latestCiphertext,
+    data.locked,
+    false,
+    data.self_destruct,
+    false,
+    true,
+  );
+  showPrivateStatus(message, true);
+  socket?.close();
+}
+
+function applyRemoteE2EEUpdate(data, { final = false } = {}) {
+  const sequence = ++e2eeRemoteSequence;
+  const revision = e2eeTextRevision;
+  latestCiphertext = data.text;
+  e2eeDecrypting = true;
+  updatePageState();
+
+  void e2eeCryptoQueue
+    .run(() =>
+      decryptE2EEDocument(
+        data.text,
+        e2eeKeys.contentKey,
+        window.location.pathname,
+      ),
+    )
+    .then((plaintext) => {
+      if (sequence !== e2eeRemoteSequence || revision !== e2eeTextRevision) {
+        return;
+      }
+      e2eeDecrypting = false;
+      e2eeFinal = final;
+      replacePageText(
+        plaintext,
+        data.locked,
+        false,
+        data.self_destruct,
+        !final,
+        true,
+      );
+      if (final) {
+        reconnectEnabled = false;
+        showPrivateStatus(
+          "This was the page’s final authorized load. It has been deleted from the server.",
+        );
+        socket?.close();
+      } else {
+        showPrivateStatus(
+          "Private page active. Keep the complete #key URL—lost keys cannot be recovered.",
+        );
+        flushPendingE2EEUpdate();
+      }
+    })
+    .catch((error) => {
+      revealRawPrivateDocument(
+        data,
+        error instanceof Error
+          ? error.message
+          : "The private document could not be decrypted.",
+      );
+    });
+}
+
+function finishE2EEAuthentication(data) {
+  pageE2EE = true;
+  e2eeAuthenticated = true;
+  pageLocked = data.locked;
+  pagePublished = false;
+  pageSelfDestruct = data.self_destruct;
+  latestCiphertext = data.text;
+
+  if (
+    data.operation === websocketMessageType.e2eeCreate ||
+    data.operation === websocketMessageType.e2eeConvert ||
+    pendingE2EEBootstrap
+  ) {
+    pendingE2EEBootstrap = undefined;
+    privateBootstrap = false;
+    conversionBootstrap = false;
+    window.history.replaceState(
+      null,
+      "",
+      privatePageURL(window.location, encodedMasterKey),
+    );
+    updatePageState();
+    showPrivateStatus(
+      "Private page active. Copy the complete #key URL; anyone with it can read and edit, and lost keys cannot be recovered.",
+    );
+    setSaveState("saved");
+    return;
+  }
+
+  applyRemoteE2EEUpdate(data, { final: data.final === true });
+}
+
 function handleSocketMessage(event) {
   const data = JSON.parse(event.data);
+
+  if (data.type === websocketMessageType.e2eeAuthenticated) {
+    finishE2EEAuthentication(data);
+    return;
+  }
 
   if (data.type === websocketMessageType.cursor) {
     setRemoteCursor(data.client_id, data.cursor_end);
@@ -733,20 +1045,105 @@ function handleSocketMessage(event) {
     }
 
     outstandingSaves = Math.max(0, outstandingSaves - 1);
-    if (outstandingSaves === 0 && !pendingUpdate) {
+    if (
+      outstandingSaves === 0 &&
+      !pendingUpdate &&
+      !pendingE2EESnapshot
+    ) {
       setSaveState("saved");
     }
+    settleOrdinarySaveWaiters();
     return;
   }
 
   if (data.type === websocketMessageType.error) {
-    if (data.current) {
-      replacePageText(
-        data.text,
-        data.locked,
-        data.published,
-        data.self_destruct,
+    if (data.operation === websocketMessageType.e2eeCreate) {
+      if (data.end_to_end_encrypted && e2eeKeys) {
+        socket.send(
+          JSON.stringify(
+            e2eeAuthenticateMessage(bytesToBase64URL(e2eeKeys.writeKey)),
+          ),
+        );
+        return;
+      }
+      if (data.error_code !== "page-name-collision") {
+        reconnectEnabled = false;
+        showPrivateStatus(
+          data.error || "The private page could not be created.",
+          true,
+        );
+        socket?.close();
+        return;
+      }
+      reconnectEnabled = false;
+      showPrivateStatus(
+        "That random name was already in use. Allocating another private page…",
+        true,
       );
+      socket?.close();
+      window.location.replace("/?new=private");
+      return;
+    }
+    if (
+      data.operation === websocketMessageType.e2eeConvert ||
+      data.operation === websocketMessageType.e2eeAuthenticate
+    ) {
+      if (
+        data.operation === websocketMessageType.e2eeConvert &&
+        data.end_to_end_encrypted &&
+        e2eeKeys
+      ) {
+        socket.send(
+          JSON.stringify(
+            e2eeAuthenticateMessage(bytesToBase64URL(e2eeKeys.writeKey)),
+          ),
+        );
+        return;
+      }
+      if (
+        data.operation === websocketMessageType.e2eeConvert &&
+        !data.end_to_end_encrypted
+      ) {
+        reconnectEnabled = false;
+        window.location.replace(window.location.pathname);
+        return;
+      }
+      if (
+        data.operation === websocketMessageType.e2eeAuthenticate &&
+        pendingE2EEBootstrap?.type === websocketMessageType.e2eeCreate
+      ) {
+        reconnectEnabled = false;
+        window.location.replace("/?new=private");
+        return;
+      }
+      if (
+        data.operation === websocketMessageType.e2eeAuthenticate &&
+        pendingE2EEBootstrap?.type === websocketMessageType.e2eeConvert
+      ) {
+        reconnectEnabled = false;
+        window.location.replace(window.location.pathname);
+        return;
+      }
+      revealRawPrivateDocument(
+        data,
+        data.error || "The private page could not be authenticated.",
+      );
+      return;
+    }
+    if (data.current && !(pageE2EE && e2eeAuthenticated)) {
+      if (data.end_to_end_encrypted) {
+        revealRawPrivateDocument(
+          data,
+          data.error || "A valid #key private URL is required to edit this page.",
+        );
+      } else {
+        replacePageText(
+          data.text,
+          data.locked,
+          data.published,
+          data.self_destruct,
+        );
+      }
     }
 
     if (data.operation && data.operation === pendingPageOperation) {
@@ -766,10 +1163,34 @@ function handleSocketMessage(event) {
     outstandingSaves = Math.max(0, outstandingSaves - 1);
     saveStatusText.textContent = data.error || "The paste was not saved.";
     saveStatus.dataset.state = "saved";
+    settleOrdinarySaveWaiters(new Error(data.error || "The paste was not saved."));
     return;
   }
 
   if (data.type === websocketMessageType.update) {
+    if (data.end_to_end_encrypted) {
+      if (!e2eeKeys || !e2eeAuthenticated) {
+        revealRawPrivateDocument(
+          data,
+          "This page was converted to permanent end-to-end encryption. Ask the converter for the new complete #key URL.",
+        );
+        return;
+      }
+      if (!data.operation && pendingE2EESnapshot) {
+        latestCiphertext = data.text;
+        if (data.client_id) {
+          setRemoteCursor(data.client_id, data.cursor_end);
+        }
+        flashRemoteUpdate();
+        return;
+      }
+      applyRemoteE2EEUpdate(data);
+      if (data.client_id) {
+        setRemoteCursor(data.client_id, data.cursor_end);
+      }
+      flashRemoteUpdate();
+      return;
+    }
     replacePageText(
       data.text,
       data.locked,
@@ -784,13 +1205,22 @@ function handleSocketMessage(event) {
 }
 
 function connectSocket() {
-  const place = window.location.pathname.replace(/^\/+/, "");
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  socket = new WebSocket(
-    `${protocol}//${window.location.host}/ws?place=${encodeURIComponent(place)}`,
-  );
+  const place = normalizePagePath(window.location.pathname).slice(1);
+  socket = new WebSocket(websocketURL(window.location, place));
 
   socket.addEventListener("open", () => {
+    if (pendingE2EEBootstrap) {
+      socket.send(JSON.stringify(pendingE2EEBootstrap));
+      return;
+    }
+    if (pageE2EE && e2eeKeys) {
+      socket.send(
+        JSON.stringify(
+          e2eeAuthenticateMessage(bytesToBase64URL(e2eeKeys.writeKey)),
+        ),
+      );
+      return;
+    }
     flushPendingUpdate();
     sendCursorUpdate();
   });
@@ -815,14 +1245,117 @@ function connectSocket() {
       }
     }
 
-    if (outstandingSaves > 0) {
+    if (pageE2EE) {
+      if (outstandingSaves > 0 && !pageLocked && !e2eeFinal) {
+        pendingE2EESnapshot = {
+          text: textarea.value,
+          cursor: getCursorPosition(textarea),
+        };
+      }
+      outstandingSaves = 0;
+      e2eeAuthenticated = false;
+      if (!e2eeFinal) {
+        updatePageState();
+      }
+    } else if (outstandingSaves > 0) {
       outstandingSaves = 0;
       queueUpdate();
     }
 
     window.clearTimeout(reconnectTimer);
-    reconnectTimer = window.setTimeout(connectSocket, 750);
+    if (reconnectEnabled && !e2eeFinal) {
+      reconnectTimer = window.setTimeout(connectSocket, 750);
+    }
   });
+}
+
+async function initializePrivateBootstrap(type) {
+  pageE2EE = true;
+  e2eeAuthenticated = false;
+  showPrivateStatus("Creating the private page entirely in this browser…");
+  updatePageState();
+
+  try {
+    const masterKey = generateMasterKey();
+    encodedMasterKey = encodeMasterKey(masterKey);
+    e2eeKeys = derivePageKeys(masterKey, window.location.pathname);
+    masterKey.fill(0);
+    const ciphertext = encryptE2EEDocument(
+      textarea.value,
+      e2eeKeys.contentKey,
+      window.location.pathname,
+    );
+    latestCiphertext = ciphertext;
+    const cursor = getCursorPosition(textarea);
+    pendingE2EEBootstrap = e2eeBootstrapMessage(
+      type,
+      ciphertext,
+      bytesToBase64URL(e2eeKeys.writeKey),
+      cursor,
+    );
+    connectSocket();
+  } catch (error) {
+    reconnectEnabled = false;
+    showPrivateStatus(
+      error instanceof Error
+        ? error.message
+        : "The private page could not be created.",
+      true,
+    );
+  }
+}
+
+async function initializeExistingE2EE() {
+  const rawCiphertext = textarea.value;
+  pagePublished = false;
+  updatePageState();
+
+  try {
+    const masterKey = parseFragmentKey(window.location.hash);
+    encodedMasterKey = encodeMasterKey(masterKey);
+    e2eeKeys = derivePageKeys(masterKey, window.location.pathname);
+    masterKey.fill(0);
+    if (!pageSelfDestruct) {
+      const plaintext = await e2eeCryptoQueue.run(() =>
+        decryptE2EEDocument(
+          rawCiphertext,
+          e2eeKeys.contentKey,
+          window.location.pathname,
+        ),
+      );
+      replacePageText(
+        plaintext,
+        pageLocked,
+        false,
+        false,
+        false,
+        true,
+      );
+    } else {
+      showPrivateStatus(
+        "Authenticating before retrieving this self-destructing private page…",
+      );
+    }
+    connectSocket();
+  } catch (error) {
+    reconnectEnabled = false;
+    e2eeKeys = undefined;
+    encodedMasterKey = undefined;
+    replacePageText(
+      rawCiphertext,
+      pageLocked,
+      false,
+      pageSelfDestruct,
+      false,
+      true,
+    );
+    showPrivateStatus(
+      error instanceof Error
+        ? error.message
+        : "A valid #key private URL is required.",
+      true,
+    );
+  }
 }
 
 textarea.addEventListener("keydown", (event) => {
@@ -848,9 +1381,19 @@ textarea.addEventListener("input", () => {
     return;
   }
   remoteCursorOverlay.finishTextChange();
+  if (pageE2EE) {
+    e2eeTextRevision++;
+  }
   markSaveActivity();
   renderLinks(textarea, linkOverlay);
   updatePageState();
+  if (pageE2EE) {
+    pendingE2EESnapshot = {
+      text: textarea.value,
+      cursor: getCursorPosition(textarea),
+    };
+    setSaveState("saving");
+  }
   queueUpdateDebounced();
 });
 
@@ -887,17 +1430,57 @@ colorSchemeQuery.addEventListener("change", () => {
 });
 
 cryptoAction.addEventListener("click", () => {
+  if (pageE2EE) {
+    return;
+  }
   const encrypted = hasEncryptedBlocks(textarea.value);
   if (pageLocked && !encrypted) {
     return;
   }
   openPasswordDialog(encrypted ? "decrypt" : "encrypt");
 });
+privateAction.addEventListener("click", () => {
+  if (pageE2EE) {
+    void copyPrivateLink();
+    return;
+  }
+  if (pageLocked || pageSelfDestruct || pendingPageOperation) {
+    return;
+  }
+  const confirmed = window.confirm(
+    "Make this page permanently end-to-end encrypted? This cannot be undone. " +
+      "The server may retain plaintext that was already transmitted in database history, backups, or logs. " +
+      "A lost private URL cannot be recovered.",
+  );
+  if (!confirmed) {
+    return;
+  }
+
+  setActionMenuOpen(false);
+  void (async () => {
+    try {
+      setSaveState("saving");
+      queueUpdateDebounced.cancel();
+      queueUpdate();
+      await waitForOrdinarySaves();
+      const target = new URL(window.location.href);
+      target.search = "?convert=1";
+      target.hash = "";
+      window.location.assign(target.toString());
+    } catch (error) {
+      saveStatusText.textContent =
+        error instanceof Error
+          ? error.message
+          : "The page could not be prepared for conversion.";
+      saveStatus.dataset.state = "saved";
+    }
+  })();
+});
 pageLockAction.addEventListener("click", () => {
   openPasswordDialog(pageLocked ? "unlock" : "lock");
 });
 publishAction.addEventListener("click", () => {
-  if (pageLocked || pageSelfDestruct) {
+  if (pageE2EE || pageLocked || pageSelfDestruct) {
     return;
   }
 
@@ -921,20 +1504,24 @@ selfDestructAction.addEventListener("click", () => {
     return;
   }
 
-  try {
-    setSaveState("saving");
-    queueUpdateDebounced.cancel();
-    queueUpdate();
-    sendPageOperation(
-      pageSelfDestruct ? "cancel-self-destruct" : "self-destruct",
-      "",
-    );
-    updatePageState();
-  } catch (error) {
-    saveStatusText.textContent =
-      error instanceof Error ? error.message : "The operation failed.";
-    saveStatus.dataset.state = "saved";
-  }
+  void (async () => {
+    try {
+      setSaveState("saving");
+      queueUpdateDebounced.cancel();
+      if (!pageE2EE) {
+        queueUpdate();
+      }
+      await sendPageOperationAfterSave(
+        pageSelfDestruct ? "cancel-self-destruct" : "self-destruct",
+        "",
+      );
+      updatePageState();
+    } catch (error) {
+      saveStatusText.textContent =
+        error instanceof Error ? error.message : "The operation failed.";
+      saveStatus.dataset.state = "saved";
+    }
+  })();
 });
 cryptoForm.addEventListener("submit", (event) => {
   void submitPasswordForm(event);
@@ -986,12 +1573,23 @@ document.addEventListener("keydown", (event) => {
 
 renderLinks(textarea, linkOverlay);
 syncTheme();
-updatePageState();
-connectSocket();
-
 setCursorPosition(
   textarea,
   Number(textarea.dataset.cursorStart) || 0,
   Number(textarea.dataset.cursorEnd) || 0,
 );
-textarea.focus();
+updatePageState();
+
+if (privateBootstrap) {
+  void initializePrivateBootstrap(websocketMessageType.e2eeCreate);
+} else if (conversionBootstrap) {
+  void initializePrivateBootstrap(websocketMessageType.e2eeConvert);
+} else if (pageE2EE) {
+  void initializeExistingE2EE();
+} else {
+  connectSocket();
+}
+
+if (!textarea.readOnly) {
+  textarea.focus();
+}

@@ -112,24 +112,27 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Page struct {
-	Title        string `json:"title"`
-	Text         string `json:"text"`
-	CursorStart  int64  `json:"cursor_start"`
-	CursorEnd    int64  `json:"cursor_end"`
-	Published    bool   `json:"published"`
-	SelfDestruct bool   `json:"self_destruct"`
-	Locked       bool   `json:"locked"`
+	Title             string `json:"title"`
+	Text              string `json:"text"`
+	CursorStart       int64  `json:"cursor_start"`
+	CursorEnd         int64  `json:"cursor_end"`
+	Published         bool   `json:"published"`
+	SelfDestruct      bool   `json:"self_destruct"`
+	Locked            bool   `json:"locked"`
+	EndToEndEncrypted bool   `json:"end_to_end_encrypted"`
 }
 
 type pageTemplateData struct {
 	Page
-	GoogleAdSense  string
-	GoogleTag      string
-	UmamiURL       string
-	UmamiWebsiteID string
-	Landing        bool
-	About          bool
-	SEO            seoTemplateData
+	GoogleAdSense       string
+	GoogleTag           string
+	UmamiURL            string
+	UmamiWebsiteID      string
+	Landing             bool
+	About               bool
+	PrivateBootstrap    bool
+	ConversionBootstrap bool
+	SEO                 seoTemplateData
 }
 
 type sitemapURLSet struct {
@@ -168,33 +171,36 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 		return handlePost(w, r)
 	} else if r.URL.Path == "/" {
 		if isCurlRequest(r) || r.URL.Query().Has("new") {
-			return redirectToRandomDocument(w, r)
+			return redirectToRandomDocument(w, r, r.URL.Query().Get("new") == "private")
 		}
 		return handleLanding(w, r)
 	}
 	key := r.URL.Path[1:]
+	privateBootstrap := r.URL.Query().Get("private") == "1"
+	conversionBootstrap := r.URL.Query().Get("convert") == "1"
 	p := Page{Title: key}
 	var storedPage database.Page
-	consumeOnLoad := r.Method == http.MethodGet
-	if consumeOnLoad {
-		pageMutationMu.Lock()
+	consumeOnLoad := false
+	pageMutationMu.Lock()
+	storedPage, err = pageStore.GetPage(r.Context(), key)
+	if err == nil && r.Method == http.MethodGet && storedPage.SelfDestruct && !storedPage.EndToEndEncrypted {
 		storedPage, err = pageStore.ConsumePage(r.Context(), key)
-		pageMutationMu.Unlock()
-	} else {
-		storedPage, err = pageStore.GetPage(r.Context(), key)
+		consumeOnLoad = err == nil
 	}
+	pageMutationMu.Unlock()
 	if err != nil && !errors.Is(err, database.ErrPageNotFound) {
 		return err
 	}
 	if err == nil {
 		p = Page{
-			Title:        storedPage.Title,
-			Text:         storedPage.Text,
-			CursorStart:  storedPage.CursorStart,
-			CursorEnd:    storedPage.CursorEnd,
-			Published:    storedPage.Published,
-			SelfDestruct: storedPage.SelfDestruct,
-			Locked:       storedPage.Locked,
+			Title:             storedPage.Title,
+			Text:              storedPage.Text,
+			CursorStart:       storedPage.CursorStart,
+			CursorEnd:         storedPage.CursorEnd,
+			Published:         storedPage.Published,
+			SelfDestruct:      storedPage.SelfDestruct,
+			Locked:            storedPage.Locked,
+			EndToEndEncrypted: storedPage.EndToEndEncrypted,
 		}
 		if p.SelfDestruct {
 			p.Published = false
@@ -203,10 +209,33 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 			}
 		}
 	}
-	log.Tracef("loading: %+v", p)
+	if p.EndToEndEncrypted {
+		conversionBootstrap = false
+	}
+	if privateBootstrap {
+		p = Page{Title: key}
+	}
+	if p.EndToEndEncrypted {
+		p.Published = false
+		if p.SelfDestruct {
+			p.Text = ""
+		}
+	}
+	log.Tracef(
+		"loading page: path=%q bytes=%d published=%t self_destruct=%t locked=%t e2ee=%t",
+		"/"+p.Title,
+		len(p.Text),
+		p.Published,
+		p.SelfDestruct,
+		p.Locked,
+		p.EndToEndEncrypted,
+	)
 	w.Header().Set("Vary", "User-Agent")
-	if p.SelfDestruct {
+	if p.SelfDestruct || p.EndToEndEncrypted || privateBootstrap || conversionBootstrap {
 		w.Header().Set("Cache-Control", "no-store")
+	}
+	if p.EndToEndEncrypted || privateBootstrap || conversionBootstrap {
+		w.Header().Set("Referrer-Policy", "no-referrer")
 	}
 	if p.Published {
 		w.Header().Set("X-Robots-Tag", robotsDirective(true))
@@ -231,12 +260,16 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 	p.Text = html.EscapeString(p.Text)
 	p.Text = policy.Sanitize(p.Text)
 	data := pageTemplateData{
-		Page:          p,
-		GoogleAdSense: configuredGoogleAdSense(),
-		GoogleTag:     configuredGoogleTag(),
-		SEO:           seo,
+		Page:                p,
+		PrivateBootstrap:    privateBootstrap,
+		ConversionBootstrap: conversionBootstrap,
+		SEO:                 seo,
 	}
-	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
+	if !p.EndToEndEncrypted && !privateBootstrap && !conversionBootstrap {
+		data.GoogleAdSense = configuredGoogleAdSense()
+		data.GoogleTag = configuredGoogleTag()
+		data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
+	}
 	return indexTemplate.Execute(w, data)
 }
 
@@ -293,12 +326,16 @@ func handleAbout(w http.ResponseWriter, r *http.Request) error {
 	return indexTemplate.Execute(w, data)
 }
 
-func redirectToRandomDocument(w http.ResponseWriter, r *http.Request) error {
+func redirectToRandomDocument(w http.ResponseWriter, r *http.Request, private bool) error {
 	name, err := randomDocumentName()
 	if err != nil {
 		return fmt.Errorf("generate random paste name: %w", err)
 	}
-	http.Redirect(w, r, "/"+name, http.StatusFound)
+	target := "/" + name
+	if private {
+		target += "?private=1"
+	}
+	http.Redirect(w, r, target, http.StatusFound)
 	return nil
 }
 
@@ -434,9 +471,10 @@ type pageUpdate struct {
 }
 
 type pageUpdateOptions struct {
-	requireExisting  bool
-	preserveLockText bool
-	source           string
+	requireExisting   bool
+	preserveLockText  bool
+	e2eeAuthenticated bool
+	source            string
 }
 
 func applyWebsocketUpdate(
@@ -446,6 +484,18 @@ func applyWebsocketUpdate(
 ) (database.Page, error) {
 	return applyPageUpdate(ctx, place, update, pageUpdateOptions{
 		source: "websocket",
+	})
+}
+
+func applyAuthenticatedWebsocketUpdate(
+	ctx context.Context,
+	place string,
+	update pageUpdate,
+	e2eeAuthenticated bool,
+) (database.Page, error) {
+	return applyPageUpdate(ctx, place, update, pageUpdateOptions{
+		e2eeAuthenticated: e2eeAuthenticated,
+		source:            "websocket",
 	})
 }
 
@@ -482,15 +532,36 @@ func applyPageUpdate(
 	}
 
 	next := database.Page{
-		Title:        place,
-		Text:         update.Text,
-		CursorStart:  update.CursorStart,
-		CursorEnd:    update.CursorEnd,
-		Published:    stored.Published,
-		SelfDestruct: stored.SelfDestruct,
-		Locked:       stored.Locked,
-		LockSalt:     stored.LockSalt,
-		LockVerifier: stored.LockVerifier,
+		Title:             place,
+		Text:              update.Text,
+		CursorStart:       update.CursorStart,
+		CursorEnd:         update.CursorEnd,
+		Published:         stored.Published,
+		SelfDestruct:      stored.SelfDestruct,
+		Locked:            stored.Locked,
+		LockSalt:          stored.LockSalt,
+		LockVerifier:      stored.LockVerifier,
+		EndToEndEncrypted: stored.EndToEndEncrypted,
+		E2EEAuthHash:      stored.E2EEAuthHash,
+	}
+	if stored.EndToEndEncrypted {
+		if !options.e2eeAuthenticated {
+			return stored, errE2EEAuthenticationRequired
+		}
+		if update.Operation == operationEncrypt ||
+			update.Operation == operationDecrypt ||
+			update.Operation == operationPublish ||
+			update.Operation == operationUnpublish {
+			return stored, errE2EEIncompatibleOperation
+		}
+		if update.Operation == "" && !validE2EEDocument(update.Text) {
+			return stored, errE2EEInvalidDocument
+		}
+		if update.Operation != "" {
+			next.Text = stored.Text
+			next.CursorStart = stored.CursorStart
+			next.CursorEnd = stored.CursorEnd
+		}
 	}
 	switch update.Operation {
 	case "":
@@ -704,6 +775,18 @@ func websocketErrorMessage(err error) string {
 		return "Wrong password for this page lock."
 	case errors.Is(err, errSelfDestructArmed):
 		return "Cancel self destruct before publishing."
+	case errors.Is(err, errE2EEAuthenticationRequired):
+		return "Authenticate with the complete private URL before changing this page."
+	case errors.Is(err, errE2EEInvalidCapability):
+		return "The private link is invalid or does not match this page."
+	case errors.Is(err, errE2EEInvalidDocument):
+		return "The private ciphertext envelope is invalid."
+	case errors.Is(err, errE2EEPageCollision):
+		return "That private page name is already in use."
+	case errors.Is(err, errE2EEConversionUnavailable):
+		return "This page can no longer be converted; it may be locked, self-destructing, missing, or already private."
+	case errors.Is(err, errE2EEIncompatibleOperation):
+		return "That operation is unavailable for private pages."
 	default:
 		return err.Error()
 	}

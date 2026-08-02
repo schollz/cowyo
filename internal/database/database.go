@@ -45,19 +45,23 @@ func (c Config) Backend() Backend {
 }
 
 type Page struct {
-	Title        string
-	Text         string
-	CursorStart  int64
-	CursorEnd    int64
-	Published    bool
-	SelfDestruct bool
-	Locked       bool
-	LockSalt     string
-	LockVerifier string
+	Title             string
+	Text              string
+	CursorStart       int64
+	CursorEnd         int64
+	Published         bool
+	SelfDestruct      bool
+	Locked            bool
+	LockSalt          string
+	LockVerifier      string
+	EndToEndEncrypted bool
+	E2EEAuthHash      string
 }
 
 type pageQueries interface {
+	ConsumeE2EESelfDestructPage(context.Context, string) (Page, error)
 	ConsumeSelfDestructPage(context.Context, string) (Page, error)
+	ConvertPageToE2EE(context.Context, Page) (bool, error)
 	CreatePage(context.Context, Page) (bool, error)
 	GetPage(context.Context, string) (Page, error)
 	ListPublishedPageTitles(context.Context) ([]string, error)
@@ -182,6 +186,19 @@ func (s *Store) CreatePage(ctx context.Context, page Page) (bool, error) {
 	return s.pages.CreatePage(ctx, page)
 }
 
+// ConvertPageToE2EE atomically converts an existing ordinary, unlocked,
+// non-self-destruct page. It returns false when the page no longer satisfies
+// those preconditions.
+func (s *Store) ConvertPageToE2EE(ctx context.Context, page Page) (bool, error) {
+	return s.pages.ConvertPageToE2EE(ctx, page)
+}
+
+// ConsumeE2EEPage atomically removes and returns an armed E2EE page. The
+// caller must authenticate the write capability before invoking this method.
+func (s *Store) ConsumeE2EEPage(ctx context.Context, title string) (Page, error) {
+	return s.pages.ConsumeE2EESelfDestructPage(ctx, title)
+}
+
 func (s *Store) ListPublishedPageTitles(ctx context.Context) ([]string, error) {
 	return s.pages.ListPublishedPageTitles(ctx)
 }
@@ -200,15 +217,17 @@ type postgresPageQueries struct {
 
 func (p postgresPageQueries) CreatePage(ctx context.Context, page Page) (bool, error) {
 	rows, err := p.queries.CreatePage(ctx, postgresdb.CreatePageParams{
-		Title:        page.Title,
-		Text:         page.Text,
-		CursorStart:  page.CursorStart,
-		CursorEnd:    page.CursorEnd,
-		Published:    page.Published,
-		SelfDestruct: page.SelfDestruct,
-		Locked:       page.Locked,
-		LockSalt:     page.LockSalt,
-		LockVerifier: page.LockVerifier,
+		Title:             page.Title,
+		Text:              page.Text,
+		CursorStart:       page.CursorStart,
+		CursorEnd:         page.CursorEnd,
+		Published:         page.Published,
+		SelfDestruct:      page.SelfDestruct,
+		Locked:            page.Locked,
+		LockSalt:          page.LockSalt,
+		LockVerifier:      page.LockVerifier,
+		EndToEndEncrypted: page.EndToEndEncrypted,
+		E2eeAuthHash:      page.E2EEAuthHash,
 	})
 	return rows == 1, err
 }
@@ -222,15 +241,40 @@ func (p postgresPageQueries) ConsumeSelfDestructPage(ctx context.Context, title 
 		return Page{}, err
 	}
 	return Page{
-		Title:        row.Title,
-		Text:         row.Text,
-		CursorStart:  row.CursorStart,
-		CursorEnd:    row.CursorEnd,
-		Published:    row.Published,
-		SelfDestruct: row.SelfDestruct,
-		Locked:       row.Locked,
-		LockSalt:     row.LockSalt,
-		LockVerifier: row.LockVerifier,
+		Title:             row.Title,
+		Text:              row.Text,
+		CursorStart:       row.CursorStart,
+		CursorEnd:         row.CursorEnd,
+		Published:         row.Published,
+		SelfDestruct:      row.SelfDestruct,
+		Locked:            row.Locked,
+		LockSalt:          row.LockSalt,
+		LockVerifier:      row.LockVerifier,
+		EndToEndEncrypted: row.EndToEndEncrypted,
+		E2EEAuthHash:      row.E2eeAuthHash,
+	}, nil
+}
+
+func (p postgresPageQueries) ConsumeE2EESelfDestructPage(ctx context.Context, title string) (Page, error) {
+	row, err := p.queries.ConsumeE2EESelfDestructPage(ctx, title)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Page{}, ErrPageNotFound
+	}
+	if err != nil {
+		return Page{}, err
+	}
+	return Page{
+		Title:             row.Title,
+		Text:              row.Text,
+		CursorStart:       row.CursorStart,
+		CursorEnd:         row.CursorEnd,
+		Published:         row.Published,
+		SelfDestruct:      row.SelfDestruct,
+		Locked:            row.Locked,
+		LockSalt:          row.LockSalt,
+		LockVerifier:      row.LockVerifier,
+		EndToEndEncrypted: row.EndToEndEncrypted,
+		E2EEAuthHash:      row.E2eeAuthHash,
 	}, nil
 }
 
@@ -243,16 +287,29 @@ func (p postgresPageQueries) GetPage(ctx context.Context, title string) (Page, e
 		return Page{}, err
 	}
 	return Page{
-		Title:        row.Title,
-		Text:         row.Text,
-		CursorStart:  row.CursorStart,
-		CursorEnd:    row.CursorEnd,
-		Published:    row.Published,
-		SelfDestruct: row.SelfDestruct,
-		Locked:       row.Locked,
-		LockSalt:     row.LockSalt,
-		LockVerifier: row.LockVerifier,
+		Title:             row.Title,
+		Text:              row.Text,
+		CursorStart:       row.CursorStart,
+		CursorEnd:         row.CursorEnd,
+		Published:         row.Published,
+		SelfDestruct:      row.SelfDestruct,
+		Locked:            row.Locked,
+		LockSalt:          row.LockSalt,
+		LockVerifier:      row.LockVerifier,
+		EndToEndEncrypted: row.EndToEndEncrypted,
+		E2EEAuthHash:      row.E2eeAuthHash,
 	}, nil
+}
+
+func (p postgresPageQueries) ConvertPageToE2EE(ctx context.Context, page Page) (bool, error) {
+	rows, err := p.queries.ConvertPageToE2EE(ctx, postgresdb.ConvertPageToE2EEParams{
+		Title:        page.Title,
+		Text:         page.Text,
+		CursorStart:  page.CursorStart,
+		CursorEnd:    page.CursorEnd,
+		E2eeAuthHash: page.E2EEAuthHash,
+	})
+	return rows == 1, err
 }
 
 func (p postgresPageQueries) ListPublishedPageTitles(ctx context.Context) ([]string, error) {
@@ -261,15 +318,17 @@ func (p postgresPageQueries) ListPublishedPageTitles(ctx context.Context) ([]str
 
 func (p postgresPageQueries) UpsertPage(ctx context.Context, page Page) error {
 	return p.queries.UpsertPage(ctx, postgresdb.UpsertPageParams{
-		Title:        page.Title,
-		Text:         page.Text,
-		CursorStart:  page.CursorStart,
-		CursorEnd:    page.CursorEnd,
-		Published:    page.Published,
-		SelfDestruct: page.SelfDestruct,
-		Locked:       page.Locked,
-		LockSalt:     page.LockSalt,
-		LockVerifier: page.LockVerifier,
+		Title:             page.Title,
+		Text:              page.Text,
+		CursorStart:       page.CursorStart,
+		CursorEnd:         page.CursorEnd,
+		Published:         page.Published,
+		SelfDestruct:      page.SelfDestruct,
+		Locked:            page.Locked,
+		LockSalt:          page.LockSalt,
+		LockVerifier:      page.LockVerifier,
+		EndToEndEncrypted: page.EndToEndEncrypted,
+		E2eeAuthHash:      page.E2EEAuthHash,
 	})
 }
 
@@ -279,15 +338,17 @@ type sqlitePageQueries struct {
 
 func (s sqlitePageQueries) CreatePage(ctx context.Context, page Page) (bool, error) {
 	rows, err := s.queries.CreatePage(ctx, sqlitedb.CreatePageParams{
-		Title:        page.Title,
-		Text:         page.Text,
-		CursorStart:  page.CursorStart,
-		CursorEnd:    page.CursorEnd,
-		Published:    page.Published,
-		SelfDestruct: page.SelfDestruct,
-		Locked:       page.Locked,
-		LockSalt:     page.LockSalt,
-		LockVerifier: page.LockVerifier,
+		Title:             page.Title,
+		Text:              page.Text,
+		CursorStart:       page.CursorStart,
+		CursorEnd:         page.CursorEnd,
+		Published:         page.Published,
+		SelfDestruct:      page.SelfDestruct,
+		Locked:            page.Locked,
+		LockSalt:          page.LockSalt,
+		LockVerifier:      page.LockVerifier,
+		EndToEndEncrypted: page.EndToEndEncrypted,
+		E2eeAuthHash:      page.E2EEAuthHash,
 	})
 	return rows == 1, err
 }
@@ -301,15 +362,40 @@ func (s sqlitePageQueries) ConsumeSelfDestructPage(ctx context.Context, title st
 		return Page{}, err
 	}
 	return Page{
-		Title:        row.Title,
-		Text:         row.Text,
-		CursorStart:  row.CursorStart,
-		CursorEnd:    row.CursorEnd,
-		Published:    row.Published,
-		SelfDestruct: row.SelfDestruct,
-		Locked:       row.Locked,
-		LockSalt:     row.LockSalt,
-		LockVerifier: row.LockVerifier,
+		Title:             row.Title,
+		Text:              row.Text,
+		CursorStart:       row.CursorStart,
+		CursorEnd:         row.CursorEnd,
+		Published:         row.Published,
+		SelfDestruct:      row.SelfDestruct,
+		Locked:            row.Locked,
+		LockSalt:          row.LockSalt,
+		LockVerifier:      row.LockVerifier,
+		EndToEndEncrypted: row.EndToEndEncrypted,
+		E2EEAuthHash:      row.E2eeAuthHash,
+	}, nil
+}
+
+func (s sqlitePageQueries) ConsumeE2EESelfDestructPage(ctx context.Context, title string) (Page, error) {
+	row, err := s.queries.ConsumeE2EESelfDestructPage(ctx, title)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Page{}, ErrPageNotFound
+	}
+	if err != nil {
+		return Page{}, err
+	}
+	return Page{
+		Title:             row.Title,
+		Text:              row.Text,
+		CursorStart:       row.CursorStart,
+		CursorEnd:         row.CursorEnd,
+		Published:         row.Published,
+		SelfDestruct:      row.SelfDestruct,
+		Locked:            row.Locked,
+		LockSalt:          row.LockSalt,
+		LockVerifier:      row.LockVerifier,
+		EndToEndEncrypted: row.EndToEndEncrypted,
+		E2EEAuthHash:      row.E2eeAuthHash,
 	}, nil
 }
 
@@ -322,16 +408,29 @@ func (s sqlitePageQueries) GetPage(ctx context.Context, title string) (Page, err
 		return Page{}, err
 	}
 	return Page{
-		Title:        row.Title,
-		Text:         row.Text,
-		CursorStart:  row.CursorStart,
-		CursorEnd:    row.CursorEnd,
-		Published:    row.Published,
-		SelfDestruct: row.SelfDestruct,
-		Locked:       row.Locked,
-		LockSalt:     row.LockSalt,
-		LockVerifier: row.LockVerifier,
+		Title:             row.Title,
+		Text:              row.Text,
+		CursorStart:       row.CursorStart,
+		CursorEnd:         row.CursorEnd,
+		Published:         row.Published,
+		SelfDestruct:      row.SelfDestruct,
+		Locked:            row.Locked,
+		LockSalt:          row.LockSalt,
+		LockVerifier:      row.LockVerifier,
+		EndToEndEncrypted: row.EndToEndEncrypted,
+		E2EEAuthHash:      row.E2eeAuthHash,
 	}, nil
+}
+
+func (s sqlitePageQueries) ConvertPageToE2EE(ctx context.Context, page Page) (bool, error) {
+	rows, err := s.queries.ConvertPageToE2EE(ctx, sqlitedb.ConvertPageToE2EEParams{
+		Title:        page.Title,
+		Text:         page.Text,
+		CursorStart:  page.CursorStart,
+		CursorEnd:    page.CursorEnd,
+		E2eeAuthHash: page.E2EEAuthHash,
+	})
+	return rows == 1, err
 }
 
 func (s sqlitePageQueries) ListPublishedPageTitles(ctx context.Context) ([]string, error) {
@@ -340,14 +439,16 @@ func (s sqlitePageQueries) ListPublishedPageTitles(ctx context.Context) ([]strin
 
 func (s sqlitePageQueries) UpsertPage(ctx context.Context, page Page) error {
 	return s.queries.UpsertPage(ctx, sqlitedb.UpsertPageParams{
-		Title:        page.Title,
-		Text:         page.Text,
-		CursorStart:  page.CursorStart,
-		CursorEnd:    page.CursorEnd,
-		Published:    page.Published,
-		SelfDestruct: page.SelfDestruct,
-		Locked:       page.Locked,
-		LockSalt:     page.LockSalt,
-		LockVerifier: page.LockVerifier,
+		Title:             page.Title,
+		Text:              page.Text,
+		CursorStart:       page.CursorStart,
+		CursorEnd:         page.CursorEnd,
+		Published:         page.Published,
+		SelfDestruct:      page.SelfDestruct,
+		Locked:            page.Locked,
+		LockSalt:          page.LockSalt,
+		LockVerifier:      page.LockVerifier,
+		EndToEndEncrypted: page.EndToEndEncrypted,
+		E2eeAuthHash:      page.E2EEAuthHash,
 	})
 }

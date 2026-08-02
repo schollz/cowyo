@@ -121,6 +121,31 @@ textarea {
   cursor: default;
 }
 
+.private-status {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 6;
+  max-width: min(680px, calc(100vw - 96px));
+  padding: 9px 12px;
+  border: 1px solid var(--control-color);
+  color: var(--text-color);
+  background: var(--field-background);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.private-status[data-error="true"] {
+  border-color: var(--error-color);
+  color: var(--error-color);
+}
+
+.private-status[hidden] {
+  display: none;
+}
+
 #linkOverlay,
 .remote-cursor-snapshot {
   z-index: 2;
@@ -1176,6 +1201,7 @@ textarea {
   font-size: 0.95em;
 }
 
+.about-how-note,
 .about-curl-note {
   max-width: 780px;
   margin: 24px 0 0;

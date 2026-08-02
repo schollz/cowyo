@@ -7,11 +7,15 @@ The cow menu provides the page's controls:
 - Copy the complete page text to the clipboard.
 - Lock or unlock editing.
 - Encrypt or decrypt text with a password.
+- Irreversibly convert an ordinary page to permanent end-to-end encryption.
 - Publish or unpublish the page.
 - Switch between light and dark themes.
 - Make the page self-destruct after its next load.
 
-## Visibility, locks, and encryption
+The landing page also has a **Private scratchpad** action for pages that are
+end-to-end encrypted from their first save.
+
+## Visibility, locks, and two kinds of encryption
 
 These features serve different purposes:
 
@@ -19,14 +23,37 @@ Unpublished is the default. It keeps a page out of cowyo's sitemap and asks sear
 
 Page locking prevents changes until the page-lock password is entered. It does not hide or encrypt the text. A locked page remains readable, and its password cannot be recovered if forgotten. The password is sent to cowyo when you lock or unlock the page, but is never stored as plain text.
 
-Encryption protects the text itself. Encryption and decryption happen on your client—the browser handles it when you use the editor—and the encryption password is never sent to a server. The server stores the protected content as an encrypted block. Ordinary text before or after an encrypted block is preserved when that block is decrypted. If you lose the encryption password, the encrypted text cannot be recovered.
+Password-encrypted blocks protect selected text on an ordinary page. Encryption
+and decryption happen in the browser, and the password is never sent to the
+server. The server stores a `COWYO ENCRYPTED BLOCK V1`; ordinary text before or
+after a block remains ordinary. If you lose the encryption password, the
+encrypted text cannot be recovered.
+
+Permanent private mode encrypts the complete document before every save. The
+browser generates a random 256-bit master key in a `#key` URL fragment and
+derives independent content-encryption and write-capability keys. The server
+receives ciphertext and the write capability, stores only a hash of that
+capability, and never receives the fragment or derived content key. The full
+private URL grants read and write access and cannot be recovered if lost.
+
+Private-from-creation pages never send plaintext to cowyo. Conversion is
+irreversible but not retroactive: plaintext previously sent for an ordinary
+page may remain in database history, backups, or logs. Private pages cannot be
+published, changed by curl or the page-control API, or use password-encrypted
+blocks. A server capable of replacing the JavaScript it delivers is outside
+this browser-client threat model.
 
 Unlock a page before encrypting it or changing whether it is published. This
 can be done in the browser or through the page-control API.
 
 ## Self-destructing pages
 
-The bomb action arms a page to self-destruct. The next browser or curl GET receives the page one final time and deletes it; later visits open an empty page. A HEAD request does not consume it.
+The bomb action arms a page to self-destruct. For an ordinary page, the next
+browser or curl GET receives the page one final time and deletes it; later
+visits open an empty page. For a private page, keyless GETs reveal and consume
+nothing. After write-capability authentication, exactly one authorized browser
+receives the final ciphertext over WebSocket and atomically deletes the page.
+A HEAD request does not consume either kind.
 
 Arming self-destruct automatically unpublishes the page. It cannot be combined with publishing, and you must unlock a locked page before arming or cancelling it.
 
@@ -38,6 +65,9 @@ editor:
 ```sh
 curl https://cowyo.com/my-notes
 ```
+
+A private page returns its ciphertext envelope. Because the fragment key is
+never sent in HTTP requests, curl cannot decrypt or mutate a private page.
 
 POST to the home page to create a new randomly named page:
 
@@ -92,3 +122,5 @@ the API's `text` field. The encryption password is rejected if sent to cowyo.
 The API accepts strict JSON, operates only on existing pages, limits transformed
 text to 16 KiB, and returns HTTP 429 with `Retry-After` when a client, page, or
 page-lock attempt exceeds its rate limit.
+
+Permanent private pages reject every page-control API mutation.

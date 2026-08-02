@@ -9,22 +9,63 @@ import (
 	"context"
 )
 
+const consumeE2EESelfDestructPage = `-- name: ConsumeE2EESelfDestructPage :one
+DELETE FROM pages
+WHERE title = ?1 AND self_destruct = TRUE AND locked = FALSE AND end_to_end_encrypted = TRUE
+RETURNING title, text, cursor_start, cursor_end, published, self_destruct, locked, lock_salt, lock_verifier, end_to_end_encrypted, e2ee_auth_hash
+`
+
+type ConsumeE2EESelfDestructPageRow struct {
+	Title             string
+	Text              string
+	CursorStart       int64
+	CursorEnd         int64
+	Published         bool
+	SelfDestruct      bool
+	Locked            bool
+	LockSalt          string
+	LockVerifier      string
+	EndToEndEncrypted bool
+	E2eeAuthHash      string
+}
+
+func (q *Queries) ConsumeE2EESelfDestructPage(ctx context.Context, title string) (ConsumeE2EESelfDestructPageRow, error) {
+	row := q.db.QueryRowContext(ctx, consumeE2EESelfDestructPage, title)
+	var i ConsumeE2EESelfDestructPageRow
+	err := row.Scan(
+		&i.Title,
+		&i.Text,
+		&i.CursorStart,
+		&i.CursorEnd,
+		&i.Published,
+		&i.SelfDestruct,
+		&i.Locked,
+		&i.LockSalt,
+		&i.LockVerifier,
+		&i.EndToEndEncrypted,
+		&i.E2eeAuthHash,
+	)
+	return i, err
+}
+
 const consumeSelfDestructPage = `-- name: ConsumeSelfDestructPage :one
 DELETE FROM pages
-WHERE title = ?1 AND self_destruct = TRUE AND locked = FALSE
-RETURNING title, text, cursor_start, cursor_end, published, self_destruct, locked, lock_salt, lock_verifier
+WHERE title = ?1 AND self_destruct = TRUE AND locked = FALSE AND end_to_end_encrypted = FALSE
+RETURNING title, text, cursor_start, cursor_end, published, self_destruct, locked, lock_salt, lock_verifier, end_to_end_encrypted, e2ee_auth_hash
 `
 
 type ConsumeSelfDestructPageRow struct {
-	Title        string
-	Text         string
-	CursorStart  int64
-	CursorEnd    int64
-	Published    bool
-	SelfDestruct bool
-	Locked       bool
-	LockSalt     string
-	LockVerifier string
+	Title             string
+	Text              string
+	CursorStart       int64
+	CursorEnd         int64
+	Published         bool
+	SelfDestruct      bool
+	Locked            bool
+	LockSalt          string
+	LockVerifier      string
+	EndToEndEncrypted bool
+	E2eeAuthHash      string
 }
 
 func (q *Queries) ConsumeSelfDestructPage(ctx context.Context, title string) (ConsumeSelfDestructPageRow, error) {
@@ -40,8 +81,47 @@ func (q *Queries) ConsumeSelfDestructPage(ctx context.Context, title string) (Co
 		&i.Locked,
 		&i.LockSalt,
 		&i.LockVerifier,
+		&i.EndToEndEncrypted,
+		&i.E2eeAuthHash,
 	)
 	return i, err
+}
+
+const convertPageToE2EE = `-- name: ConvertPageToE2EE :execrows
+UPDATE pages
+SET text = ?2,
+    cursor_start = ?3,
+    cursor_end = ?4,
+    published = FALSE,
+    end_to_end_encrypted = TRUE,
+    e2ee_auth_hash = ?5,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title = ?1
+  AND end_to_end_encrypted = FALSE
+  AND locked = FALSE
+  AND self_destruct = FALSE
+`
+
+type ConvertPageToE2EEParams struct {
+	Title        string
+	Text         string
+	CursorStart  int64
+	CursorEnd    int64
+	E2eeAuthHash string
+}
+
+func (q *Queries) ConvertPageToE2EE(ctx context.Context, arg ConvertPageToE2EEParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, convertPageToE2EE,
+		arg.Title,
+		arg.Text,
+		arg.CursorStart,
+		arg.CursorEnd,
+		arg.E2eeAuthHash,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const createPage = `-- name: CreatePage :execrows
@@ -54,7 +134,9 @@ INSERT INTO pages (
     self_destruct,
     locked,
     lock_salt,
-    lock_verifier
+    lock_verifier,
+    end_to_end_encrypted,
+    e2ee_auth_hash
 ) VALUES (
     ?1,
     ?2,
@@ -64,21 +146,25 @@ INSERT INTO pages (
     ?6,
     ?7,
     ?8,
-    ?9
+    ?9,
+    ?10,
+    ?11
 )
 ON CONFLICT (title) DO NOTHING
 `
 
 type CreatePageParams struct {
-	Title        string
-	Text         string
-	CursorStart  int64
-	CursorEnd    int64
-	Published    bool
-	SelfDestruct bool
-	Locked       bool
-	LockSalt     string
-	LockVerifier string
+	Title             string
+	Text              string
+	CursorStart       int64
+	CursorEnd         int64
+	Published         bool
+	SelfDestruct      bool
+	Locked            bool
+	LockSalt          string
+	LockVerifier      string
+	EndToEndEncrypted bool
+	E2eeAuthHash      string
 }
 
 func (q *Queries) CreatePage(ctx context.Context, arg CreatePageParams) (int64, error) {
@@ -92,6 +178,8 @@ func (q *Queries) CreatePage(ctx context.Context, arg CreatePageParams) (int64, 
 		arg.Locked,
 		arg.LockSalt,
 		arg.LockVerifier,
+		arg.EndToEndEncrypted,
+		arg.E2eeAuthHash,
 	)
 	if err != nil {
 		return 0, err
@@ -100,22 +188,24 @@ func (q *Queries) CreatePage(ctx context.Context, arg CreatePageParams) (int64, 
 }
 
 const getPage = `-- name: GetPage :one
-SELECT title, text, cursor_start, cursor_end, published, self_destruct, locked, lock_salt, lock_verifier
+SELECT title, text, cursor_start, cursor_end, published, self_destruct, locked, lock_salt, lock_verifier, end_to_end_encrypted, e2ee_auth_hash
 FROM pages
 WHERE title = ?1
 LIMIT 1
 `
 
 type GetPageRow struct {
-	Title        string
-	Text         string
-	CursorStart  int64
-	CursorEnd    int64
-	Published    bool
-	SelfDestruct bool
-	Locked       bool
-	LockSalt     string
-	LockVerifier string
+	Title             string
+	Text              string
+	CursorStart       int64
+	CursorEnd         int64
+	Published         bool
+	SelfDestruct      bool
+	Locked            bool
+	LockSalt          string
+	LockVerifier      string
+	EndToEndEncrypted bool
+	E2eeAuthHash      string
 }
 
 func (q *Queries) GetPage(ctx context.Context, title string) (GetPageRow, error) {
@@ -131,6 +221,8 @@ func (q *Queries) GetPage(ctx context.Context, title string) (GetPageRow, error)
 		&i.Locked,
 		&i.LockSalt,
 		&i.LockVerifier,
+		&i.EndToEndEncrypted,
+		&i.E2eeAuthHash,
 	)
 	return i, err
 }
@@ -138,7 +230,7 @@ func (q *Queries) GetPage(ctx context.Context, title string) (GetPageRow, error)
 const listPublishedPageTitles = `-- name: ListPublishedPageTitles :many
 SELECT title
 FROM pages
-WHERE published = TRUE AND self_destruct = FALSE
+WHERE published = TRUE AND self_destruct = FALSE AND end_to_end_encrypted = FALSE
 ORDER BY title
 `
 
@@ -175,7 +267,9 @@ INSERT INTO pages (
     self_destruct,
     locked,
     lock_salt,
-    lock_verifier
+    lock_verifier,
+    end_to_end_encrypted,
+    e2ee_auth_hash
 ) VALUES (
     ?1,
     ?2,
@@ -185,7 +279,9 @@ INSERT INTO pages (
     ?6,
     ?7,
     ?8,
-    ?9
+    ?9,
+    ?10,
+    ?11
 )
 ON CONFLICT (title) DO UPDATE SET
     text = excluded.text,
@@ -196,19 +292,23 @@ ON CONFLICT (title) DO UPDATE SET
     locked = excluded.locked,
     lock_salt = excluded.lock_salt,
     lock_verifier = excluded.lock_verifier,
+    end_to_end_encrypted = excluded.end_to_end_encrypted,
+    e2ee_auth_hash = excluded.e2ee_auth_hash,
     updated_at = CURRENT_TIMESTAMP
 `
 
 type UpsertPageParams struct {
-	Title        string
-	Text         string
-	CursorStart  int64
-	CursorEnd    int64
-	Published    bool
-	SelfDestruct bool
-	Locked       bool
-	LockSalt     string
-	LockVerifier string
+	Title             string
+	Text              string
+	CursorStart       int64
+	CursorEnd         int64
+	Published         bool
+	SelfDestruct      bool
+	Locked            bool
+	LockSalt          string
+	LockVerifier      string
+	EndToEndEncrypted bool
+	E2eeAuthHash      string
 }
 
 func (q *Queries) UpsertPage(ctx context.Context, arg UpsertPageParams) error {
@@ -222,6 +322,8 @@ func (q *Queries) UpsertPage(ctx context.Context, arg UpsertPageParams) error {
 		arg.Locked,
 		arg.LockSalt,
 		arg.LockVerifier,
+		arg.EndToEndEncrypted,
+		arg.E2eeAuthHash,
 	)
 	return err
 }

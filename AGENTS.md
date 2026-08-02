@@ -26,7 +26,10 @@ Important paths:
 - `internal/cowyo/server.go`: server startup, routing, browser rendering, curl
   plaintext responses, and persisted page mutations.
 - `internal/cowyo/websocket.go`: typed WebSocket protocol, connection hub,
-  bounded per-client writer queues, and ephemeral cursor presence.
+  bounded per-client writer queues, ephemeral cursor presence, E2EE bootstrap,
+  capability authentication, and authorized E2EE self-destruct delivery.
+- `internal/cowyo/e2ee.go`: strict permanent-E2EE envelope validation,
+  write-capability hashing, and constant-time capability verification.
 - `Dockerfile`: multi-stage Disco image build for the Vite frontend and Go
   server.
 - `disco.json`: Disco web-service, health-check, and persistent SQLite-volume
@@ -58,6 +61,9 @@ Important paths:
 - `web/src/theme.js`: system theme detection and locally cached light/dark
   overrides.
 - `web/src/encryption.js`: versioned client-side encrypted-block format.
+- `web/src/e2ee.js`: permanent whole-document E2EE key parsing, HKDF key
+  separation, XChaCha20-Poly1305 envelopes, private URLs, and serialized crypto
+  queues.
 - `web/src/links.js`: URL detection and link-overlay rendering.
 - `web/src/remote-cursors.js`: independent per-collaborator cursor snapshots,
   cursor clamping, broadcast guarding, and scroll synchronization.
@@ -132,6 +138,9 @@ The server loads `.env` at startup.
 - `GOOGLE_ADSENSE` optionally adds Google AdSense to every browser-rendered
   page. It must be a valid `ca-pub-` client ID with 16 digits for the script to
   render.
+- `GOOGLE_TAG` optionally adds the configured Google tag to ordinary
+  browser-rendered pages. Google Tag, AdSense, and Umami are all omitted from
+  private bootstrap, conversion bootstrap, and persisted E2EE responses.
 - `-log` selects the logging level and defaults to `info`.
 
 Database migrations run automatically when the store opens. They can also be
@@ -144,6 +153,11 @@ internal/database/migrations/sqlite/
 internal/database/queries/postgresql/
 internal/database/queries/sqlite/
 ```
+
+The `pages` record persists `end_to_end_encrypted` and `e2ee_auth_hash` beside
+the existing text and page-control metadata. E2EE text is always a complete
+`COWYO E2EE DOCUMENT V1` ciphertext envelope, and the auth column contains only
+the base64url-encoded SHA-256 hash of the derived write capability.
 
 When changing the schema or query behavior:
 
@@ -161,6 +175,10 @@ When changing the schema or query behavior:
   alliterative `adjective-animal` path such as `/calm-cat`, using common
   adjectives and animal names. A curl `GET /` retains the same redirect for
   command-line compatibility.
+- The landing page's private action, `GET /?new=private`, redirects to a random
+  `?private=1` bootstrap path. That tracker-free page creates its key and empty
+  ciphertext locally, then uses an atomic WebSocket create so a name collision
+  can never convert an existing ordinary page.
 - `GET /about` renders the indexable About page for browser and command-line
   user agents. `/about` is a reserved site route and rejects POSTs.
 - `GET /name` returns the browser editor normally.
@@ -169,6 +187,11 @@ When changing the schema or query behavior:
 - An unlocked page armed for self destruct is returned by exactly one final
   browser or curl GET and atomically deleted as part of that load. HEAD does
   not consume it, and the final response uses `Cache-Control: no-store`.
+- A persisted E2EE page always returns generic noindex metadata, omits external
+  analytics and advertising scripts, and returns only ciphertext to curl. An
+  E2EE self-destruct page withholds ciphertext from browser HTML and curl; only
+  a capability-authenticated WebSocket can atomically consume and receive the
+  final ciphertext.
 - `GET /sitemap.xml` lists the home and About pages plus pages whose persisted
   publication flag is set, using absolute URLs from `SITE_URL` or the request
   host and forwarded protocol.
@@ -180,10 +203,10 @@ When changing the schema or query behavior:
   and the current page. Published pastes use a bounded plaintext excerpt and
   `article` Open Graph type; unpublished pages use generic site copy so their
   contents do not leak into link-preview metadata.
-- Every browser page includes the Umami tracker when both `UMAMI_URL` and
+- Every ordinary browser page includes the Umami tracker when both `UMAMI_URL` and
   `UMAMI_WEBSITE_ID` are configured; curl plaintext responses never include
   analytics markup.
-- Every browser page includes the Google AdSense loader when `GOOGLE_ADSENSE`
+- Every ordinary browser page includes the Google AdSense loader when `GOOGLE_ADSENSE`
   contains a valid client ID; curl plaintext responses never include it.
 - Social previews and structured data use the official vendored cowyo logo at
   `/static/logo.jpg`; `/static/og.jpg` is the centered 1200×630 derivative for
@@ -194,6 +217,8 @@ When changing the schema or query behavior:
   its absolute URL in the response body and `Location` header.
 - `POST /name` creates or replaces the named document and returns its URL.
 - `POST /name` returns HTTP 423 and does not modify an existing locked page.
+- Named POSTs reject permanent E2EE pages, including otherwise unrestricted
+  admin POSTs, so plaintext or unverified ciphertext cannot overwrite them.
 - POST bodies are limited to 16 KiB.
 - POST requests are rate limited per client IP to 10 per minute with a burst of
   5.
@@ -208,15 +233,26 @@ When changing the schema or query behavior:
   use a client-plus-page bucket (6 per 10 minutes, burst 3) and page-wide
   bucket (10 per hour, burst 3). API rate-limit responses use HTTP 429 and
   `Retry-After`; WebSocket clients receive a typed error.
+- Atomic private-page creation uses the normal per-client posting limiter, and
+  irreversible conversion uses the shared WebSocket page-operation limiter.
 - API operations never create pages, and strict `application/json` requests
   prevent form-based cross-origin mutations. API page titles are bounded, and
   reserved `/api` routes are not paste paths.
+- API mutations reject all permanent E2EE pages. Successful ordinary-page
+  state responses include `end_to_end_encrypted`; no E2EE mutation or
+  downgrade endpoint exists.
 - Named and random paste POSTs with a configured, matching
   `X-Cowyo-Admin-Key` bypass the rate limit, body limit, and locked-page write
   restriction. Admin replacements preserve the page's publication,
   self-destruct, and page-lock metadata.
 - `/ws?place=name` carries typed edit, operation, and cursor messages and
   broadcasts typed updates to other editors on the same document.
+- WebSocket `e2ee-create`, `e2ee-convert`, and `e2ee-authenticate` messages
+  atomically create a private record, irreversibly convert an eligible
+  ordinary record, and prove the derived write capability. E2EE connections
+  must authenticate before edits, cursors, locks, unlocks, or self-destruct
+  changes; plaintext edits and legacy encrypt/decrypt or publishing operations
+  are rejected.
 - Cursor-only WebSocket presence is ephemeral: it is broadcast only to other
   editors on the same page, sent to newly connected collaborators, removed on
   disconnect, and never saved as a page mutation. Applying a remote text update
@@ -233,6 +269,9 @@ When changing the schema or query behavior:
 - In debug mode, every successful POST, WebSocket mutation, or self-destruct
   consumption logs the page path, mutation source, operation, and byte count
   without logging page contents or passwords.
+- Logs never include URL fragment keys, derived content keys, raw E2EE write
+  capabilities, plaintext page bodies, or passwords. Request logs use the path
+  rather than a URL fragment or WebSocket message payload.
 - Non-root paths with a trailing slash are permanently redirected to the
   slashless path.
 
@@ -246,21 +285,25 @@ The dedicated home page explains cowyo's zero-account shared-scratchpad
 workflow, links to the About page and source repository, previews the editor,
 and highlights memorable URLs, accurately scoped page controls, more than a
 decade of service, and command-line access with curl read and write examples.
-Its primary action starts a new randomly named scratchpad. The footer links to
+Its primary action starts a new randomly named scratchpad and its distinct
+private action starts an E2EE page before any plaintext is sent. The footer links to
 schollz's GitHub Sponsors page, About, and the source repository, and offers an
 expandable list of other tools (`croc`, `wthrtxt`, and `yesnotice`). The
 dedicated About page uses the same site shell and explains the three-step
-workflow, the distinct unpublished, locked, encrypted, and self-destruct
-states, the open-source project, and a command-line section covering plaintext
+workflow, the distinct unpublished, locked, password-encrypted-block,
+permanent-E2EE, and self-destruct states, the open-source project, and a command-line section covering plaintext
 reads, random and named writes, stdin/file composition, returned URLs,
 page-control API operations, and locked-page behavior. Both pages follow the
 same system or locally selected
 light/dark theme as the editor.
-The landing page's controls feature and the About page's four page-control cards
-repeat the matching editor-menu icons so unpublished, locked, encrypted, and
+The landing page's controls feature and the About page's page-control cards
+repeat the matching editor-menu icons so unpublished, locked, encrypted-block, private-E2EE, and
 self-destruct states are easy to connect to their controls. Both pages state
 that unpublished and locked pages remain readable to anyone with the URL, and
-that only encryption hides the text itself.
+that only encryption hides the text itself. They explain that the full `#key`
+URL grants read and write access, lost keys are unrecoverable, conversion is
+non-retroactive, and server-delivered JavaScript replacement is outside the
+browser-client threat model.
 
 The editor autosaves through the WebSocket. The cow action icon is labeled
 `yo`, remains visible at reduced opacity, becomes fully dark on editor input,
@@ -275,7 +318,8 @@ keeps text-entry auto-scrolling, including Enter, from shifting idle remote
 cursors while deliberate scrolling continues to move them with the document.
 The menu stays open until the user clicks away. It lists the
 current-page actions in this order: copy-text, encrypt/decrypt,
-publish/unpublish, page lock/unlock, and self-destruct, followed directly by
+permanent private mode/private-link copy, publish/unpublish, page lock/unlock,
+and self-destruct, followed directly by
 the device-wide theme action and About link to `/about`. Opening the menu
 focuses the copy action. The site
 initially follows the system light/dark preference; choosing the sun/moon action
@@ -305,7 +349,39 @@ Encryption happens entirely on the client:
 - API encryption and decryption preserve the same zero-knowledge boundary:
   clients transform the text locally and send only a structurally valid signed
   encrypted block or the locally decrypted result. Encryption passwords in API
-  requests are rejected.
+requests are rejected.
+
+Permanent E2EE is a separate, irreversible page mode:
+
+- A clean private bootstrap generates a random 256-bit master key in browser
+  memory and exposes it only as `/<name>#key=<base64url-key>`.
+- The fragment parser accepts exactly one unpadded 32-byte base64url `#key`
+  value. The key is never placed in a request, WebSocket URL, local storage,
+  session storage, analytics event, or log.
+- HKDF-SHA-256 uses a normalized page-path salt and domain-separated labels to
+  derive independent 32-byte content and write-capability keys.
+- The whole plaintext document is encrypted with a fresh XChaCha20-Poly1305
+  nonce before each save in a `COWYO E2EE DOCUMENT V1` envelope. The normalized
+  path and format version are authenticated additional data.
+- The server receives ciphertext and the raw write capability, stores only
+  `SHA-256(write-capability)`, and compares authentication values in constant
+  time. It never receives the master key or derived content key.
+- With a valid fragment, the browser decrypts initial and remote ciphertext and
+  keeps plaintext only in the textarea/browser memory. Crypto work is
+  serialized so stale saves or remote decryptions cannot overwrite newer text.
+- Missing, malformed, or incorrect fragments leave the raw envelope read-only
+  with a clear status and do not open a mutable WebSocket session.
+- The key menu action converts an unlocked, non-self-destruct ordinary page
+  after its current save is acknowledged and an irreversible/non-retroactive
+  warning is accepted. Conversion reloads through tracker-free `?convert=1`,
+  forces unpublishing, and has no downgrade.
+- On an active private page, copy-text copies plaintext and the key action
+  copies the complete fragment URL. Publishing and legacy encrypted-block
+  controls are disabled; page locking and self-destruct remain available after
+  capability authentication.
+- Cursor offsets, ciphertext length, request timing, page path, IP address, and
+  operation metadata remain server-visible. Ciphertext padding, read-only
+  links, key rotation, and recovery of lost keys are out of scope.
 
 The server never receives encryption passwords or decrypts content. It stores
 encrypted blocks as paste text; while a page is locked, it recognizes the
@@ -367,6 +443,10 @@ Page self destruct is persisted separately from content:
 - Armed pages are unpublished, excluded from `/sitemap.xml`, marked
   `noindex, nofollow`, and served with `Cache-Control: no-store` on the final
   load.
+- For E2EE pages, keyless GET and HEAD never consume or reveal an armed page.
+  Capability authentication serializes an atomic delete-and-return, so exactly
+  one authorized WebSocket receives the final ciphertext. Other clients get no
+  final content.
 
 ## Tests and validation
 
@@ -376,7 +456,8 @@ Tests are organized as follows:
   page locking, limits, and build integration tests.
 - `internal/database/*_test.go`: backend-neutral storage tests.
 - `web/tests/*.test.js`: frontend URL, encryption, theme, and save-activity
-  tests.
+  tests, including permanent E2EE derivation, envelope, fragment, AAD,
+  tampering, fresh-nonce, and serialization coverage.
 
 For normal changes, run:
 
@@ -440,7 +521,9 @@ SQLite path must remain under `/data` to be persistent.
 For PostgreSQL deployments, set `DATABASE_URL` through the Disco dashboard or
 CLI. Set `ADMIN_POST_KEY` there as well. Set `UMAMI_URL` and
 `UMAMI_WEBSITE_ID` there to enable Umami analytics. Set `GOOGLE_ADSENSE` there
-to enable Google AdSense. Never put secrets in `disco.json`; Disco commits that
+to enable Google AdSense and `GOOGLE_TAG` to enable the Google tag on ordinary
+pages. These integrations are omitted from private bootstrap and E2EE pages.
+Never put secrets in `disco.json`; Disco commits that
 file with the repository. The application applies database migrations during
 startup, so the Disco configuration does not define a separate migration hook.
 

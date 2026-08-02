@@ -10,10 +10,10 @@ import (
 
 const (
 	siteName         = "cowyo"
-	siteDescription  = "Create and share text instantly with cowyo, a minimalist online pastebin with live autosave, collaboration, browser-side encryption, and self-destructing pastes."
+	siteDescription  = "Create and share text instantly with cowyo, a minimalist online pastebin with live autosave, collaboration, permanent end-to-end encryption, and self-destructing pastes."
 	landingTitle     = "cowyo — A shared scratchpad with no setup"
 	aboutTitle       = "About cowyo — Simple, shared text"
-	aboutDescription = "Learn how cowyo makes shared text simple with live autosave, memorable URLs, browser-side encryption, page locks, self-destruct, and curl support."
+	aboutDescription = "Learn how cowyo makes shared text simple with live autosave, memorable URLs, permanent end-to-end encryption, page locks, self-destruct, and curl support."
 	socialImageAlt   = "cowyo logo — a cow beside a speech bubble saying yo"
 )
 
@@ -123,6 +123,9 @@ func buildSitePageSEO(
 }
 
 func pageSEOTitle(page Page) string {
+	if page.EndToEndEncrypted {
+		return "Private scratchpad — cowyo"
+	}
 	name := humanizePageTitle(page.Title)
 	if name == "" {
 		name = "Untitled paste"
@@ -136,6 +139,9 @@ func pageSEOTitle(page Page) string {
 }
 
 func pageSEODescription(page Page) string {
+	if page.EndToEndEncrypted {
+		return "A permanently end-to-end encrypted cowyo scratchpad. Its plaintext key stays in the private URL fragment."
+	}
 	if !page.Published {
 		return siteDescription
 	}
@@ -252,6 +258,7 @@ func structuredDataJSON(seo rawPageSEO, page Page) ([]byte, error) {
 				"Instant text sharing with a memorable URL",
 				"Live autosave and real-time collaborative editing",
 				"Optional browser-side encryption",
+				"Permanent whole-document end-to-end encryption",
 				"Password-protected editing",
 				"Published or unlisted pastes",
 				"Self-destructing pastes",
