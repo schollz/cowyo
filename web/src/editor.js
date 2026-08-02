@@ -59,10 +59,11 @@ import {
   createRemoteCursorOverlay,
   cursorPositionChanged,
 } from "./remote-cursors.js";
+import { createPrivateStatusController } from "./private-status.js";
 import {
-  createPrivateStatusController,
-  PRIVATE_ACTIVE_STATUS,
-} from "./private-status.js";
+  calculateAnchoredStatusPosition,
+  measureTextareaEnd,
+} from "./private-status-position.js";
 import {
   cursorMessage,
   e2eeAuthenticateMessage,
@@ -96,6 +97,15 @@ const cryptoPasswordField = document.getElementById("cryptoPasswordField");
 const cryptoError = document.getElementById("cryptoError");
 const cryptoCancel = document.getElementById("cryptoCancel");
 const cryptoSubmit = document.getElementById("cryptoSubmit");
+const privateConversionDialog = document.getElementById(
+  "privateConversionDialog",
+);
+const privateConversionForm = document.getElementById(
+  "privateConversionForm",
+);
+const privateConversionCancel = document.getElementById(
+  "privateConversionCancel",
+);
 const remoteUpdateStatus = document.getElementById("remoteUpdateStatus");
 const privateStatus = document.getElementById("privateStatus");
 const privateStatusText = document.getElementById("privateStatusText");
@@ -312,9 +322,57 @@ function setSaveState(state) {
 }
 
 const markSaveActivity = createSaveActivityIndicator(saveStatus);
+let privateStatusPositionFrame;
+
+function positionPrivateKeyError({ revealEnd = false } = {}) {
+  if (
+    privateStatus.hidden ||
+    privateStatus.dataset.keyError !== "true"
+  ) {
+    return;
+  }
+  if (revealEnd) {
+    textarea.scrollTop = textarea.scrollHeight;
+  }
+
+  const anchor = measureTextareaEnd(textarea);
+  const statusRect = privateStatus.getBoundingClientRect();
+  const position = calculateAnchoredStatusPosition({
+    anchorLeft: anchor.left,
+    anchorTop: anchor.top,
+    anchorBottom: anchor.bottom,
+    statusWidth: statusRect.width,
+    statusHeight: statusRect.height,
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
+  });
+  privateStatus.dataset.placement = position.placement;
+  privateStatus.style.setProperty(
+    "--private-status-left",
+    `${position.left}px`,
+  );
+  privateStatus.style.setProperty(
+    "--private-status-pointer-left",
+    `${position.pointerLeft}px`,
+  );
+  privateStatus.style.setProperty(
+    "--private-status-top",
+    `${position.top}px`,
+  );
+}
+
+function schedulePrivateKeyErrorPosition(revealEnd = false) {
+  window.cancelAnimationFrame(privateStatusPositionFrame);
+  privateStatusPositionFrame = window.requestAnimationFrame(() => {
+    positionPrivateKeyError({ revealEnd });
+  });
+}
 
 function showPrivateStatus(message, error = false) {
   privateStatusController.show(message, error);
+  if (privateStatus.dataset.keyError === "true") {
+    schedulePrivateKeyErrorPosition(true);
+  }
 }
 
 function settleOrdinarySaveWaiters(error) {
@@ -677,6 +735,57 @@ function closePasswordDialog() {
   }
 }
 
+function syncPrivateConversionDialogPosition() {
+  positionDialogInVisualViewport(
+    privateConversionDialog,
+    window.visualViewport,
+  );
+}
+
+function openPrivateConversionDialog() {
+  setActionMenuOpen(false);
+  privateConversionDialog.showModal();
+  syncPrivateConversionDialogPosition();
+  window.setTimeout(() => {
+    privateConversionCancel.focus();
+    syncPrivateConversionDialogPosition();
+  }, 0);
+}
+
+function closePrivateConversionDialog() {
+  if (privateConversionDialog.open) {
+    privateConversionDialog.close();
+  }
+}
+
+async function preparePrivateConversion() {
+  if (
+    pageE2EE ||
+    pageLocked ||
+    pageSelfDestruct ||
+    pendingPageOperation
+  ) {
+    return;
+  }
+
+  try {
+    setSaveState("saving");
+    queueUpdateDebounced.cancel();
+    queueUpdate();
+    await waitForOrdinarySaves();
+    const target = new URL(window.location.href);
+    target.search = "?convert=1";
+    target.hash = "";
+    window.location.assign(target.toString());
+  } catch (error) {
+    saveStatusText.textContent =
+      error instanceof Error
+        ? error.message
+        : "The page could not be prepared for conversion.";
+    saveStatus.dataset.state = "saved";
+  }
+}
+
 function sendPageOperation(operation, text, password = "") {
   if (!socket || socket.readyState !== WebSocket.OPEN) {
     throw new Error("The server is not connected. Please try again.");
@@ -946,7 +1055,10 @@ function revealRawPrivateDocument(data, message) {
   socket?.close();
 }
 
-function applyRemoteE2EEUpdate(data, { final = false } = {}) {
+function applyRemoteE2EEUpdate(
+  data,
+  { final = false, showActiveStatus = false } = {},
+) {
   const sequence = ++e2eeRemoteSequence;
   const revision = e2eeTextRevision;
   latestCiphertext = data.text;
@@ -982,7 +1094,11 @@ function applyRemoteE2EEUpdate(data, { final = false } = {}) {
         );
         socket?.close();
       } else {
-        showPrivateStatus(PRIVATE_ACTIVE_STATUS);
+        if (showActiveStatus) {
+          privateStatusController.showActiveWhenEmpty(plaintext);
+        } else {
+          privateStatusController.hideActiveWhenContent(plaintext);
+        }
         flushPendingE2EEUpdate();
       }
     })
@@ -1018,12 +1134,15 @@ function finishE2EEAuthentication(data) {
       privatePageURL(window.location, encodedMasterKey),
     );
     updatePageState();
-    showPrivateStatus(PRIVATE_ACTIVE_STATUS);
+    privateStatusController.showActiveWhenEmpty(textarea.value);
     setSaveState("saved");
     return;
   }
 
-  applyRemoteE2EEUpdate(data, { final: data.final === true });
+  applyRemoteE2EEUpdate(data, {
+    final: data.final === true,
+    showActiveStatus: true,
+  });
 }
 
 function handleSocketMessage(event) {
@@ -1389,6 +1508,7 @@ textarea.addEventListener("input", () => {
   remoteCursorOverlay.finishTextChange();
   if (pageE2EE) {
     e2eeTextRevision++;
+    privateStatusController.hideActiveWhenContent(textarea.value);
   }
   markSaveActivity();
   renderLinks(textarea, linkOverlay);
@@ -1407,6 +1527,7 @@ textarea.addEventListener("scroll", () => {
   linkOverlay.scrollTop = textarea.scrollTop;
   linkOverlay.scrollLeft = textarea.scrollLeft;
   remoteCursorOverlay.syncScroll();
+  schedulePrivateKeyErrorPosition();
 });
 
 textarea.addEventListener("focus", sendCursorUpdate);
@@ -1453,34 +1574,7 @@ privateAction.addEventListener("click", () => {
   if (pageLocked || pageSelfDestruct || pendingPageOperation) {
     return;
   }
-  const confirmed = window.confirm(
-    "Make this page permanently end-to-end encrypted? This cannot be undone. " +
-      "The server may retain plaintext that was already transmitted in database history, backups, or logs. " +
-      "A lost private URL cannot be recovered.",
-  );
-  if (!confirmed) {
-    return;
-  }
-
-  setActionMenuOpen(false);
-  void (async () => {
-    try {
-      setSaveState("saving");
-      queueUpdateDebounced.cancel();
-      queueUpdate();
-      await waitForOrdinarySaves();
-      const target = new URL(window.location.href);
-      target.search = "?convert=1";
-      target.hash = "";
-      window.location.assign(target.toString());
-    } catch (error) {
-      saveStatusText.textContent =
-        error instanceof Error
-          ? error.message
-          : "The page could not be prepared for conversion.";
-      saveStatus.dataset.state = "saved";
-    }
-  })();
+  openPrivateConversionDialog();
 });
 pageLockAction.addEventListener("click", () => {
   openPasswordDialog(pageLocked ? "unlock" : "lock");
@@ -1533,6 +1627,15 @@ cryptoForm.addEventListener("submit", (event) => {
   void submitPasswordForm(event);
 });
 cryptoCancel.addEventListener("click", closePasswordDialog);
+privateConversionForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  closePrivateConversionDialog();
+  void preparePrivateConversion();
+});
+privateConversionCancel.addEventListener(
+  "click",
+  closePrivateConversionDialog,
+);
 
 privateStatusClose.addEventListener("click", () => {
   privateStatusController.dismiss();
@@ -1560,16 +1663,35 @@ cryptoDialog.addEventListener("click", (event) => {
   }
 });
 
+privateConversionDialog.addEventListener("close", () => {
+  resetDialogVisualViewportPosition(privateConversionDialog);
+});
+
+privateConversionDialog.addEventListener("click", (event) => {
+  if (event.target === privateConversionDialog) {
+    closePrivateConversionDialog();
+  }
+});
+
 window.visualViewport?.addEventListener(
   "resize",
   syncPasswordDialogPosition,
 );
 window.visualViewport?.addEventListener(
+  "resize",
+  syncPrivateConversionDialogPosition,
+);
+window.visualViewport?.addEventListener(
   "scroll",
   syncPasswordDialogPosition,
 );
+window.visualViewport?.addEventListener(
+  "scroll",
+  syncPrivateConversionDialogPosition,
+);
 
 document.addEventListener("pointerdown", (event) => {
+  privateStatusController.dismissWhenOutside(event.target);
   if (!saveMenu.hidden && !saveActions.contains(event.target)) {
     setActionMenuOpen(false);
   }
@@ -1580,6 +1702,13 @@ document.addEventListener("keydown", (event) => {
     event.preventDefault();
     setActionMenuOpen(false, true);
   }
+});
+
+window.addEventListener("resize", () => {
+  schedulePrivateKeyErrorPosition(true);
+});
+void document.fonts?.ready.then(() => {
+  schedulePrivateKeyErrorPosition(true);
 });
 
 renderLinks(textarea, linkOverlay);

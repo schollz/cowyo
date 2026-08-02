@@ -47,7 +47,7 @@
     <meta name="twitter:image" content="{{.SEO.SocialImageURL}}" />
     <meta
       name="twitter:image:alt"
-      content="cowyo logo — a cow beside a speech bubble saying yo"
+      content="cowyo logo — a cow bweside a speech bubble saying yo"
     />
 
     <script type="application/ld+json">{{.SEO.JSONLD}}</script>
@@ -248,10 +248,6 @@
                 rel="noreferrer"
               >open source</a>.
               <span>Powering quick notes on the web for more than 10 years.</span>
-              <span>
-                Private scratchpads encrypt every save in your browser. Keep
-                the complete <code>#key</code> link; lost keys cannot be recovered.
-              </span>
             </p>
           </div>
 
@@ -279,23 +275,29 @@
         <section class="landing-features" aria-label="What cowyo does">
           <article>
             <p class="landing-feature-number">01</p>
-            <h2>Just a link</h2>
+            <h2>Open cowyo</h2>
             <p>
-              Pick any URL or let cowyo make a memorable one. No workspace,
+              Opening cowyo will give you a URL and text area to start writing. No workspace,
               invite flow, or login.
+            </p>
+            <p>
+              Everything you write will persist for years and is free forever.
             </p>
           </article>
           <article>
             <p class="landing-feature-number">02</p>
-            <h2>A few page controls</h2>
+            <h2>Set your options</h2>
             <p>
-              Ordinary pages start out of search, not private. Lock editing,
+              There are multiple options on each page: Make your note crawlable, lock your note,
               encrypt a block with a password, make the whole page permanently
-              private, or destroy it after one final load.
+              private with E2EE, or destroy it after one final load.
             </p>
             <div class="landing-control-icons" aria-hidden="true">
               <span class="menu-icon-tile">
                 <i data-lucide="globe-2"></i>
+              </span>
+              <span class="menu-icon-tile">
+                <i data-lucide="lock-keyhole"></i>
               </span>
               <span class="menu-icon-tile">
                 <i data-lucide="shield-keyhole"></i>
@@ -304,19 +306,15 @@
                 <i data-lucide="key-round"></i>
               </span>
               <span class="menu-icon-tile">
-                <i data-lucide="lock-keyhole"></i>
-              </span>
-              <span class="menu-icon-tile">
                 <i data-lucide="bomb"></i>
               </span>
             </div>
           </article>
           <article>
             <p class="landing-feature-number">03</p>
-            <h2>At home in the terminal</h2>
+            <h2>Use the terminal</h2>
             <p>
-              No SDK or special client. Read exact plaintext, or send a file
-              and get a shareable cowyo URL back.
+              If you want, use a terminal to create notes. No SDK or special client. Read exact plaintext, or send a file and get a shareable cowyo URL back.
             </p>
             <div class="landing-cli-example" aria-label="curl examples">
               <div class="landing-cli-line">
@@ -367,55 +365,17 @@
           </aside>
         </section>
 
-        <section class="about-section about-how" aria-labelledby="about-how-title">
-          <div class="about-section-heading">
-            <p class="landing-eyebrow">how it works</p>
-            <h2 id="about-how-title">From blank page to shared thought.</h2>
-          </div>
-          <div class="about-step-grid">
-            <article>
-              <p class="landing-feature-number">01 / open</p>
-              <h3>Choose any path</h3>
-              <p>
-                Visit a memorable URL yourself, or let cowyo make an
-                alliterative one like <code>calm-cat</code>.
-              </p>
-            </article>
-            <article>
-              <p class="landing-feature-number">02 / type</p>
-              <h3>Write together</h3>
-              <p>
-                Text saves as you type. Share the URL and everyone on the page
-                sees updates live.
-              </p>
-            </article>
-            <article>
-              <p class="landing-feature-number">03 / decide</p>
-              <h3>Keep it your way</h3>
-              <p>
-                Leave it unlisted, publish it, lock editing, encrypt a block,
-                make it permanently private, or destroy it after the next load.
-              </p>
-            </article>
-          </div>
-          <p class="about-how-note">
-            Choose <strong>Private scratchpad</strong> before typing when the
-            server should never receive plaintext. Keep the complete
-            <code>#key</code> URL; it grants access and cannot be recovered if lost.
-          </p>
-        </section>
-
         <section
           class="about-section about-privacy"
           aria-labelledby="about-privacy-title"
         >
           <div class="about-section-heading">
             <p class="landing-eyebrow">page controls, plainly</p>
-            <h2 id="about-privacy-title">A link is still a link.</h2>
+            <h2 id="about-privacy-title">One page, different modes.</h2>
             <p>
-              Anyone with an ordinary page URL can open its unencrypted text.
-              Permanent private mode is different: its complete <code>#key</code>
-              URL is the only read-and-write credential.
+              Choose from five modes: unpublished, locked, encrypted block,
+              private E2EE, or self-destruct. Each changes how a page is found,
+              edited, protected, or removed.
             </p>
           </div>
           <div class="about-privacy-grid">
@@ -508,6 +468,54 @@
             code, a server able to replace that JavaScript is outside this
             client-side threat model.
           </p>
+        </section>
+
+        <section
+          id="full-e2ee"
+          class="about-section about-e2ee"
+          aria-labelledby="full-e2ee-title"
+        >
+          <div class="about-section-heading">
+            <p class="landing-eyebrow">full end-to-end encryption</p>
+            <h2 id="full-e2ee-title">The key stays in the link.</h2>
+            <p>
+              A private scratchpad encrypts the entire document in your
+              browser before cowyo receives it. The complete URL is both the
+              way in and the only key to the plaintext.
+            </p>
+          </div>
+
+          <div class="about-e2ee-prose">
+            <p>
+              <strong>A key made in your browser.</strong> New private pages use
+              a random 256-bit key stored after <code>#key=</code> in the URL.
+              That fragment is not sent in HTTP or WebSocket requests.
+            </p>
+            <p>
+              <strong>Separate keys, every save.</strong> The browser derives
+              independent content and write keys, then encrypts the whole
+              document with a fresh nonce. cowyo stores ciphertext and a
+              one-way write-capability hash.
+            </p>
+            <p>
+              <strong>The full URL grants access.</strong> Anyone with it can
+              decrypt and edit. Without the right key, the page is read-only
+              ciphertext.
+            </p>
+            <p>
+              <strong>There is no recovery or reset.</strong> cowyo never has
+              the content key. Lose the complete <code>#key</code> URL and the
+              plaintext is gone; share it carefully because it grants both
+              read and write access.
+            </p>
+            <p>
+              <strong>Some metadata remains visible.</strong> The server sees
+              the page path, ciphertext size, timing, IP address, cursor
+              offsets, and operations. Conversion cannot erase plaintext
+              already sent from history, backups, or logs. A server that
+              replaces the delivered JavaScript is outside this threat model.
+            </p>
+          </div>
         </section>
 
         <section
@@ -864,6 +872,10 @@ curl https://cowyo.com/my-notes \
           role="status"
           aria-live="polite"
         ></span>
+        <a
+          class="private-status-help"
+          href="/about#full-e2ee"
+        >How full end-to-end encryption works</a>
         <button
           id="privateStatusClose"
           class="private-status-close"
@@ -909,6 +921,43 @@ curl https://cowyo.com/my-notes \
           <button id="cryptoCancel" type="button">Cancel</button>
           <button id="cryptoSubmit" class="crypto-submit" type="submit">
             Encrypt
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog
+      id="privateConversionDialog"
+      class="crypto-dialog private-conversion-dialog"
+      aria-labelledby="privateConversionTitle"
+      aria-describedby="privateConversionDescription"
+    >
+      <form id="privateConversionForm">
+        <div class="crypto-dialog-body">
+          <p class="private-conversion-eyebrow">permanent private mode</p>
+          <h2 id="privateConversionTitle">
+            Make this page permanently end-to-end encrypted?
+          </h2>
+          <div id="privateConversionDescription">
+            <p><strong>This cannot be undone.</strong></p>
+            <p>
+              The server may retain plaintext that was already transmitted in
+              database history, backups, or logs.
+            </p>
+            <p>A lost private URL cannot be recovered.</p>
+          </div>
+        </div>
+
+        <div class="crypto-dialog-actions">
+          <button id="privateConversionCancel" type="button" autofocus>
+            Cancel
+          </button>
+          <button
+            id="privateConversionSubmit"
+            class="crypto-submit"
+            type="submit"
+          >
+            Make private
           </button>
         </div>
       </form>
