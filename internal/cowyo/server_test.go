@@ -106,6 +106,15 @@ func TestBuiltFrontendIncludesCowActions(t *testing.T) {
 			t.Errorf("built index contains removed %s", description)
 		}
 	}
+	for description, marker := range map[string]string{
+		"private status message": `id="privateStatusText"`,
+		"private status close":   `id="privateStatusClose"`,
+		"private close label":    `aria-label="Dismiss private page message"`,
+	} {
+		if !strings.Contains(builtIndex, marker) {
+			t.Errorf("built index does not contain %s", description)
+		}
+	}
 
 	actionOrder := []string{
 		`id="copyTextAction"`,

@@ -127,7 +127,7 @@ textarea {
   left: 50%;
   z-index: 6;
   max-width: min(680px, calc(100vw - 96px));
-  padding: 9px 12px;
+  padding: 9px 42px 9px 12px;
   border: 1px solid var(--control-color);
   color: var(--text-color);
   background: var(--field-background);
@@ -135,6 +135,31 @@ textarea {
   line-height: 1.45;
   text-align: center;
   transform: translateX(-50%);
+}
+
+.private-status-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.private-status-close:hover,
+.private-status-close:focus-visible {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.private-status-close svg {
+  width: 15px;
+  height: 15px;
 }
 
 .private-status[data-error="true"] {
@@ -1331,6 +1356,14 @@ textarea {
   textarea,
   #linkOverlay {
     font-size: 1em;
+  }
+
+  .private-status {
+    top: 50dvh;
+    width: min(340px, calc(100vw - 32px));
+    max-width: none;
+    padding: 42px 24px 26px;
+    transform: translate(-50%, -50%);
   }
 
   .landing-page {

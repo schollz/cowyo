@@ -857,10 +857,22 @@ curl https://cowyo.com/my-notes \
       <div
         id="privateStatus"
         class="private-status"
-        role="status"
-        aria-live="polite"
         hidden
-      ></div>
+      >
+        <span
+          id="privateStatusText"
+          role="status"
+          aria-live="polite"
+        ></span>
+        <button
+          id="privateStatusClose"
+          class="private-status-close"
+          type="button"
+          aria-label="Dismiss private page message"
+        >
+          <i data-lucide="x" aria-hidden="true"></i>
+        </button>
+      </div>
       <div id="linkOverlay" aria-hidden="true"></div>
       <div id="cursorOverlay" aria-hidden="true"></div>
       <textarea

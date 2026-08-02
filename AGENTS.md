@@ -371,6 +371,9 @@ Permanent E2EE is a separate, irreversible page mode:
   serialized so stale saves or remote decryptions cannot overwrite newer text.
 - Missing, malformed, or incorrect fragments leave the raw envelope read-only
   with a clear status and do not open a mutable WebSocket session.
+- Private-page status notices have a dismiss control. The active-page notice
+  stays dismissed for the current page session and is centered in both axes on
+  mobile viewports.
 - The key menu action converts an unlocked, non-self-destruct ordinary page
   after its current save is acknowledged and an irreversible/non-retroactive
   warning is accepted. Conversion reloads through tracker-free `?convert=1`,

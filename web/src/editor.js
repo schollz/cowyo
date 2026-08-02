@@ -16,6 +16,7 @@ import {
   ShieldKeyhole,
   Sun,
   UnlockKeyhole,
+  X,
 } from "lucide";
 
 import {
@@ -59,6 +60,10 @@ import {
   cursorPositionChanged,
 } from "./remote-cursors.js";
 import {
+  createPrivateStatusController,
+  PRIVATE_ACTIVE_STATUS,
+} from "./private-status.js";
+import {
   cursorMessage,
   e2eeAuthenticateMessage,
   e2eeBootstrapMessage,
@@ -93,6 +98,12 @@ const cryptoCancel = document.getElementById("cryptoCancel");
 const cryptoSubmit = document.getElementById("cryptoSubmit");
 const remoteUpdateStatus = document.getElementById("remoteUpdateStatus");
 const privateStatus = document.getElementById("privateStatus");
+const privateStatusText = document.getElementById("privateStatusText");
+const privateStatusClose = document.getElementById("privateStatusClose");
+const privateStatusController = createPrivateStatusController(
+  privateStatus,
+  privateStatusText,
+);
 
 const ICON_ATTRIBUTES = {
   "aria-hidden": "true",
@@ -114,6 +125,7 @@ createIcons({
     ShieldKeyhole,
     Sun,
     UnlockKeyhole,
+    X,
   },
   attrs: ICON_ATTRIBUTES,
 });
@@ -302,9 +314,7 @@ function setSaveState(state) {
 const markSaveActivity = createSaveActivityIndicator(saveStatus);
 
 function showPrivateStatus(message, error = false) {
-  privateStatus.textContent = message;
-  privateStatus.dataset.error = String(error);
-  privateStatus.hidden = !message;
+  privateStatusController.show(message, error);
 }
 
 function settleOrdinarySaveWaiters(error) {
@@ -972,9 +982,7 @@ function applyRemoteE2EEUpdate(data, { final = false } = {}) {
         );
         socket?.close();
       } else {
-        showPrivateStatus(
-          "Private page active. Keep the complete #key URL—lost keys cannot be recovered.",
-        );
+        showPrivateStatus(PRIVATE_ACTIVE_STATUS);
         flushPendingE2EEUpdate();
       }
     })
@@ -1010,9 +1018,7 @@ function finishE2EEAuthentication(data) {
       privatePageURL(window.location, encodedMasterKey),
     );
     updatePageState();
-    showPrivateStatus(
-      "Private page active. Copy the complete #key URL; anyone with it can read and edit, and lost keys cannot be recovered.",
-    );
+    showPrivateStatus(PRIVATE_ACTIVE_STATUS);
     setSaveState("saved");
     return;
   }
@@ -1527,6 +1533,11 @@ cryptoForm.addEventListener("submit", (event) => {
   void submitPasswordForm(event);
 });
 cryptoCancel.addEventListener("click", closePasswordDialog);
+
+privateStatusClose.addEventListener("click", () => {
+  privateStatusController.dismiss();
+  textarea.focus({ preventScroll: true });
+});
 
 cryptoDialog.addEventListener("close", () => {
   cryptoError.textContent = "";
