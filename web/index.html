@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{.SEO.Title}}</title>
+    <title>{{if .DocumentTitle}}{{.DocumentTitle}}{{else}}{{.SEO.Title}}{{end}}</title>
     <meta name="description" content="{{.SEO.Description}}" />
     <meta
       name="robots"

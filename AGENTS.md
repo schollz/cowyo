@@ -182,6 +182,9 @@ When changing the schema or query behavior:
 - `GET /about` renders the indexable About page for browser and command-line
   user agents. `/about` is a reserved site route and rejects POSTs.
 - `GET /name` returns the browser editor normally.
+- Editor document titles use `name | cowyo scratchpad` for ordinary pages and
+  `name | cowyo private scratchpad` for permanent-E2EE pages and their private
+  bootstrap or conversion screens.
 - A `curl/*` user agent requesting `/name` receives only the paste's plaintext
   body with a `text/plain` content type.
 - An unlocked page armed for self destruct is returned by exactly one final

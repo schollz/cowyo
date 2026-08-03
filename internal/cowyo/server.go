@@ -124,6 +124,7 @@ type Page struct {
 
 type pageTemplateData struct {
 	Page
+	DocumentTitle       string
 	GoogleAdSense       string
 	GoogleTag           string
 	UmamiURL            string
@@ -261,6 +262,7 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 	p.Text = policy.Sanitize(p.Text)
 	data := pageTemplateData{
 		Page:                p,
+		DocumentTitle:       html.EscapeString(pageDocumentTitle(p.Title, p.EndToEndEncrypted || privateBootstrap || conversionBootstrap)),
 		PrivateBootstrap:    privateBootstrap,
 		ConversionBootstrap: conversionBootstrap,
 		SEO:                 seo,

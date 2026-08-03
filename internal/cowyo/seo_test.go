@@ -72,6 +72,21 @@ func TestPublishedPageSEO(t *testing.T) {
 	}
 }
 
+func TestPageDocumentTitle(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		private bool
+		want    string
+	}{
+		{name: "calm-cat", want: "calm-cat | cowyo scratchpad"},
+		{name: "secret-vole", private: true, want: "secret-vole | cowyo private scratchpad"},
+	} {
+		if got := pageDocumentTitle(test.name, test.private); got != test.want {
+			t.Errorf("pageDocumentTitle(%q, %t) = %q, want %q", test.name, test.private, got, test.want)
+		}
+	}
+}
+
 func TestBuildLandingSEOUsesRootCanonicalAndWebsiteMetadata(t *testing.T) {
 	t.Setenv(siteURLEnvironment, "https://cowyo.example")
 	request := httptest.NewRequest(http.MethodGet, "http://internal.example/", nil)
@@ -251,7 +266,7 @@ func TestBrowserPageIncludesCompleteMetadata(t *testing.T) {
 
 	body := response.Body.String()
 	for description, marker := range map[string]string{
-		"title":              "<title>Search Friendly — Shared text on cowyo</title>",
+		"title":              "<title>search-friendly | cowyo scratchpad</title>",
 		"description":        `name="description"`,
 		"canonical":          `rel="canonical" href="https://cowyo.example/search-friendly"`,
 		"Open Graph title":   `property="og:title"`,
