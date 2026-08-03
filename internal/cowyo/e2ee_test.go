@@ -404,24 +404,35 @@ func TestE2EEResponsesOmitExternalScriptsAndUseGenericMetadata(t *testing.T) {
 		Title: title, Text: testE2EEDocument(7), Published: true,
 	}, testE2EECapability(7))
 
-	for _, path := range []string{"/" + title, "/fresh-fox?private=1", "/ordinary?convert=1"} {
-		request := httptest.NewRequest(http.MethodGet, "http://example.com"+path, nil)
+	for _, test := range []struct {
+		path  string
+		title string
+	}{
+		{path: "/" + title, title: title},
+		{path: "/fresh-fox?private=1", title: "fresh-fox"},
+		{path: "/ordinary?convert=1", title: "ordinary"},
+	} {
+		request := httptest.NewRequest(http.MethodGet, "http://example.com"+test.path, nil)
 		request.Header.Set("User-Agent", "Mozilla/5.0")
 		response := httptest.NewRecorder()
 		if err := handle(response, request); err != nil {
-			t.Fatalf("GET %s: %v", path, err)
+			t.Fatalf("GET %s: %v", test.path, err)
 		}
 		body := response.Body.String()
+		wantTitle := "<title>" + test.title + " | cowyo private scratchpad</title>"
+		if !strings.Contains(body, wantTitle) {
+			t.Errorf("GET %s does not contain title %q", test.path, wantTitle)
+		}
 		for _, secret := range []string{
 			"googletagmanager.com", "pagead2.googlesyndication.com",
 			"analytics.example", "G-PRIVATE-TEST",
 		} {
 			if strings.Contains(body, secret) {
-				t.Errorf("GET %s includes external tracker %q", path, secret)
+				t.Errorf("GET %s includes external tracker %q", test.path, secret)
 			}
 		}
 		if got := response.Header().Get("Referrer-Policy"); got != "no-referrer" {
-			t.Errorf("GET %s Referrer-Policy = %q", path, got)
+			t.Errorf("GET %s Referrer-Policy = %q", test.path, got)
 		}
 	}
 

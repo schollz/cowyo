@@ -138,6 +138,14 @@ func pageSEOTitle(page Page) string {
 	return truncateText(name, 60-utf8.RuneCountInString(suffix)) + suffix
 }
 
+func pageDocumentTitle(name string, private bool) string {
+	suffix := " | cowyo scratchpad"
+	if private {
+		suffix = " | cowyo private scratchpad"
+	}
+	return name + suffix
+}
+
 func pageSEODescription(page Page) string {
 	if page.EndToEndEncrypted {
 		return "A permanently end-to-end encrypted cowyo scratchpad. Its plaintext key stays in the private URL fragment."
