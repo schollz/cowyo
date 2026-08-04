@@ -263,14 +263,14 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 	data := pageTemplateData{
 		Page:                p,
 		DocumentTitle:       html.EscapeString(pageDocumentTitle(p.Title, p.EndToEndEncrypted || privateBootstrap || conversionBootstrap)),
+		GoogleAdSense:       configuredGoogleAdSense(),
 		PrivateBootstrap:    privateBootstrap,
 		ConversionBootstrap: conversionBootstrap,
 		SEO:                 seo,
 	}
+	data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
 	if !p.EndToEndEncrypted && !privateBootstrap && !conversionBootstrap {
-		data.GoogleAdSense = configuredGoogleAdSense()
 		data.GoogleTag = configuredGoogleTag()
-		data.UmamiURL, data.UmamiWebsiteID = configuredUmamiTracker()
 	}
 	return indexTemplate.Execute(w, data)
 }

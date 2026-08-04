@@ -132,15 +132,17 @@ The server loads `.env` at startup.
   page-state invariants remain enforced. Keep it secret and deploy behind
   HTTPS.
 - `UMAMI_URL` and `UMAMI_WEBSITE_ID` optionally add Umami analytics to every
-  browser-rendered page. The URL must be an HTTP(S) origin without a path,
-  query, fragment, or credentials, and the website ID must be a UUID. Both
-  values must be valid for the tracker to render.
+  browser-rendered page, including private bootstrap, conversion bootstrap,
+  and persisted E2EE responses. The URL must be an HTTP(S) origin without a
+  path, query, fragment, or credentials, and the website ID must be a UUID.
+  Both values must be valid for the tracker to render.
 - `GOOGLE_ADSENSE` optionally adds Google AdSense to every browser-rendered
-  page. It must be a valid `ca-pub-` client ID with 16 digits for the script to
-  render.
+  page, including private bootstrap, conversion bootstrap, and persisted E2EE
+  responses. It must be a valid `ca-pub-` client ID with 16 digits for the
+  script to render.
 - `GOOGLE_TAG` optionally adds the configured Google tag to ordinary
-  browser-rendered pages. Google Tag, AdSense, and Umami are all omitted from
-  private bootstrap, conversion bootstrap, and persisted E2EE responses.
+  browser-rendered pages. Google Tag is omitted from private bootstrap,
+  conversion bootstrap, and persisted E2EE responses.
 - `-log` selects the logging level and defaults to `info`.
 
 Database migrations run automatically when the store opens. They can also be
@@ -176,9 +178,10 @@ When changing the schema or query behavior:
   adjectives and animal names. A curl `GET /` retains the same redirect for
   command-line compatibility.
 - The landing page's private action, `GET /?new=private`, redirects to a random
-  `?private=1` bootstrap path. That tracker-free page creates its key and empty
-  ciphertext locally, then uses an atomic WebSocket create so a name collision
-  can never convert an existing ordinary page.
+  `?private=1` bootstrap path. That page creates its key and empty ciphertext
+  locally, then uses an atomic WebSocket create so a name collision can never
+  convert an existing ordinary page. Configured AdSense and Umami scripts are
+  present on the bootstrap page.
 - `GET /about` renders the indexable About page for browser and command-line
   user agents. `/about` is a reserved site route and rejects POSTs.
 - `GET /name` returns the browser editor normally.
@@ -190,8 +193,8 @@ When changing the schema or query behavior:
 - An unlocked page armed for self destruct is returned by exactly one final
   browser or curl GET and atomically deleted as part of that load. HEAD does
   not consume it, and the final response uses `Cache-Control: no-store`.
-- A persisted E2EE page always returns generic noindex metadata, omits external
-  analytics and advertising scripts, and returns only ciphertext to curl. An
+- A persisted E2EE page always returns generic noindex metadata, includes
+  configured AdSense and Umami scripts, and returns only ciphertext to curl. An
   E2EE self-destruct page withholds ciphertext from browser HTML and curl; only
   a capability-authenticated WebSocket can atomically consume and receive the
   final ciphertext.
@@ -206,11 +209,13 @@ When changing the schema or query behavior:
   and the current page. Published pastes use a bounded plaintext excerpt and
   `article` Open Graph type; unpublished pages use generic site copy so their
   contents do not leak into link-preview metadata.
-- Every ordinary browser page includes the Umami tracker when both `UMAMI_URL` and
-  `UMAMI_WEBSITE_ID` are configured; curl plaintext responses never include
+- Every browser page includes the Umami tracker when both `UMAMI_URL` and
+  `UMAMI_WEBSITE_ID` are configured, including private bootstrap, conversion
+  bootstrap, and persisted E2EE pages; curl plaintext responses never include
   analytics markup.
-- Every ordinary browser page includes the Google AdSense loader when `GOOGLE_ADSENSE`
-  contains a valid client ID; curl plaintext responses never include it.
+- Every browser page includes the Google AdSense loader when `GOOGLE_ADSENSE`
+  contains a valid client ID, including private bootstrap, conversion bootstrap,
+  and persisted E2EE pages; curl plaintext responses never include it.
 - Social previews and structured data use the official vendored cowyo logo at
   `/static/logo.jpg`; `/static/og.jpg` is the centered 1200×630 derivative for
   large link cards.
@@ -305,8 +310,9 @@ self-destruct states are easy to connect to their controls. Both pages state
 that unpublished and locked pages remain readable to anyone with the URL, and
 that only encryption hides the text itself. They explain that the full `#key`
 URL grants read and write access, lost keys are unrecoverable, conversion is
-non-retroactive, and server-delivered JavaScript replacement is outside the
-browser-client threat model.
+non-retroactive, and both server-delivered JavaScript replacement and
+configured third-party browser scripts are outside the browser-client threat
+model.
 
 The editor autosaves through the WebSocket. The cow action icon is labeled
 `yo`, remains visible at reduced opacity, becomes fully dark on editor input,
@@ -360,7 +366,8 @@ Permanent E2EE is a separate, irreversible page mode:
   memory and exposes it only as `/<name>#key=<base64url-key>`.
 - The fragment parser accepts exactly one unpadded 32-byte base64url `#key`
   value. The key is never placed in a request, WebSocket URL, local storage,
-  session storage, analytics event, or log.
+  session storage, first-party analytics event, or server log. Configured
+  third-party browser scripts can access the fragment and page DOM.
 - HKDF-SHA-256 uses a normalized page-path salt and domain-separated labels to
   derive independent 32-byte content and write-capability keys.
 - The whole plaintext document is encrypted with a fresh XChaCha20-Poly1305
@@ -385,8 +392,9 @@ Permanent E2EE is a separate, irreversible page mode:
   scrolling, and viewport changes.
 - The key menu action converts an unlocked, non-self-destruct ordinary page
   after its current save is acknowledged and an irreversible/non-retroactive
-  warning is accepted. Conversion reloads through tracker-free `?convert=1`,
-  forces unpublishing, and has no downgrade.
+  warning is accepted. Conversion reloads through `?convert=1`, forces
+  unpublishing, and has no downgrade. Configured AdSense and Umami scripts are
+  present during conversion.
 - On an active private page, copy-text copies plaintext and the key action
   copies the complete fragment URL. Publishing and legacy encrypted-block
   controls are disabled; page locking and self-destruct remain available after
@@ -533,8 +541,9 @@ SQLite path must remain under `/data` to be persistent.
 For PostgreSQL deployments, set `DATABASE_URL` through the Disco dashboard or
 CLI. Set `ADMIN_POST_KEY` there as well. Set `UMAMI_URL` and
 `UMAMI_WEBSITE_ID` there to enable Umami analytics. Set `GOOGLE_ADSENSE` there
-to enable Google AdSense and `GOOGLE_TAG` to enable the Google tag on ordinary
-pages. These integrations are omitted from private bootstrap and E2EE pages.
+to enable Google AdSense on every browser-rendered page, including private and
+E2EE pages. Set `GOOGLE_TAG` to enable the Google tag on ordinary pages; the
+Google tag remains omitted from private bootstrap and E2EE pages.
 Never put secrets in `disco.json`; Disco commits that
 file with the repository. The application applies database migrations during
 startup, so the Disco configuration does not define a separate migration hook.

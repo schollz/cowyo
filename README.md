@@ -49,9 +49,10 @@ cowyo uses SQLite by default. To use PostgreSQL, set `DATABASE_URL` as shown
 in `.env.example`. In production, set `SITE_URL` to the site's public origin
 (for example, `https://cowyo.com`) so canonical links, social previews,
 returned paste URLs, `robots.txt`, and the sitemap always use the authoritative
-domain. To enable Umami analytics, set `UMAMI_URL` to the Umami origin and
+domain. To enable Umami analytics on every browser-rendered page, including
+permanent private pages, set `UMAMI_URL` to the Umami origin and
 `UMAMI_WEBSITE_ID` to the Cowyo website ID from the Umami dashboard. To load
-Google AdSense on browser-rendered pages, set `GOOGLE_ADSENSE` to the
+Google AdSense on those pages, set `GOOGLE_ADSENSE` to the
 `ca-pub-XXXXXXXXXXXXXXXX` client ID supplied by AdSense.
 
 ## Features
@@ -93,7 +94,10 @@ Starting private means the server never received plaintext. Converting an
 existing page is not retroactive: plaintext already transmitted may remain in
 database history, backups, or logs. E2EE protects against server-side storage
 disclosure, but a server capable of replacing the JavaScript delivered to the
-browser is outside this browser-client threat model.
+browser is outside this browser-client threat model. Configured AdSense and
+Umami scripts also run on private pages and, like any same-page script, can
+access the URL fragment and decrypted editor content. Enable only providers
+you trust with that access.
 
 ### Password-encrypted blocks
 
