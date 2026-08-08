@@ -36,6 +36,7 @@ var pageMutationMu sync.Mutex
 
 const (
 	googleAdSenseEnvironment  = "GOOGLE_ADSENSE"
+	googleAdsTXTEnvironment   = "GOOGLE_ADS_TXT"
 	googleTagEnvironment      = "GOOGLE_TAG"
 	umamiURLEnvironment       = "UMAMI_URL"
 	umamiWebsiteIDEnvironment = "UMAMI_WEBSITE_ID"
@@ -155,6 +156,8 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 		return handleSitemap(w, r)
 	} else if r.URL.Path == "/robots.txt" {
 		return handleRobots(w, r)
+	} else if r.URL.Path == "/ads.txt" {
+		return handleAdsTXT(w, r)
 	} else if strings.HasPrefix(r.URL.Path, "/static") {
 		// serve static file from embed
 		w.Header().Set("Cache-Control", "max-age=86400")
@@ -449,6 +452,29 @@ func handleRobots(w http.ResponseWriter, r *http.Request) error {
 		"User-agent: *\nAllow: /\nSitemap: %s\n",
 		postedDocumentURL(r, "sitemap.xml"),
 	)
+	return err
+}
+
+func handleAdsTXT(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		w.Header().Set("Allow", "GET, HEAD")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+
+	contents, configured := os.LookupEnv(googleAdsTXTEnvironment)
+	if !configured {
+		http.NotFound(w, r)
+		return nil
+	}
+
+	w.Header().Set("Cache-Control", "public, max-age=300")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	if r.Method == http.MethodHead {
+		return nil
+	}
+	_, err := fmt.Fprint(w, contents)
 	return err
 }
 

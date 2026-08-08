@@ -798,6 +798,82 @@ func TestRobotsAdvertisesSitemap(t *testing.T) {
 	}
 }
 
+func TestAdsTXTServesConfiguredContents(t *testing.T) {
+	const contents = "google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0\nexample.com, seller, RESELLER"
+	t.Setenv(googleAdsTXTEnvironment, contents)
+	setUpHandlerTest(t, Page{Title: "seed"})
+
+	for _, method := range []string{http.MethodGet, http.MethodHead} {
+		t.Run(method, func(t *testing.T) {
+			request := httptest.NewRequest(method, "http://example.com/ads.txt", nil)
+			response := httptest.NewRecorder()
+			if err := handle(response, request); err != nil {
+				t.Fatalf("handle() error = %v", err)
+			}
+
+			if response.Code != http.StatusOK {
+				t.Errorf("status = %d, want %d", response.Code, http.StatusOK)
+			}
+			if got := response.Header().Get("Content-Type"); got != "text/plain; charset=utf-8" {
+				t.Errorf("Content-Type = %q, want text/plain", got)
+			}
+			wantBody := contents
+			if method == http.MethodHead {
+				wantBody = ""
+			}
+			if got := response.Body.String(); got != wantBody {
+				t.Errorf("body = %q, want %q", got, wantBody)
+			}
+		})
+	}
+}
+
+func TestAdsTXTIsReservedWhenNotConfigured(t *testing.T) {
+	previous, configured := os.LookupEnv(googleAdsTXTEnvironment)
+	if err := os.Unsetenv(googleAdsTXTEnvironment); err != nil {
+		t.Fatalf("unset %s: %v", googleAdsTXTEnvironment, err)
+	}
+	t.Cleanup(func() {
+		if configured {
+			if err := os.Setenv(googleAdsTXTEnvironment, previous); err != nil {
+				t.Errorf("restore %s: %v", googleAdsTXTEnvironment, err)
+			}
+		}
+	})
+	setUpHandlerTest(t, Page{Title: "ads.txt", Text: "paste contents"})
+
+	request := httptest.NewRequest(http.MethodGet, "http://example.com/ads.txt", nil)
+	response := httptest.NewRecorder()
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+
+	if response.Code != http.StatusNotFound {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusNotFound)
+	}
+	if strings.Contains(response.Body.String(), "paste contents") {
+		t.Error("ads.txt response contains paste contents")
+	}
+}
+
+func TestAdsTXTRejectsPosts(t *testing.T) {
+	t.Setenv(googleAdsTXTEnvironment, "configured")
+	setUpHandlerTest(t, Page{Title: "seed"})
+
+	request := httptest.NewRequest(http.MethodPost, "/ads.txt", strings.NewReader("replacement"))
+	response := httptest.NewRecorder()
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+
+	if response.Code != http.StatusMethodNotAllowed {
+		t.Errorf("status = %d, want %d", response.Code, http.StatusMethodNotAllowed)
+	}
+	if got := response.Header().Get("Allow"); got != "GET, HEAD" {
+		t.Errorf("Allow = %q, want GET, HEAD", got)
+	}
+}
+
 func TestBrowserGetsLockStateWithoutLockMetadataInPaste(t *testing.T) {
 	const (
 		title    = "locked-browser"

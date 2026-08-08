@@ -140,6 +140,8 @@ The server loads `.env` at startup.
   page, including private bootstrap, conversion bootstrap, and persisted E2EE
   responses. It must be a valid `ca-pub-` client ID with 16 digits for the
   script to render.
+- `GOOGLE_ADS_TXT` optionally serves its value verbatim at `/ads.txt` as
+  `text/plain`. The reserved route returns 404 when the variable is not set.
 - `GOOGLE_TAG` optionally adds the configured Google tag to ordinary
   browser-rendered pages. Google Tag is omitted from private bootstrap,
   conversion bootstrap, and persisted E2EE responses.
@@ -202,6 +204,8 @@ When changing the schema or query behavior:
   publication flag is set, using absolute URLs from `SITE_URL` or the request
   host and forwarded protocol.
 - `GET /robots.txt` allows crawling and advertises `/sitemap.xml`.
+- `GET /ads.txt` returns the verbatim `GOOGLE_ADS_TXT` value when configured;
+  otherwise the reserved route returns 404. It never resolves to a paste page.
 - Published page responses send `index, follow`; unpublished and missing page
   responses send `noindex, nofollow`.
 - Every browser page includes an absolute canonical URL, description, Open
@@ -542,8 +546,9 @@ For PostgreSQL deployments, set `DATABASE_URL` through the Disco dashboard or
 CLI. Set `ADMIN_POST_KEY` there as well. Set `UMAMI_URL` and
 `UMAMI_WEBSITE_ID` there to enable Umami analytics. Set `GOOGLE_ADSENSE` there
 to enable Google AdSense on every browser-rendered page, including private and
-E2EE pages. Set `GOOGLE_TAG` to enable the Google tag on ordinary pages; the
-Google tag remains omitted from private bootstrap and E2EE pages.
+E2EE pages. Set `GOOGLE_ADS_TXT` to serve the authorized digital seller
+declaration at `/ads.txt`. Set `GOOGLE_TAG` to enable the Google tag on ordinary
+pages; the Google tag remains omitted from private bootstrap and E2EE pages.
 Never put secrets in `disco.json`; Disco commits that
 file with the repository. The application applies database migrations during
 startup, so the Disco configuration does not define a separate migration hook.

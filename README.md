@@ -53,7 +53,9 @@ domain. To enable Umami analytics on every browser-rendered page, including
 permanent private pages, set `UMAMI_URL` to the Umami origin and
 `UMAMI_WEBSITE_ID` to the Cowyo website ID from the Umami dashboard. To load
 Google AdSense on those pages, set `GOOGLE_ADSENSE` to the
-`ca-pub-XXXXXXXXXXXXXXXX` client ID supplied by AdSense.
+`ca-pub-XXXXXXXXXXXXXXXX` client ID supplied by AdSense. Set `GOOGLE_ADS_TXT`
+to the authorized digital seller declaration that should be served verbatim
+from `/ads.txt`.
 
 ## Features
 
