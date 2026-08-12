@@ -466,9 +466,10 @@
             future saves, but plaintext already sent may remain in database
             history, backups, or logs. Because the server delivers the browser
             code, a server able to replace that JavaScript is outside this
-            client-side threat model. Configured AdSense and Umami scripts run
-            on private pages too and can access the URL fragment and decrypted
-            editor content, so enable only providers you trust.
+            client-side threat model. Configured Umami scripts run on private
+            pages too and can access the URL fragment and decrypted editor
+            content, so enable only providers you trust. AdSense is omitted
+            from private pages.
           </p>
         </section>
 
@@ -516,8 +517,9 @@
               offsets, and operations. Conversion cannot erase plaintext
               already sent from history, backups, or logs. A server that
               replaces the delivered JavaScript is outside this threat model.
-              Configured AdSense and Umami scripts also run here and can access
-              the URL fragment and decrypted editor content.
+              Configured Umami scripts also run here and can access the URL
+              fragment and decrypted editor content. AdSense is omitted from
+              private pages.
             </p>
           </div>
         </section>

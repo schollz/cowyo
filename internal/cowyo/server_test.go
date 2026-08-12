@@ -486,7 +486,10 @@ func TestBrowserPageOmitsUnconfiguredOrInvalidGoogleTag(t *testing.T) {
 func TestBrowserPageIncludesConfiguredGoogleAdSense(t *testing.T) {
 	const client = "ca-pub-1234567890123456"
 	t.Setenv(googleAdSenseEnvironment, client)
-	setUpHandlerTest(t, Page{Title: "ad-supported"})
+	setUpHandlerTest(t, Page{
+		Title: "ad-supported",
+		Text:  strings.TrimSpace(strings.Repeat("word ", googleAdSenseMinimumWords)),
+	})
 
 	for _, path := range []string{"/", "/about", "/ad-supported"} {
 		request := httptest.NewRequest(http.MethodGet, path, nil)
@@ -504,6 +507,70 @@ func TestBrowserPageIncludesConfiguredGoogleAdSense(t *testing.T) {
 		if !strings.Contains(body, `crossorigin="anonymous"`) {
 			t.Errorf("browser response for %q does not set anonymous cross-origin loading for AdSense", path)
 		}
+	}
+}
+
+func TestBrowserPageOmitsGoogleAdSenseBelowWordMinimum(t *testing.T) {
+	const client = "ca-pub-1234567890123456"
+	t.Setenv(googleAdSenseEnvironment, client)
+	setUpHandlerTest(t, Page{
+		Title: "too-short-for-ads",
+		Text:  strings.TrimSpace(strings.Repeat("word ", googleAdSenseMinimumWords-1)),
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/too-short-for-ads", nil)
+	request.Header.Set("User-Agent", "Mozilla/5.0")
+	response := httptest.NewRecorder()
+
+	if err := handle(response, request); err != nil {
+		t.Fatalf("handle() error = %v", err)
+	}
+	if body := response.Body.String(); strings.Contains(body, "pagead2.googlesyndication.com") {
+		t.Error("browser response includes AdSense below the word minimum")
+	}
+}
+
+func TestConfiguredPageGoogleAdSenseEligibility(t *testing.T) {
+	const client = "ca-pub-1234567890123456"
+	t.Setenv(googleAdSenseEnvironment, client)
+	eligibleText := strings.TrimSpace(strings.Repeat("word ", googleAdSenseMinimumWords))
+
+	for _, test := range []struct {
+		name                string
+		page                Page
+		privateBootstrap    bool
+		conversionBootstrap bool
+		want                string
+	}{
+		{
+			name: "ordinary page at word minimum",
+			page: Page{Text: eligibleText},
+			want: client,
+		},
+		{
+			name: "ordinary page below word minimum",
+			page: Page{Text: strings.TrimSpace(strings.Repeat("word ", googleAdSenseMinimumWords-1))},
+		},
+		{
+			name: "persisted E2EE page",
+			page: Page{Text: eligibleText, EndToEndEncrypted: true},
+		},
+		{
+			name:             "private bootstrap",
+			page:             Page{Text: eligibleText},
+			privateBootstrap: true,
+		},
+		{
+			name:                "conversion bootstrap",
+			page:                Page{Text: eligibleText},
+			conversionBootstrap: true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := configuredPageGoogleAdSense(test.page, test.privateBootstrap, test.conversionBootstrap); got != test.want {
+				t.Errorf("configuredPageGoogleAdSense() = %q, want %q", got, test.want)
+			}
+		})
 	}
 }
 

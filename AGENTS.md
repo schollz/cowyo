@@ -136,10 +136,11 @@ The server loads `.env` at startup.
   and persisted E2EE responses. The URL must be an HTTP(S) origin without a
   path, query, fragment, or credentials, and the website ID must be a UUID.
   Both values must be valid for the tracker to render.
-- `GOOGLE_ADSENSE` optionally adds Google AdSense to every browser-rendered
-  page, including private bootstrap, conversion bootstrap, and persisted E2EE
-  responses. It must be a valid `ca-pub-` client ID with 16 digits for the
-  script to render.
+- `GOOGLE_ADSENSE` optionally adds Google AdSense to the landing and About
+  pages and to ordinary browser-rendered paste pages containing at least 30
+  words. Private bootstrap, conversion bootstrap, and persisted E2EE responses
+  always omit it. The value must be a valid `ca-pub-` client ID with 16 digits
+  for the script to render.
 - `GOOGLE_ADS_TXT` optionally serves its value verbatim at `/ads.txt` as
   `text/plain`. The reserved route returns 404 when the variable is not set.
 - `GOOGLE_TAG` optionally adds the configured Google tag to ordinary
@@ -182,8 +183,8 @@ When changing the schema or query behavior:
 - The landing page's private action, `GET /?new=private`, redirects to a random
   `?private=1` bootstrap path. That page creates its key and empty ciphertext
   locally, then uses an atomic WebSocket create so a name collision can never
-  convert an existing ordinary page. Configured AdSense and Umami scripts are
-  present on the bootstrap page.
+  convert an existing ordinary page. Configured Umami remains present on the
+  bootstrap page, while AdSense is omitted.
 - `GET /about` renders the indexable About page for browser and command-line
   user agents. `/about` is a reserved site route and rejects POSTs.
 - `GET /name` returns the browser editor normally.
@@ -195,11 +196,11 @@ When changing the schema or query behavior:
 - An unlocked page armed for self destruct is returned by exactly one final
   browser or curl GET and atomically deleted as part of that load. HEAD does
   not consume it, and the final response uses `Cache-Control: no-store`.
-- A persisted E2EE page always returns generic noindex metadata, includes
-  configured AdSense and Umami scripts, and returns only ciphertext to curl. An
-  E2EE self-destruct page withholds ciphertext from browser HTML and curl; only
-  a capability-authenticated WebSocket can atomically consume and receive the
-  final ciphertext.
+- A persisted E2EE page always returns generic noindex metadata, includes the
+  configured Umami script but omits AdSense, and returns only ciphertext to
+  curl. An E2EE self-destruct page withholds ciphertext from browser HTML and
+  curl; only a capability-authenticated WebSocket can atomically consume and
+  receive the final ciphertext.
 - `GET /sitemap.xml` lists the home and About pages plus pages whose persisted
   publication flag is set, using absolute URLs from `SITE_URL` or the request
   host and forwarded protocol.
@@ -217,9 +218,12 @@ When changing the schema or query behavior:
   `UMAMI_WEBSITE_ID` are configured, including private bootstrap, conversion
   bootstrap, and persisted E2EE pages; curl plaintext responses never include
   analytics markup.
-- Every browser page includes the Google AdSense loader when `GOOGLE_ADSENSE`
-  contains a valid client ID, including private bootstrap, conversion bootstrap,
-  and persisted E2EE pages; curl plaintext responses never include it.
+- The landing and About pages include the Google AdSense loader when
+  `GOOGLE_ADSENSE` contains a valid client ID. Ordinary browser paste pages
+  include it only when their server-stored text contains at least 30
+  whitespace-delimited words. Private bootstrap, conversion bootstrap, and
+  persisted E2EE pages always omit it; curl plaintext responses never include
+  it.
 - Social previews and structured data use the official vendored cowyo logo at
   `/static/logo.jpg`; `/static/og.jpg` is the centered 1200×630 derivative for
   large link cards.
@@ -397,8 +401,8 @@ Permanent E2EE is a separate, irreversible page mode:
 - The key menu action converts an unlocked, non-self-destruct ordinary page
   after its current save is acknowledged and an irreversible/non-retroactive
   warning is accepted. Conversion reloads through `?convert=1`, forces
-  unpublishing, and has no downgrade. Configured AdSense and Umami scripts are
-  present during conversion.
+  unpublishing, and has no downgrade. Configured Umami remains present during
+  conversion, while AdSense is omitted.
 - On an active private page, copy-text copies plaintext and the key action
   copies the complete fragment URL. Publishing and legacy encrypted-block
   controls are disabled; page locking and self-destruct remain available after
@@ -545,10 +549,11 @@ SQLite path must remain under `/data` to be persistent.
 For PostgreSQL deployments, set `DATABASE_URL` through the Disco dashboard or
 CLI. Set `ADMIN_POST_KEY` there as well. Set `UMAMI_URL` and
 `UMAMI_WEBSITE_ID` there to enable Umami analytics. Set `GOOGLE_ADSENSE` there
-to enable Google AdSense on every browser-rendered page, including private and
-E2EE pages. Set `GOOGLE_ADS_TXT` to serve the authorized digital seller
-declaration at `/ads.txt`. Set `GOOGLE_TAG` to enable the Google tag on ordinary
-pages; the Google tag remains omitted from private bootstrap and E2EE pages.
+to enable Google AdSense on the landing page, About page, and ordinary browser
+pastes with at least 30 words; private and E2EE pages omit it. Set
+`GOOGLE_ADS_TXT` to serve the authorized digital seller declaration at
+`/ads.txt`. Set `GOOGLE_TAG` to enable the Google tag on ordinary pages; the
+Google tag remains omitted from private bootstrap and E2EE pages.
 Never put secrets in `disco.json`; Disco commits that
 file with the repository. The application applies database migrations during
 startup, so the Disco configuration does not define a separate migration hook.

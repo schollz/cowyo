@@ -393,7 +393,7 @@ func TestE2EEWebsocketRequiresAuthenticationForOperationsAndCursors(t *testing.T
 	}
 }
 
-func TestE2EEResponsesIncludeAdsAndUmamiButOmitGoogleTag(t *testing.T) {
+func TestE2EEResponsesOmitAdsAndGoogleTagButIncludeUmami(t *testing.T) {
 	const title = "private-response"
 	t.Setenv(googleTagEnvironment, "G-PRIVATE-TEST")
 	t.Setenv(googleAdSenseEnvironment, "ca-pub-1234567890123456")
@@ -423,8 +423,8 @@ func TestE2EEResponsesIncludeAdsAndUmamiButOmitGoogleTag(t *testing.T) {
 		if !strings.Contains(body, wantTitle) {
 			t.Errorf("GET %s does not contain title %q", test.path, wantTitle)
 		}
-		if !strings.Contains(body, "pagead2.googlesyndication.com") {
-			t.Errorf("GET %s does not include configured AdSense", test.path)
+		if strings.Contains(body, "pagead2.googlesyndication.com") {
+			t.Errorf("GET %s includes configured AdSense", test.path)
 		}
 		if !strings.Contains(body, `src="https://analytics.example/script.js"`) ||
 			!strings.Contains(body, `data-website-id="123e4567-e89b-12d3-a456-426614174000"`) {

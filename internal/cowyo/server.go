@@ -261,12 +261,13 @@ func handle(w http.ResponseWriter, r *http.Request) (err error) {
 		_, err = fmt.Fprint(w, p.Text)
 		return
 	}
+	googleAdSense := configuredPageGoogleAdSense(p, privateBootstrap, conversionBootstrap)
 	p.Text = html.EscapeString(p.Text)
 	p.Text = policy.Sanitize(p.Text)
 	data := pageTemplateData{
 		Page:                p,
 		DocumentTitle:       html.EscapeString(pageDocumentTitle(p.Title, p.EndToEndEncrypted || privateBootstrap || conversionBootstrap)),
-		GoogleAdSense:       configuredGoogleAdSense(),
+		GoogleAdSense:       googleAdSense,
 		PrivateBootstrap:    privateBootstrap,
 		ConversionBootstrap: conversionBootstrap,
 		SEO:                 seo,
@@ -346,12 +347,22 @@ func redirectToRandomDocument(w http.ResponseWriter, r *http.Request, private bo
 
 var googleAdSensePattern = regexp.MustCompile(`^ca-pub-[0-9]{16}$`)
 
+const googleAdSenseMinimumWords = 30
+
 func configuredGoogleAdSense() string {
 	client := strings.TrimSpace(os.Getenv(googleAdSenseEnvironment))
 	if !googleAdSensePattern.MatchString(client) {
 		return ""
 	}
 	return client
+}
+
+func configuredPageGoogleAdSense(p Page, privateBootstrap, conversionBootstrap bool) string {
+	if p.EndToEndEncrypted || privateBootstrap || conversionBootstrap ||
+		len(strings.Fields(p.Text)) < googleAdSenseMinimumWords {
+		return ""
+	}
+	return configuredGoogleAdSense()
 }
 
 var googleTagPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,100}$`)
